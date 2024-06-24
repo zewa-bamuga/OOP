@@ -1,0 +1,38 @@
+version: '3.7'
+
+volumes:
+  postgres_data: { }
+  fastapi_media: { }
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./deploy/compose/local/fastapi.dockerfile
+    volumes:
+      - ./src:/src
+      - fastapi_media:/media
+    environment:
+      - MODULE_NAME=app.fastapi
+    depends_on:
+      - postgres
+    command: /start-reload-fastapi.sh
+    env_file:
+      - .env.example
+      - .env
+    restart: "unless-stopped"
+    ports:
+      - 8000:80
+
+  postgres:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env.example
+      - .env
+    restart: "unless-stopped"
+    ports:
+      - 5432:5432
