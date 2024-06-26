@@ -1,7 +1,7 @@
 import os.path
 
 __version__ = "0.0.1"
-__project_name__ = "A guide to unusual places"
+__project_name__ = "Service for the Department of Educational Programs"
 __root_dir__ = os.path.dirname(os.path.abspath(__file__))
 __api_description__ = """
 ## Service Logic

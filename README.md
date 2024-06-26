@@ -1,3 +1,3 @@
-# The application is a guide to unusual places
+# Service for the Department of Educational Programs
 
 Project for the fast api backend

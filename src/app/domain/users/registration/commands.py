@@ -15,7 +15,7 @@ class UserRegisterCommand:
     async def __call__(self, payload: UserCredentials) -> UserDetails:
         return await self.user_create_command(
             UserCreate(
-                username=payload.username,
+                firstname=payload.firstname,
                 email=payload.email,
                 password_hash=(await self.password_hash_service.hash(payload.password)),
                 avatar_attachment_id=None,

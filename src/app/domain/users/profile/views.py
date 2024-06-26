@@ -24,8 +24,8 @@ async def user_token(token: str):
 )
 @wiring.inject
 async def get_me(
-    token: str = Header(...),
-    query: UserProfileMeQuery = Depends(Provide[Container.user.profile_me_query]),
+        token: str = Header(...),
+        query: UserProfileMeQuery = Depends(Provide[Container.user.profile_me_query]),
 ) -> UserDetails:
     async with user_token(token):
         return await query()

@@ -69,7 +69,6 @@ async def password_reset_confirm(
 ) -> None:
     await command(payload)
 
-
 # @router.get(
 #     "/get_by_username",
 #     response_model=UUID,

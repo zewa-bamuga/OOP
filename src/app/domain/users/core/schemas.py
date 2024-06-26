@@ -15,8 +15,14 @@ from a8t_tools.db import sorting as sr
 
 class User(APIModel):
     id: UUID
-    username: str
-    email: str
+    firstname: str
+    lastname: str
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr
+    description: str | None = None
+    years: int | None = None
+    link_to_vk: str | None = None
     status: UserStatuses
     avatar_attachment_id: UUID | None = None
     created_at: datetime
@@ -31,14 +37,21 @@ class UserDetailsFull(UserDetails):
 
 
 class UserCredentials(APIModel):
-    username: str
+    firstname: str
+    lastname: str
     email: str
     password: str
 
 
 class UserCreate(APIModel):
-    username: str
-    email: EmailStr
+    firstname: str | None = None
+    lastname: str | None = None
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
+    years: int | None = None
+    link_to_vk: str | None = None
     password_hash: str
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
@@ -49,7 +62,7 @@ class UserCreateFull(UserCreate):
 
 
 class UserPartialUpdate(APIModel):
-    username: str | None = None
+    firstname: str | None = None
     email: EmailStr | None = None
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
@@ -62,8 +75,14 @@ class UserPartialUpdateFull(UserPartialUpdate):
 
 class UserInternal(APIModel):
     id: UUID
-    username: str
-    email: str
+    firstname: str
+    lastname: str
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr
+    description: str | None = None
+    years: int | None = None
+    link_to_vk: str | None = None
     password_hash: str
     permissions: set[str] | None = None
     avatar_attachment_id: UUID | None = None
@@ -74,7 +93,7 @@ class UserInternal(APIModel):
 
 class UserSorts(enum.StrEnum):
     id = enum.auto()
-    username = enum.auto()
+    firstname = enum.auto()
     email = enum.auto()
     status = enum.auto()
     created_at = enum.auto()
@@ -91,7 +110,7 @@ class UpdatePasswordConfirm(APIModel):
 
 
 class UserProfilePartialUpdate(APIModel):
-    username: str | None = None
+    firstname: str | None = None
     password: str | None = None
 
 
@@ -113,7 +132,7 @@ class UserListRequestSchema:
 @dataclass
 class UserWhere:
     id: UUID | None = None
-    username: str | None = None
+    firstname: str | None = None
     email: str | None = None
 
 
