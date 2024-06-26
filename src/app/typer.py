@@ -45,7 +45,7 @@ async def noop() -> None:
 @typer_app.command()
 @async_to_sync
 async def create_superuser(
-        username: str = typer.Argument(...),
+        firstname: str = typer.Argument(...),
         email: str = typer.Argument(...),
         password: str = typer.Argument(...),
 ) -> None:
@@ -54,7 +54,7 @@ async def create_superuser(
     try:
         await command(
             UserCreate(
-                username=username,
+                firstname=firstname,
                 email=email,
                 password_hash=password_hash,
                 permissions={BasePermissions.superuser},
@@ -62,3 +62,37 @@ async def create_superuser(
         )
     except DatabaseError as err:
         logger.warning(f"Superuser creation error: {err}")
+
+
+@typer_app.command()
+@async_to_sync
+async def create_user(
+        firstname: str = typer.Argument(...),
+        lastname: str = typer.Argument(...),
+        qualification: str = typer.Argument(...),
+        post: str = typer.Argument(...),
+        email: str = typer.Argument(...),
+        description: str = typer.Argument(...),
+        years: int = typer.Argument(...),
+        link_to_vk: str = typer.Argument(...),
+        password: str = typer.Argument(...),
+) -> None:
+    password_hash = await container.user.password_hash_service().hash(password)
+    command = container.user.create_command()
+    try:
+        await command(
+            UserCreate(
+                firstname=firstname,
+                lastname=lastname,
+                qualification=qualification,
+                post=post,
+                email=email,
+                description=description,
+                years=years,
+                link_to_vk=link_to_vk,
+                password_hash=password_hash,
+                permissions={BasePermissions.user},
+            ),
+        )
+    except DatabaseError as err:
+        logger.warning(f"User creation error: {err}")

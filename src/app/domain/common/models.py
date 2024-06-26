@@ -31,8 +31,14 @@ class Attachment(Base):
 class User(Base):
     __tablename__ = "user"
 
-    username = Column(String, unique=True)
-    email = Column(String, unique=True)
+    firstname = Column(String, unique=False, nullable=True)
+    lastname = Column(String, unique=False, nullable=True)
+    qualification = Column(String, unique=False, nullable=True)
+    post = Column(String, unique=False, nullable=True)
+    email = Column(String, unique=True, nullable=True)
+    description = Column(String, unique=False, nullable=True)
+    years = Column(Integer, unique=False, nullable=True)
+    link_to_vk = Column(String, unique=False, nullable=True)
     status = Column(String)
     password_hash = Column(String)
     avatar_attachment_id = Column(

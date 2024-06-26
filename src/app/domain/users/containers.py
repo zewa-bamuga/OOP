@@ -202,7 +202,7 @@ class UserContainer(containers.DeclarativeContainer):
 
     authenticate_command = providers.Factory(
         UserAuthenticateCommand,
-        user_retrieve_by_username_query=retrieve_by_username_query,
+        get_user_by_email=get_user_by_email,
         password_hash_service=password_hash_service,
         command=token_create_command,
     )

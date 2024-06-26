@@ -42,8 +42,8 @@ class UserRetrieveByUsernameQuery:
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
-    async def __call__(self, username: str) -> schemas.UserInternal | None:
-        return await self.repository.get_user_by_filter_or_none(schemas.UserWhere(username=username))
+    async def __call__(self, firstname: str) -> schemas.UserInternal | None:
+        return await self.repository.get_user_by_filter_or_none(schemas.UserWhere(firstname=firstname))
 
 
 class UserRetrieveByEmailQuery:
