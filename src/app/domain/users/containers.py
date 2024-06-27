@@ -29,6 +29,7 @@ from app.domain.users.core.queries import (
     UserRetrieveByUsernameQuery,
     UserRetrieveQuery, UserRetrieveByEmailQuery, EmailRetrieveQuery, UserRetrieveByCodeQuery,
 )
+from app.domain.users.registration.hi import Generate_Password, First_Registration
 from app.domain.users.core.repositories import UserRepository, \
     UpdatePasswordRepository
 from app.domain.users.permissions.queries import UserPermissionListQuery
@@ -95,6 +96,14 @@ class UserContainer(containers.DeclarativeContainer):
     activate_command = providers.Factory(
         UserActivateCommand,
         repository=repository,
+    )
+
+    generate_password = providers.Factory(
+        Generate_Password,
+    )
+
+    first_registration = providers.Factory(
+        First_Registration,
     )
 
     password_hash_service = providers.Factory(

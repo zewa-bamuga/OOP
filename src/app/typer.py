@@ -12,6 +12,8 @@ from app.domain.users.core.schemas import UserCreate
 from app.domain.users.permissions.schemas import BasePermissions
 from a8t_tools.db.exceptions import DatabaseError
 
+from app.domain.users.registration.hi import First_Registration
+
 
 def async_to_sync(fn: Callable[..., Any]) -> Callable[..., Any]:
     if not asyncio.iscoroutinefunction(fn):
@@ -75,9 +77,9 @@ async def create_user(
         description: str = typer.Argument(...),
         years: int = typer.Argument(...),
         link_to_vk: str = typer.Argument(...),
-        password: str = typer.Argument(...),
 ) -> None:
-    password_hash = await container.user.password_hash_service().hash(password)
+    generate_password = container.user.generate_password()
+    password_hash = await container.user.password_hash_service().hash(generate_password)
     command = container.user.create_command()
     try:
         await command(
@@ -94,5 +96,8 @@ async def create_user(
                 permissions={BasePermissions.user},
             ),
         )
+        await container.user.first_registration(email, generate_password)
+        print("Сгенерированный пароль", generate_password)
+
     except DatabaseError as err:
         logger.warning(f"User creation error: {err}")

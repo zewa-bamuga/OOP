@@ -21,7 +21,6 @@ POSTS=("$POST1" "$POST2")
 EMAILS=("$EMAIL1" "$EMAIL2")
 DESCRIPTIONS=("$DESCRIPTION1" "$DESCRIPTION2")
 YEARSS=("$YEARS1" "$YEARS2")
-PASSWORDS=("$PASSWORD1" "$PASSWORD2")
 LINK_TO_VKS=("$LINK_TO_VK1" "$LINK_TO_VK2")
 
 
@@ -34,10 +33,9 @@ for ((i=0; i<${#EMAILS[@]}; i++)); do
   DESCRIPTION="${DESCRIPTIONS[i]}"
   YEARS="${YEARSS[i]}"
   LINK_TO_VK="${LINK_TO_VKS[i]}"
-  PASSWORD="${PASSWORDS[i]}"
 
   if [ -n "${EMAIL}" ]; then
-    python manage.py create-user "${FIRSTNAME}" "${LASTNAME}" "${QUALIFICATION}" "${POST}" "${EMAIL}" "${DESCRIPTION}" "${YEARS}" "${LINK_TO_VK}" "${PASSWORD}" || true
+    python manage.py create-user "${FIRSTNAME}" "${LASTNAME}" "${QUALIFICATION}" "${POST}" "${EMAIL}" "${DESCRIPTION}" "${YEARS}" "${LINK_TO_VK}" || true
   fi
 done
 

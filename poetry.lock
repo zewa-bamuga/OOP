@@ -1142,6 +1142,21 @@ url = "https://git.aldera-soft.ru/api/v4/projects/273/packages/pypi/simple"
 reference = "gitlab"
 
 [[package]]
+name = "generate-password"
+version = "1.0.0"
+description = "generate a password"
+optional = false
+python-versions = "*"
+files = [
+    {file = "generate_password-1.0.0.zip", hash = "sha256:ee244e864b2164c9149c11907f3ac7786c0012b93ed0d1b087e6acfd99ef4b84"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://git.aldera-soft.ru/api/v4/projects/273/packages/pypi/simple"
+reference = "gitlab"
+
+[[package]]
 name = "greenlet"
 version = "3.0.3"
 description = "Lightweight in-process concurrent programming"
@@ -2988,4 +3003,4 @@ reference = "gitlab"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "17272154e72098d228e0438848b27732253cde432c8b69e22856c497f7f053cd"
+content-hash = "fb80dd4c71e07f0a6714c99419edf7423b6db53a5091759d9af2f4f8a6ee2a50"
