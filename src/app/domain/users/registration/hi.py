@@ -92,11 +92,11 @@ async def send_password_reset_email(email: str, code: str):
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;">
             <h2 style="color: #FFD700;">Сброс пароля</h2>
             <p>Здравствуйте,</p>
-            <p>Вы запросили сброс пароля на платформе Путеводитель по необычным местам.</p>
+            <p>Вы запросили сброс пароля на платформе Отдела Образовательных Программ.</p>
             <p>Код для сброса пароля:</p>
             <p style="font-size: 18px; font-weight: bold; color: #FFD700;">{code}</p>
             <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
-            <p>С уважением,<br>Ваша команда Путеводитель по необычным местам</p>
+            <p>С уважением,<br>Ваш Отдел Образовательных Программ</p>
             <p style="margin-top: 20px; color: #777; font-size: 12px;">Если у вас возникли какие-либо вопросы, пожалуйста, свяжитесь с нами.</p>
         </div>
     </body>

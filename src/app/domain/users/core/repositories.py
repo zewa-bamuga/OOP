@@ -1,5 +1,6 @@
 from uuid import UUID
 
+import sqlalchemy as sa
 from a8t_tools.db.pagination import PaginationCallable, Paginated
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
@@ -21,6 +22,10 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
 
     async def create_update_password(self, payload: schemas.PasswordResetCode) -> IdContainerTables:
         return IdContainerTables(id=await self._create(payload))
+
+    async def delete_code(self, user_id: UUID) -> None:
+        stmt = sa.delete(models.PasswordResetCode).where(models.PasswordResetCode.user_id == user_id)
+        await self.transaction.execute(stmt)
 
     async def get_password_reset_code_by_code_or_none(self,
                                                       where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:

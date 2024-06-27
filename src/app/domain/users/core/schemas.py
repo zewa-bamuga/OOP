@@ -69,7 +69,7 @@ class UserPartialUpdate(APIModel):
     status: str | None = None
 
 
-class UserPartialUpdateFull(UserPartialUpdate):
+class UserPartialUpdateFull(APIModel):
     password_hash: str | None = None
 
 

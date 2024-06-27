@@ -37,6 +37,9 @@ class UpdatePasswordRequestCommand:
             user_id=user_id,
             code=code,
         )
+
+        await self.repository.delete_code(user_id)
+
         password_reset_code_id_container = await self.repository.create_update_password(password_reset_code)
         await send_password_reset_email(email, code)
         logger.info("Password reset code created: {password_reset_code_id}",
@@ -46,10 +49,7 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(
-            self,
-            repository: UserRepository,
-    ):
+    def __init__(self, repository: UserRepository):
         self.repository = repository
 
     async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdateFull) -> schemas.UserDetailsFull:
@@ -87,13 +87,12 @@ class UpdatePasswordConfirmCommand:
         password_hash = await self.password_hash_service.hash(payload.password)
 
         update_payload = schemas.UserPartialUpdateFull(
-            email=email,
             password_hash=password_hash
         )
 
-        await self.user_partial_update_command(
-            user_id, update_payload
-        )
+        await self.user_partial_update_command(user_id, update_payload)
+
+        print("user_id: ", user_id, "\nupdate_payload: ", update_payload)
 
 
 class UserCreateCommand:
