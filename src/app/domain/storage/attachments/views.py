@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
 from uuid import UUID
 
+from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, Header
 
 from app.api import deps
 from app.containers import Container
@@ -14,6 +16,29 @@ from app.domain.storage.attachments.queries import (
 from a8t_tools.db import pagination, sorting
 
 router = APIRouter()
+
+
+@asynccontextmanager
+async def user_token(token: str):
+    async with override_user_token(token or ""):
+        yield
+
+
+@router.post("", response_model=schemas.Attachment)
+@wiring.inject
+async def create_attachment(
+        attachment: UploadFile,
+        token: str = Header(...),
+        command: AttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.create_command]),
+) -> schemas.Attachment:
+    return await command(
+        schemas.AttachmentCreate(
+            file=attachment.file,
+            name=attachment.filename,
+        ),
+        token,
+    )
+
 
 
 @router.get(

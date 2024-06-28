@@ -8,22 +8,23 @@ from typing import IO
 
 from app.domain.storage.attachments import schemas
 from app.domain.storage.attachments.repositories import AttachmentRepository
+from app.domain.users.auth.queries import CurrentUserQuery
 
 
 class AttachmentCreateCommand:
     def __init__(
-        self,
-        repository: AttachmentRepository,
-        file_storage: FileStorage,
-        bucket: str,
-        max_name_len: int = 60,
+            self,
+            repository: AttachmentRepository,
+            file_storage: FileStorage,
+            bucket: str,
+            max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, payload: schemas.AttachmentCreate) -> schemas.Attachment:
+    async def __call__(self, payload: schemas.AttachmentCreate, token: str) -> schemas.Attachment:
         name = payload.name or self._get_random_name()
         path = self._generate_path(name)
         uri = await self.file_storage.upload_file(self.bucket, path, payload.file)
@@ -60,9 +61,9 @@ class AttachmentCreateCommand:
 
 class AttachmentDataRetrieveCommand:
     def __init__(
-        self,
-        file_storage: FileStorage,
-        bucket: str,
+            self,
+            file_storage: FileStorage,
+            bucket: str,
     ):
         self.file_storage = file_storage
         self.bucket = bucket

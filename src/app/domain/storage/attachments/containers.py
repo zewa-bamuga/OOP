@@ -9,6 +9,8 @@ from app.domain.storage.attachments.queries import (
     AttachmentRetrieveQuery,
 )
 from app.domain.storage.attachments.repositories import AttachmentRepository
+from app.domain.users.auth.queries import CurrentUserQuery
+from app.domain.users.containers import UserContainer
 
 
 class AttachmentContainer(containers.DeclarativeContainer):

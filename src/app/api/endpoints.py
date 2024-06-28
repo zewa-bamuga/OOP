@@ -34,11 +34,11 @@ management.include_router(
 )
 
 storage_router = APIRouter(prefix="/storage")
-# storage_router.include_router(
-#     app.domain.storage.attachments.views.router,
-#     prefix="/v1/attachments",
-#     tags=["attachments"],
-# )
+storage_router.include_router(
+    app.domain.storage.attachments.views.router,
+    prefix="/v1/attachments",
+    tags=["attachments"],
+)
 
 router = APIRouter(
     responses={

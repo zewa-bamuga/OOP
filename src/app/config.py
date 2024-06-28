@@ -55,24 +55,24 @@ class DatabaseSettings(BaseSettings):
 #     model_config = SettingsConfigDict(env_prefix="MQ_")
 
 
-# class StorageSettings(BaseSettings):  # Это Amazon S3, нужно ли мне это
-#     class LocalConnectionSettings(BaseSettings):
-#         base_path: str = Field(default=...)
-#         base_uri: str = Field(default=...)
-#         model_config = SettingsConfigDict(env_prefix="LOCAL_STORAGE_")
-#
-#     class S3ConnectionSettings(BaseSettings):
-#         endpoint_uri: str = Field(default=...)
-#         access_key_id: str = Field(default=...)
-#         secret_access_key: str = Field(default=...)
-#         public_storage_uri: str = Field(default=...)
-#         model_config = SettingsConfigDict(env_prefix="S3_")
-#
-#     default_bucket: str = Field(default="bucket")
-#     use_s3: bool = Field(default=False)
-#     local_storage: LocalConnectionSettings = LocalConnectionSettings()
-#     s3_storage: S3ConnectionSettings = S3ConnectionSettings()
-#     model_config = SettingsConfigDict(env_prefix="STORAGE_")
+class StorageSettings(BaseSettings):
+    class LocalConnectionSettings(BaseSettings):
+        base_path: str = Field(default=...)
+        base_uri: str = Field(default=...)
+        model_config = SettingsConfigDict(env_prefix="LOCAL_STORAGE_")
+
+    class S3ConnectionSettings(BaseSettings):
+        endpoint_uri: str = Field(default=...)
+        access_key_id: str = Field(default=...)
+        secret_access_key: str = Field(default=...)
+        public_storage_uri: str = Field(default=...)
+        model_config = SettingsConfigDict(env_prefix="S3_")
+
+    default_bucket: str = Field(default="department-of-educational-programs-bucket")
+    use_s3: bool = Field(default=True)
+    local_storage: LocalConnectionSettings = LocalConnectionSettings()
+    s3_storage: S3ConnectionSettings = S3ConnectionSettings()
+    model_config = SettingsConfigDict(env_prefix="STORAGE_")
 
 
 class TasksSettings(BaseSettings):
@@ -87,5 +87,5 @@ class Settings(BaseSettings):
     sentry: SentrySettings = SentrySettings()
     db: DatabaseSettings = DatabaseSettings()
     # mq: MessageQueueSettings = MessageQueueSettings()
-    # storage: StorageSettings = StorageSettings()
+    storage: StorageSettings = StorageSettings()
     tasks: TasksSettings = TasksSettings()
