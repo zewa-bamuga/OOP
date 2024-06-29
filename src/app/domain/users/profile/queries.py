@@ -14,5 +14,5 @@ class UserProfileMeQuery:
         self.current_user_query = current_user_query
 
     async def __call__(self) -> UserDetails:
-        await self.permission_service.assert_permissions(BasePermissions.authenticated)
+        await self.permission_service.assert_permissions(BasePermissions.superuser)
         return await self.current_user_query()

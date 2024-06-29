@@ -31,14 +31,13 @@ async def create_attachment(
         token: str = Header(...),
         command: AttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.create_command]),
 ) -> schemas.Attachment:
-    return await command(
-        schemas.AttachmentCreate(
-            file=attachment.file,
-            name=attachment.filename,
-        ),
-        token,
-    )
-
+    async with user_token(token):
+        return await command(
+            schemas.AttachmentCreate(
+                file=attachment.file,
+                name=attachment.filename,
+            ),
+        )
 
 
 @router.get(

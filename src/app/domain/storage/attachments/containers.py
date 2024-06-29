@@ -26,9 +26,13 @@ class AttachmentContainer(containers.DeclarativeContainer):
 
     retrieve_query = providers.Factory(AttachmentRetrieveQuery, repository=repository)
 
+    user_container = providers.Container(UserContainer)  # Добавляем зависимость от UserContainer
+
     create_command = providers.Factory(
         AttachmentCreateCommand,
         repository=repository,
         file_storage=file_storage,
         bucket=bucket,
+        current_user_query=user_container.profile_me_query,
+        user_partial_update_command=user_container.partial_update_command,
     )

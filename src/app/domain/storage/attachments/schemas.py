@@ -17,6 +17,10 @@ class Attachment(APIModel):
     created_at: datetime
 
 
+class UserPartialUpdateAttachment(APIModel):
+    id: UUID
+
+
 @dataclass
 class AttachmentCreate:
     name: str | None

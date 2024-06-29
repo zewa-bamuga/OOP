@@ -1,3 +1,6 @@
+install:
+	poetry install
+
 run:
 	cp -f ./deploy/compose/local/docker-compose.yml docker-compose.yml && \
 		cp -n .env.example .env && \

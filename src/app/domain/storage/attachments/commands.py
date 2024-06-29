@@ -7,24 +7,33 @@ from collections.abc import AsyncIterator
 from typing import IO
 
 from app.domain.storage.attachments import schemas
+from app.domain.users.core import schemas as lol
 from app.domain.storage.attachments.repositories import AttachmentRepository
-from app.domain.users.auth.queries import CurrentUserQuery
+from app.domain.users.core.commands import UserPartialUpdateCommand
+from app.domain.users.profile.queries import UserProfileMeQuery
 
 
+# commands.py
 class AttachmentCreateCommand:
     def __init__(
             self,
             repository: AttachmentRepository,
             file_storage: FileStorage,
+            current_user_query: UserProfileMeQuery,
+            user_partial_update_command: UserPartialUpdateCommand,
             bucket: str,
             max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
+        self.current_user_query = current_user_query
+        self.user_partial_update_command = user_partial_update_command
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, payload: schemas.AttachmentCreate, token: str) -> schemas.Attachment:
+    async def __call__(self, payload: schemas.AttachmentCreate) -> schemas.Attachment:
+        current_user = await self.current_user_query()
+
         name = payload.name or self._get_random_name()
         path = self._generate_path(name)
         uri = await self.file_storage.upload_file(self.bucket, path, payload.file)
@@ -36,6 +45,12 @@ class AttachmentCreateCommand:
             )
         )
         attachment = await self.repository.get_attachment_or_none(id_container.id)
+        attachment_id = attachment.id
+
+        update_payload = lol.UserPartialUpdate(avatar_attachment_id=attachment_id)
+
+        await self.user_partial_update_command(current_user.id, update_payload)
+
         assert attachment
         return attachment
 

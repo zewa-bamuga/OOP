@@ -1,20 +1,14 @@
-import datetime
-import secrets
-import uuid
 from uuid import UUID
 
 from a8t_tools.security.hashing import PasswordHashService
-from fastapi import HTTPException
 from loguru import logger
-from pydantic import EmailStr
 
 from app.domain.common import enums
 from app.domain.common.models import PasswordResetCode
 from app.domain.users.core import schemas
-from app.domain.users.core.queries import UserRetrieveByUsernameQuery, UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
+from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
 from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository
-from app.domain.users.core.schemas import UpdatePasswordRequest, UpdatePasswordConfirm, UserProfilePartialUpdate, \
-    UserPartialUpdateFull
+from app.domain.users.core.schemas import UpdatePasswordRequest
 from app.domain.users.registration.hi import send_password_reset_email
 
 
@@ -52,7 +46,7 @@ class UserPartialUpdateCommand:
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
-    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdateFull) -> schemas.UserDetailsFull:
+    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
         await self.repository.partial_update_user(user_id, payload)
         user = await self.repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
         assert user

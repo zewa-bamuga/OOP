@@ -56,13 +56,6 @@ class Container(containers.DeclarativeContainer):
         ),
     )
 
-    attachment = providers.Container(
-        AttachmentContainer,
-        transaction=transaction,
-        file_storage=file_storage,
-        bucket=config.storage.default_bucket,
-    )
-
     user = providers.Container(
         UserContainer,
         transaction=transaction,
@@ -72,4 +65,12 @@ class Container(containers.DeclarativeContainer):
         pwd_context=config.security.pwd_context,
         access_expiration_time=config.security.access_expiration_min,
         refresh_expiration_time=config.security.refresh_expiration_min,
+    )
+
+    attachment = providers.Container(
+        AttachmentContainer,
+        transaction=transaction,
+        file_storage=file_storage,
+        bucket=config.storage.default_bucket,
+        user_container=user  # Передаем UserContainer как зависимость
     )

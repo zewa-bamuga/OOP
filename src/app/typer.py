@@ -48,6 +48,7 @@ async def noop() -> None:
 @async_to_sync
 async def create_superuser(
         firstname: str = typer.Argument(...),
+        lastname: str = typer.Argument(...),
         email: str = typer.Argument(...),
         password: str = typer.Argument(...),
 ) -> None:
@@ -57,6 +58,7 @@ async def create_superuser(
         await command(
             UserCreate(
                 firstname=firstname,
+                lastname=lastname,
                 email=email,
                 password_hash=password_hash,
                 permissions={BasePermissions.superuser},
@@ -97,7 +99,6 @@ async def create_user(
             ),
         )
         await container.user.first_registration(email, generate_password)
-        print("Сгенерированный пароль", generate_password)
 
     except DatabaseError as err:
         logger.warning(f"User creation error: {err}")

@@ -10,7 +10,7 @@ alembic upgrade head
 
 # Create superuser
 if [ -n "${EMAIL}" ]; then
-  python manage.py create-superuser "${FIRSTNAME}" "${EMAIL}" "${PASSWORD}" || true
+  python manage.py create-superuser "${FIRSTNAME}" "${LASTNAME}" "${EMAIL}" "${PASSWORD}" || true
 fi
 
 # Create user
