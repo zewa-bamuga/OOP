@@ -1,8 +1,9 @@
-version: '3.7'
+version: '3'
 
 volumes:
-  postgres_data: { }
-  fastapi_media: { }
+  postgres_data: {}
+  rabbitmq_data: {}
+  fastapi_media: {}
 
 services:
   traefik:
@@ -22,11 +23,7 @@ services:
   react:
     build:
       context: .
-      dockerfile: ./deploy/compose/local/react.dockerfile
-    volumes:
-      - ./admin/src:/app/src
-      - ./admin/public:/app/public
-      - ./admin/index.html:/app/index.html
+      dockerfile: ./deploy/compose/develop/react.dockerfile
     env_file:
       - .env.example
       - .env
@@ -34,33 +31,36 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.react.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.react.service=react"
-      - "traefik.http.services.react.loadbalancer.server.port=5173"
 
-  fastapi:
+  fastapi: &core
     build:
       context: .
-      dockerfile: ./deploy/compose/local/fastapi.dockerfile
+      dockerfile: ./deploy/compose/develop/fastapi.dockerfile
     volumes:
-      - ./src:/src
       - fastapi_media:/media
     environment:
       - MODULE_NAME=app.fastapi
     depends_on:
       - postgres
-    command: /start-reload-fastapi.sh
+      - db-init
+    command: /start-fastapi.sh
     env_file:
       - .env.example
       - .env
     restart: "unless-stopped"
-    ports:
-      - 8000:80
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
 
+  db-init_test:
+    <<: *core
+    depends_on:
+      - postgres
+    restart: "no"
+    command: /start-db-init.sh
+
   postgres:
-    image: postgres:latest
+    image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data/pgdata
     environment:
@@ -69,5 +69,3 @@ services:
       - .env.example
       - .env
     restart: "unless-stopped"
-    ports:
-      - 5432:5432
