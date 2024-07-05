@@ -17,15 +17,29 @@ class User(APIModel):
     id: UUID
     firstname: str
     lastname: str
+    email: EmailStr
+    description: str | None = None
+    status: UserStatuses
+    avatar_attachment_id: UUID | None = None
+    created_at: datetime
+
+
+class Staff(APIModel):
+    id: UUID
+    firstname: str
+    lastname: str
     qualification: str | None = None
     post: str | None = None
     email: EmailStr
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     status: UserStatuses
     avatar_attachment_id: UUID | None = None
     created_at: datetime
+
+
+class StaffDetails(Staff):
+    avatar_attachment: Attachment | None = None
 
 
 class UserDetails(User):
@@ -46,15 +60,28 @@ class UserCredentials(APIModel):
 class UserCreate(APIModel):
     firstname: str | None = None
     lastname: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
+    password_hash: str
+    avatar_attachment_id: UUID | None = None
+    permissions: set[str] | None = None
+
+
+class StaffCreate(APIModel):
+    firstname: str | None = None
+    lastname: str | None = None
     qualification: str | None = None
     post: str | None = None
     email: EmailStr | None = None
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     password_hash: str
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
+
+
+class StaffCreateFull(StaffCreate):
+    status: UserStatuses
 
 
 class UserCreateFull(UserCreate):
@@ -99,6 +126,15 @@ class UserSorts(enum.StrEnum):
     created_at = enum.auto()
 
 
+class StaffSorts(enum.StrEnum):
+    id = enum.auto()
+    firstname = enum.auto()
+    email = enum.auto()
+    status = enum.auto()
+    created_at = enum.auto()
+    post = enum.auto()
+
+
 class UpdatePasswordRequest(APIModel):
     email: str
 
@@ -127,6 +163,12 @@ class PasswordResetCodePartialUpdate(APIModel):
 class UserListRequestSchema:
     pagination: pg.PaginationCallable[User] | None = None
     sorting: sr.SortingData[UserSorts] | None = None
+
+
+@dataclass
+class StaffListRequestSchema:
+    pagination: pg.PaginationCallable[Staff] | None = None
+    sorting: sr.SortingData[StaffSorts] | None = None
 
 
 @dataclass

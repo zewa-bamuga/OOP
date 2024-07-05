@@ -31,7 +31,7 @@ from app.domain.users.core.queries import (
 )
 from app.domain.users.registration.hi import Generate_Password, First_Registration
 from app.domain.users.core.repositories import UserRepository, \
-    UpdatePasswordRepository
+    UpdatePasswordRepository, StaffRepository
 from app.domain.users.permissions.queries import UserPermissionListQuery
 from app.domain.users.permissions.services import UserPermissionService
 from app.domain.users.registration.commands import UserRegisterCommand
@@ -57,8 +57,13 @@ class UserContainer(containers.DeclarativeContainer):
 
     refresh_expiration_time = providers.Dependency(instance_of=int)
 
-    repository = providers.Factory(
+    user_repository = providers.Factory(
         UserRepository,
+        transaction=transaction,
+    )
+
+    staff_repository = providers.Factory(
+        StaffRepository,
         transaction=transaction,
     )
 
@@ -67,34 +72,40 @@ class UserContainer(containers.DeclarativeContainer):
         transaction=transaction,
     )
 
-    list_query = providers.Factory(
+    user_list_query = providers.Factory(
         UserListQuery,
-        repository=repository,
+        repository=user_repository,
     )
+
+    # staff_list_query = providers.Factory(
+    #     StaffListQuery,
+    #     repository=staff_repository,
+    # )
 
     retrieve_query = providers.Factory(
         UserRetrieveQuery,
-        repository=repository,
+        repository=user_repository,
     )
 
     retrieve_by_email_query = providers.Factory(
         EmailRetrieveQuery,
-        repository=repository,
+        repository=user_repository,
     )
 
     retrieve_by_username_query = providers.Factory(
         UserRetrieveByUsernameQuery,
-        repository=repository,
+        repository=user_repository,
     )
 
     create_command = providers.Factory(
         UserCreateCommand,
-        repository=repository,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     activate_command = providers.Factory(
         UserActivateCommand,
-        repository=repository,
+        repository=user_repository,
     )
 
     generate_password = providers.Factory(
@@ -127,7 +138,7 @@ class UserContainer(containers.DeclarativeContainer):
 
     partial_update_command = providers.Factory(
         UserPartialUpdateCommand,
-        repository=repository,
+        repository=user_repository,
     )
 
     token_ctx_var_object = providers.Object(token_ctx_var)
@@ -169,12 +180,12 @@ class UserContainer(containers.DeclarativeContainer):
 
     get_user_by_username = providers.Factory(
         UserRetrieveByUsernameQuery,
-        repository=repository,
+        repository=user_repository,
     )
 
     get_user_by_email = providers.Factory(
         UserRetrieveByEmailQuery,
-        repository=repository,
+        repository=user_repository,
     )
 
     token_repository = providers.Factory(TokenRepository, transaction=transaction)
@@ -239,7 +250,7 @@ class UserContainer(containers.DeclarativeContainer):
     management_list_query = providers.Factory(
         UserManagementListQuery,
         permission_service=permission_service,
-        query=list_query,
+        # query=staff_list_query,
     )
 
     management_retrieve_query = providers.Factory(

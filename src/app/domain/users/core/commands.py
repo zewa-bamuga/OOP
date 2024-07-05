@@ -7,7 +7,7 @@ from app.domain.common import enums
 from app.domain.common.models import PasswordResetCode
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
-from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository
+from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
 from app.domain.users.core.schemas import UpdatePasswordRequest
 from app.domain.users.registration.hi import send_password_reset_email
 
@@ -92,20 +92,34 @@ class UpdatePasswordConfirmCommand:
 class UserCreateCommand:
     def __init__(
             self,
-            repository: UserRepository,
+            user_repository: UserRepository,
+            staff_repository: StaffRepository,
     ):
-        self.repository = repository
+        self.user_repository = user_repository
+        self.staff_repository = staff_repository
 
-    async def __call__(self, payload: schemas.UserCreate) -> schemas.UserDetails:
-        user_id_container = await self.repository.create_user(
-            schemas.UserCreateFull(
-                status=enums.UserStatuses.unconfirmed,
-                **payload.model_dump(),
+    async def __call__(self, payload: schemas.StaffCreate) -> schemas.StaffDetails:
+        if payload.permissions == {'employee'}:
+            employee_id_container = await self.staff_repository.create_employee(
+                schemas.StaffCreateFull(
+                    status=enums.UserStatuses.unconfirmed,
+                    **payload.model_dump(),
+                )
             )
-        )
-        logger.info("User created: {user_id}", user_id=user_id_container.id)
-        user = await self.repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
-        assert user
+            logger.info(f"Employee created: {employee_id_container.id}")
+            user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=employee_id_container.id))
+            assert user
+        else:
+            user_id_container = await self.user_repository.create_user(
+                schemas.UserCreateFull(
+                    status=enums.UserStatuses.unconfirmed,
+                    **payload.model_dump(),
+                )
+            )
+            logger.info(f"User created: {user_id_container.id}")
+            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
+            assert user
+
         return schemas.UserDetails.model_validate(user)
 
 

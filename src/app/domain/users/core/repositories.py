@@ -46,6 +46,49 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
         return and_(*filters)
 
 
+class StaffRepository(CrudRepositoryMixin[models.Staff]):
+    load_options: list[ExecutableOption] = [
+        selectinload(models.Staff.avatar_attachment),
+    ]
+
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.Staff
+        self.transaction = transaction
+
+    async def create_employee(self, payload: schemas.UserCreate) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
+
+    async def get_employee(
+            self,
+            pagination: PaginationCallable[schemas.User] | None = None,
+            sorting: SortingData[schemas.StaffSorts] | None = None,
+    ) -> Paginated[schemas.User]:
+        return await self._get_list(
+            schemas.User,
+            pagination=pagination,
+            sorting=sorting,
+            options=self.load_options,
+        )
+
+    async def get_employee_by_filter_or_none(self, where: schemas.UserWhere) -> schemas.UserInternal | None:
+        return await self._get_or_none(
+            schemas.UserInternal,
+            condition=await self._format_filters_email(where),
+            options=self.load_options,
+        )
+
+    async def _format_filters_email(self, where: schemas.UserWhere) -> ColumnElement[bool]:
+        filters: list[ColumnElement[bool]] = []
+
+        if where.id is not None:
+            filters.append(models.Staff.id == where.id)
+
+        if where.email is not None:
+            filters.append(models.Staff.email == where.email)
+
+        return and_(*filters)
+
+
 class UserRepository(CrudRepositoryMixin[models.User]):
     load_options: list[ExecutableOption] = [
         selectinload(models.User.avatar_attachment),

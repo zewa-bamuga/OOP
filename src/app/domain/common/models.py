@@ -33,12 +33,8 @@ class User(Base):
 
     firstname = Column(String, unique=False, nullable=True)
     lastname = Column(String, unique=False, nullable=True)
-    qualification = Column(String, unique=False, nullable=True)
-    post = Column(String, unique=False, nullable=True)
     email = Column(String, unique=True, nullable=True)
     description = Column(String, unique=False, nullable=True)
-    years = Column(Integer, unique=False, nullable=True)
-    link_to_vk = Column(String, unique=False, nullable=True)
     status = Column(String)
     password_hash = Column(String)
     avatar_attachment_id = Column(
@@ -56,25 +52,63 @@ class User(Base):
         uselist=False,
     )
     tokens = relationship("Token", back_populates="user")
+    password_reset_code = relationship("PasswordResetCode", back_populates="user")
+
+
+class Staff(Base):
+    __tablename__ = "staff"
+
+    firstname = Column(String, unique=False, nullable=True)
+    lastname = Column(String, unique=False, nullable=True)
+    qualification = Column(String, unique=False, nullable=True)
+    post = Column(String, unique=False, nullable=True)
+    email = Column(String, unique=True, nullable=True)
+    description = Column(String, unique=False, nullable=True)
+    link_to_vk = Column(String, unique=False, nullable=True)
+    status = Column(String)
+    password_hash = Column(String)
+    avatar_attachment_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("attachment.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+    permissions: orm.Mapped[set[str] | None] = orm.mapped_column(ARRAY(sa.String))
+
+    avatar_attachment = relationship(
+        "Attachment",
+        backref="staff_avatar_attachment",
+        foreign_keys=[avatar_attachment_id],
+        uselist=False,
+    )
+    tokens = relationship("Token", back_populates="staff")
+    password_reset_code = relationship("PasswordResetCode", back_populates="staff")
 
 
 class Token(Base):
     __tablename__ = "tokens"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=True)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=True)
     refresh_token_id = Column(UUID(as_uuid=True))
 
     user = relationship("User", back_populates="tokens")
+    staff = relationship("Staff", back_populates="tokens")
 
 
 class PasswordResetCode(Base):
     __tablename__ = "password_reset_code"
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=False)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=False)
     code = Column(String, nullable=False)
 
-    user = relationship("User")
+    user_id_user_fk = ForeignKey('user.id')
+    user_id_staff_fk = ForeignKey('staff.id')
+
+    user = relationship("User", back_populates="password_reset_code")
+    staff = relationship("Staff", back_populates="password_reset_code")
 
     @classmethod
     def generate_code(cls) -> str:

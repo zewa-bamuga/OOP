@@ -5,7 +5,7 @@ from pydantic import EmailStr
 
 from app.domain.common.exceptions import NotFoundError
 from app.domain.users.core import schemas
-from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository
+from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
 
 
 class UserListQuery:
@@ -14,6 +14,14 @@ class UserListQuery:
 
     async def __call__(self, payload: schemas.UserListRequestSchema) -> Paginated[schemas.User]:
         return await self.repository.get_users(payload.pagination, payload.sorting)
+
+
+class StaffListQuery:
+    def __init__(self, repository: StaffRepository):
+        self.repository = repository
+
+    async def __call__(self, payload: schemas.StaffListRequestSchema) -> Paginated[schemas.Staff]:
+        return await self.repository.get_employee(payload.pagination, payload.sorting)
 
 
 class UserRetrieveQuery:
