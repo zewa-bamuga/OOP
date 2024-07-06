@@ -12,18 +12,31 @@ class TokenRepository:
         self.transaction = transaction
 
     async def create_token_info(self, payload: schemas.TokenInfo) -> None:
-        stmt = insert(models.Token).values(
-            {
-                "user_id": payload.user_id,
-                "refresh_token_id": payload.token_id,
-            },
-        )
         async with self.transaction.use() as session:
-            await session.execute(stmt)
+            try:
+                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                staff_exists = await session.execute(staff_query)
+
+                if staff_exists.first():
+                    stmt = insert(models.Token).values(
+                        {
+                            "staff_id": payload.user_id,
+                            "refresh_token_id": payload.token_id,
+                        }
+                    )
+                else:
+                    stmt = insert(models.Token).values(
+                        {
+                            "user_id": payload.user_id,
+                            "refresh_token_id": payload.token_id,
+                        }
+                    )
+                await session.execute(stmt)
+            except Exception as e:
+                print(f"Error creating token info: {e}")
 
     async def get_token_info(self, token_id: uuid.UUID) -> schemas.TokenInfo | None:
         stmt = select(models.Token).where(models.Token.refresh_token_id == token_id)
-
         async with self.transaction.use() as session:
             result = (await session.execute(stmt)).scalar_one_or_none()
 

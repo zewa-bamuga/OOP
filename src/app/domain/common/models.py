@@ -100,8 +100,8 @@ class Token(Base):
 class PasswordResetCode(Base):
     __tablename__ = "password_reset_code"
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=False)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=True)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=True)
     code = Column(String, nullable=False)
 
     user_id_user_fk = ForeignKey('user.id')

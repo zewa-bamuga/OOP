@@ -5,7 +5,7 @@ from a8t_tools.db.pagination import PaginationCallable, Paginated
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
-from sqlalchemy import ColumnElement, and_
+from sqlalchemy import ColumnElement, and_, select, insert
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
@@ -21,14 +21,47 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
         self.transaction = transaction
 
     async def create_update_password(self, payload: schemas.PasswordResetCode) -> IdContainerTables:
-        return IdContainerTables(id=await self._create(payload))
+        async with self.transaction.use() as session:
+            try:
+                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                staff_exists = await session.execute(staff_query)
+
+                if staff_exists.first():
+                    stmt = insert(models.PasswordResetCode).values(
+                        {
+                            "staff_id": payload.user_id,
+                            "code": payload.code,
+                        }
+                    )
+                else:
+                    stmt = insert(models.PasswordResetCode).values(
+                        {
+                            "user_id": payload.user_id,
+                            "code": payload.code,
+                        }
+                    )
+
+                await session.execute(stmt)
+
+            except Exception as e:
+                print(f"Error creating code info: {e}")
 
     async def delete_code(self, user_id: UUID) -> None:
-        stmt = sa.delete(models.PasswordResetCode).where(models.PasswordResetCode.user_id == user_id)
-        await self.transaction.execute(stmt)
+        async with self.transaction.use() as session:
+            staff_query = select(models.Staff).where(models.Staff.id == user_id)
+            staff_exists = await session.execute(staff_query)
+
+            if staff_exists.first():
+                stmt = sa.delete(models.PasswordResetCode).where(models.PasswordResetCode.staff_id == user_id)
+            else:
+                stmt = sa.delete(models.PasswordResetCode).where(models.PasswordResetCode.user_id == user_id)
+
+            await session.execute(stmt)
+            await session.commit()
 
     async def get_password_reset_code_by_code_or_none(self,
                                                       where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:
+        print("выполняется в get_password_reset_code_by_code_or_none")
         return await self._get_or_none(
             schemas.PasswordResetCode,
             condition=await self._format_filters_code(where),
@@ -36,12 +69,18 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
 
     async def _format_filters_code(self, where: schemas.PasswordResetCodeWhere) -> ColumnElement[bool]:
         filters: list[ColumnElement[bool]] = []
+        print("выполняется в _format_filters_code")
 
         if where.id is not None:
+            print("выполняется поиск 1")
             filters.append(models.PasswordResetCode.id == where.id)
 
         if where.code is not None:
+            print("выполняется поиск 2")
             filters.append(models.PasswordResetCode.code == where.code)
+            print("выполняется поиск 2 конец")
+        print("where.code: ", where.code)
+        print("where.code: ", where.staff_id)
 
         return and_(*filters)
 
@@ -71,6 +110,20 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
         )
 
     async def get_employee_by_filter_or_none(self, where: schemas.UserWhere) -> schemas.UserInternal | None:
+        return await self._get_or_none(
+            schemas.UserInternal,
+            condition=await self._format_filters_email(where),
+            options=self.load_options,
+        )
+
+    async def get_password_reset_code_by_code_or_none(self,
+                                                      where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:
+        return await self._get_or_none(
+            schemas.PasswordResetCode,
+            condition=await self._format_filters_code(where),
+        )
+
+    async def get_staff_by_filter_by_email_or_none(self, where: schemas.UserWhere) -> schemas.UserInternal | None:
         return await self._get_or_none(
             schemas.UserInternal,
             condition=await self._format_filters_email(where),

@@ -88,8 +88,9 @@ class UserContainer(containers.DeclarativeContainer):
     )
 
     retrieve_by_email_query = providers.Factory(
-        EmailRetrieveQuery,
-        repository=user_repository,
+        UserRetrieveByEmailQuery,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     retrieve_by_username_query = providers.Factory(
@@ -164,9 +165,11 @@ class UserContainer(containers.DeclarativeContainer):
         user_retrieve_by_email_query=retrieve_by_email_query,
         repository=repository_update_password,
     )
+
     get_userID_by_code = providers.Factory(
         UserRetrieveByCodeQuery,
-        repository=repository_update_password,
+        update_password_repository=repository_update_password,
+        staff_repository=staff_repository,
     )
 
     update_password_confirm_command = providers.Factory(
@@ -185,7 +188,8 @@ class UserContainer(containers.DeclarativeContainer):
 
     get_user_by_email = providers.Factory(
         UserRetrieveByEmailQuery,
-        repository=user_repository,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     token_repository = providers.Factory(TokenRepository, transaction=transaction)

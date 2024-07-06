@@ -27,17 +27,15 @@ class UpdatePasswordRequestCommand:
 
         user_id = user_internal.id
         code = PasswordResetCode.generate_code()
+
         password_reset_code = schemas.PasswordResetCode(
             user_id=user_id,
             code=code,
         )
 
         await self.repository.delete_code(user_id)
-
-        password_reset_code_id_container = await self.repository.create_update_password(password_reset_code)
+        await self.repository.create_update_password(password_reset_code)
         await send_password_reset_email(email, code)
-        logger.info("Password reset code created: {password_reset_code_id}",
-                    password_reset_code_id=password_reset_code_id_container.id)
 
         return UpdatePasswordRequest(email=email)
 
@@ -107,7 +105,8 @@ class UserCreateCommand:
                 )
             )
             logger.info(f"Employee created: {employee_id_container.id}")
-            user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=employee_id_container.id))
+            user = await self.staff_repository.get_employee_by_filter_or_none(
+                schemas.UserWhere(id=employee_id_container.id))
             assert user
         else:
             user_id_container = await self.user_repository.create_user(

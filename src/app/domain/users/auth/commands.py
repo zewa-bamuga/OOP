@@ -26,7 +26,6 @@ class TokenCreateCommand:
     async def __call__(self, user: UserInternal) -> TokenResponse:
         token_id = uuid.uuid4()
         await self.repository.create_token_info(TokenInfo(user_id=user.id, token_id=token_id))
-
         return await self._get_token_data(user, token_id)
 
     async def _get_token_data(self, user: UserInternal, token_id: uuid.UUID) -> TokenResponse:
@@ -86,10 +85,10 @@ class UserAuthenticateCommand:
 
     async def __call__(self, payload: UserCredentials) -> TokenResponse:
         user = await self.get_user_by_email(payload.email)
+
         if not user or not await self.password_hash_service.verify(
                 payload.password,
                 user.password_hash,
         ):
             raise AuthError(code=enums.AuthErrorCodes.invalid_credentials)
-
         return await self.command(user)

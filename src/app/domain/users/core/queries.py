@@ -40,6 +40,8 @@ class EmailRetrieveQuery:
         self.repository = repository
 
     async def __call__(self, user_email: str) -> schemas.UserInternal:
+        print("вошло в поиск по email:", user_email)
+
         result = await self.repository.get_user_by_filter_by_email_or_none((schemas.UserWhere(email=user_email)))
         if not result:
             raise NotFoundError()
@@ -55,19 +57,33 @@ class UserRetrieveByUsernameQuery:
 
 
 class UserRetrieveByEmailQuery:
-    def __init__(self, repository: UserRepository):
-        self.repository = repository
+    def __init__(self, user_repository: UserRepository, staff_repository: StaffRepository):
+        self.user_repository = user_repository
+        self.staff_repository = staff_repository
 
     async def __call__(self, email: str) -> schemas.UserInternal | None:
-        user_internal = await self.repository.get_user_by_filter_by_email_or_none(schemas.UserWhere(email=email))
+        try:
+            user_internal = await self.user_repository.get_user_by_filter_by_email_or_none(
+                schemas.UserWhere(email=email))
+        except Exception as e:
+            print("не попал:", e)
+            user_internal = None
+
+        if user_internal is None:
+            user_internal = await self.staff_repository.get_staff_by_filter_by_email_or_none(
+                schemas.UserWhere(email=email))
+
         return user_internal
 
 
 class UserRetrieveByCodeQuery:
-    def __init__(self, repository: UpdatePasswordRepository):
-        self.repository = repository
+    def __init__(self, update_password_repository: UpdatePasswordRepository, staff_repository: StaffRepository):
+        self.update_password_repository = update_password_repository
+        self.staff_repository = staff_repository
 
     async def __call__(self, code: str) -> schemas.PasswordResetCode | None:
-        password_reset_code_internal = await self.repository.get_password_reset_code_by_code_or_none(
+        password_reset_code_internal = await self.update_password_repository.get_password_reset_code_by_code_or_none(
             schemas.PasswordResetCodeWhere(code=code))
+        print("выполняется после password_reset_code_internal")
+
         return password_reset_code_internal

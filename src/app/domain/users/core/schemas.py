@@ -152,6 +152,7 @@ class UserProfilePartialUpdate(APIModel):
 
 class PasswordResetCode(APIModel):
     user_id: UUID
+    staff_id: UUID | None = None
     code: str
 
 
@@ -182,4 +183,5 @@ class UserWhere:
 class PasswordResetCodeWhere:
     id: int | None = None
     user_id: UUID | None = None
+    staff_id: UUID | None = None
     code: str | None = None
