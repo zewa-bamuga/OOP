@@ -14,5 +14,6 @@ class TokenPayload(APIModel):
 
 
 class TokenInfo(APIModel):
-    user_id: UUID
+    user_id: UUID | None = None
+    staff_id: UUID | None = None
     token_id: UUID

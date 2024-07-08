@@ -4,6 +4,7 @@ from a8t_tools.security.hashing import PasswordHashService
 from loguru import logger
 
 from app.domain.common import enums
+from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import PasswordResetCode
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
@@ -41,13 +42,26 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(self, repository: UserRepository):
-        self.repository = repository
+    def __init__(self, user_repository: UserRepository, staff_repository: StaffRepository):
+        self.user_repository = user_repository
+        self.staff_repository = staff_repository
 
     async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
-        await self.repository.partial_update_user(user_id, payload)
-        user = await self.repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-        assert user
+        try:
+            await self.user_repository.partial_update_user(user_id, payload)
+            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
+
+            if not user:
+                await self.staff_repository.partial_update_staff(user_id, payload)
+                user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=user_id))
+
+            if not user:
+                raise NotFoundError()
+
+        except Exception as e:
+            print("Произошла ошибка при обновлении пользователя или сотрудника:", e)
+            raise
+
         return schemas.UserDetailsFull.model_validate(user)
 
 
@@ -68,19 +82,26 @@ class UpdatePasswordConfirmCommand:
 
     async def __call__(self, payload: schemas.UpdatePasswordConfirm) -> None:
         email = payload.email
+        print("выполняется user_retrieve_by_email_query")
         user_internal = await self.user_retrieve_by_email_query(email)
+        print("выполняется user_internal: ", user_internal)
 
+        print("выполняется user_retrieve_by_code_query")
         code = payload.code
         code_internal = await self.user_retrieve_by_code_query(code)
+        print("после user_retrieve_by_code_query: ", code_internal)
 
         user_id = user_internal.id
         user_id_by_code = code_internal.user_id
+        print("user_id: ", user_id)
 
         password_hash = await self.password_hash_service.hash(payload.password)
 
         update_payload = schemas.UserPartialUpdateFull(
             password_hash=password_hash
         )
+
+        print("Сейчас будет передаваться в user_partial_update_command")
 
         await self.user_partial_update_command(user_id, update_payload)
 

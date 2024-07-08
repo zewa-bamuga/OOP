@@ -9,7 +9,7 @@ from app.domain.common import enums
 from app.domain.common.exceptions import AuthError, NotFoundError
 from app.domain.users.auth import schemas
 from app.domain.users.core.queries import UserRetrieveQuery
-from app.domain.users.core.schemas import UserDetails
+from app.domain.users.core.schemas import UserDetails, StaffDetails
 
 
 class CurrentUserTokenQuery:
@@ -25,7 +25,7 @@ class TokenPayloadQuery:
         self.jwt_service = jwt_service
 
     async def __call__(self, token: str, validate: bool = True) -> schemas.TokenPayload:
-        print("Received token:", token)  # Вывод полученного токена
+        print("Received token:", token)
         with self._handle_auth_exceptions():
             decoded_token = await self.jwt_service.decode(token, validate)
 
@@ -63,10 +63,11 @@ class CurrentUserQuery:
         self.token_query = token_query
         self.user_query = user_query
 
-    async def __call__(self) -> UserDetails:
+    async def __call__(self) -> StaffDetails:
+        print("Выполняется CurrentUserQuery")
         token_payload = await self.token_query()
         if token_payload:
             user = await self.user_query(token_payload.sub)
 
-            return UserDetails.model_validate(user)
+            return StaffDetails.model_validate(user)
         raise AuthError(code=enums.AuthErrorCodes.invalid_token)

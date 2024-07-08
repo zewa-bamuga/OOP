@@ -74,7 +74,7 @@ class UserContainer(containers.DeclarativeContainer):
 
     user_list_query = providers.Factory(
         UserListQuery,
-        repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     # staff_list_query = providers.Factory(
@@ -84,7 +84,8 @@ class UserContainer(containers.DeclarativeContainer):
 
     retrieve_query = providers.Factory(
         UserRetrieveQuery,
-        repository=user_repository,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     retrieve_by_email_query = providers.Factory(
@@ -139,7 +140,8 @@ class UserContainer(containers.DeclarativeContainer):
 
     partial_update_command = providers.Factory(
         UserPartialUpdateCommand,
-        repository=user_repository,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
     )
 
     token_ctx_var_object = providers.Object(token_ctx_var)
@@ -254,7 +256,7 @@ class UserContainer(containers.DeclarativeContainer):
     management_list_query = providers.Factory(
         UserManagementListQuery,
         permission_service=permission_service,
-        # query=staff_list_query,
+        query=user_list_query,
     )
 
     management_retrieve_query = providers.Factory(

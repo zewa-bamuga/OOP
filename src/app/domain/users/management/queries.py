@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from app.domain.users.core.queries import UserListQuery, UserRetrieveQuery, EmailRetrieveQuery
-from app.domain.users.core.schemas import User, UserDetailsFull, UserListRequestSchema, StaffListRequestSchema
+from app.domain.users.core.schemas import User, UserDetailsFull, UserListRequestSchema, StaffListRequestSchema, Staff
 from app.domain.users.permissions.schemas import BasePermissions
 from app.domain.users.permissions.services import UserPermissionService
 from a8t_tools.db.pagination import Paginated
@@ -12,7 +12,7 @@ class UserManagementListQuery:
         self.query = query
         self.permission_service = permission_service
 
-    async def __call__(self, payload: StaffListRequestSchema) -> Paginated[User]:
+    async def __call__(self, payload: StaffListRequestSchema) -> Paginated[Staff]:
         await self.permission_service.assert_permissions(BasePermissions.superuser)
         return await self.query(payload)
 

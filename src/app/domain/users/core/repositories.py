@@ -15,7 +15,6 @@ from app.domain.users.core import schemas
 
 
 class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
-
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.PasswordResetCode
         self.transaction = transaction
@@ -60,12 +59,22 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
             await session.commit()
 
     async def get_password_reset_code_by_code_or_none(self,
-                                                      where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:
+                                                      where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode:
         print("выполняется в get_password_reset_code_by_code_or_none")
-        return await self._get_or_none(
+        result = await self._get_or_none(
             schemas.PasswordResetCode,
             condition=await self._format_filters_code(where),
         )
+
+        # Проверяем результат, если user_id не найден, ищем по staff_id
+        if result is None and where.staff_id is not None:
+            print("User ID not found, searching by Staff ID")
+            result = await self._get_or_none(
+                schemas.PasswordResetCode,
+                condition=await self._format_filters_code_by_staff(where),
+            )
+
+        return result
 
     async def _format_filters_code(self, where: schemas.PasswordResetCodeWhere) -> ColumnElement[bool]:
         filters: list[ColumnElement[bool]] = []
@@ -79,8 +88,35 @@ class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
             print("выполняется поиск 2")
             filters.append(models.PasswordResetCode.code == where.code)
             print("выполняется поиск 2 конец")
+
+        if where.user_id is not None:
+            print("выполняется поиск по user_id")
+            filters.append(models.PasswordResetCode.user_id == where.user_id)
+
         print("where.code: ", where.code)
-        print("where.code: ", where.staff_id)
+        print("where.user_id: ", where.user_id)
+
+        return and_(*filters)
+
+    async def _format_filters_code_by_staff(self, where: schemas.PasswordResetCodeWhere) -> ColumnElement[bool]:
+        filters: list[ColumnElement[bool]] = []
+        print("выполняется в _format_filters_code_by_staff")
+
+        if where.id is not None:
+            print("выполняется поиск 1")
+            filters.append(models.PasswordResetCode.id == where.id)
+
+        if where.code is not None:
+            print("выполняется поиск 2")
+            filters.append(models.PasswordResetCode.code == where.code)
+            print("выполняется поиск 2 конец")
+
+        if where.staff_id is not None:
+            print("выполняется поиск по staff_id")
+            filters.append(models.PasswordResetCode.staff_id == where.staff_id)
+
+        print("where.code: ", where.code)
+        print("where.staff_id: ", where.staff_id)
 
         return and_(*filters)
 
@@ -99,9 +135,9 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
 
     async def get_employee(
             self,
-            pagination: PaginationCallable[schemas.User] | None = None,
+            pagination: PaginationCallable[schemas.Staff] | None = None,
             sorting: SortingData[schemas.StaffSorts] | None = None,
-    ) -> Paginated[schemas.User]:
+    ) -> Paginated[schemas.Staff]:
         return await self._get_list(
             schemas.User,
             pagination=pagination,
@@ -115,6 +151,9 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
             condition=await self._format_filters_email(where),
             options=self.load_options,
         )
+
+    async def partial_update_staff(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> None:
+        return await self._partial_update(user_id, payload)
 
     async def get_password_reset_code_by_code_or_none(self,
                                                       where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:

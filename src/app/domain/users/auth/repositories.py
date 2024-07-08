@@ -43,7 +43,9 @@ class TokenRepository:
         if result is None:
             return None
 
-        return schemas.TokenInfo(user_id=result.user_id, token_id=result.refresh_token_id)
+        user_id = result.user_id if result.user_id is not None else result.staff_id
+
+        return schemas.TokenInfo(user_id=user_id, token_id=result.refresh_token_id)
 
     async def delete_tokens(self, token_id: uuid.UUID) -> None:
         stmt = delete(models.Token).where(models.Token.refresh_token_id == token_id)

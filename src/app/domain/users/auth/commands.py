@@ -26,6 +26,7 @@ class TokenCreateCommand:
     async def __call__(self, user: UserInternal) -> TokenResponse:
         token_id = uuid.uuid4()
         await self.repository.create_token_info(TokenInfo(user_id=user.id, token_id=token_id))
+
         return await self._get_token_data(user, token_id)
 
     async def _get_token_data(self, user: UserInternal, token_id: uuid.UUID) -> TokenResponse:
@@ -61,7 +62,6 @@ class TokenRefreshCommand:
             token_payload: TokenPayload = await self.query(refresh_token, validate=False)
             await self.repository.delete_tokens(token_payload.sub)
             raise e
-
         user_tokens = await self.repository.get_token_info(token_payload.sub)
 
         if not user_tokens or token_payload.sub != user_tokens.token_id:

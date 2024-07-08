@@ -108,7 +108,6 @@ class UserInternal(APIModel):
     post: str | None = None
     email: EmailStr
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     password_hash: str
     permissions: set[str] | None = None
@@ -151,7 +150,7 @@ class UserProfilePartialUpdate(APIModel):
 
 
 class PasswordResetCode(APIModel):
-    user_id: UUID
+    user_id: UUID | None = None
     staff_id: UUID | None = None
     code: str
 
