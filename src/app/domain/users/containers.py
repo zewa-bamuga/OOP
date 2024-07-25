@@ -1,3 +1,4 @@
+from a8t_tools.bus.producer import TaskProducer
 from dependency_injector import containers, providers
 from passlib.context import CryptContext
 
@@ -27,7 +28,7 @@ from app.domain.users.core.commands import (
 from app.domain.users.core.queries import (
     UserListQuery,
     UserRetrieveByUsernameQuery,
-    UserRetrieveQuery, UserRetrieveByEmailQuery, EmailRetrieveQuery, UserRetrieveByCodeQuery,
+    UserRetrieveQuery, UserRetrieveByEmailQuery, UserRetrieveByCodeQuery,
 )
 from app.domain.users.registration.hi import Generate_Password, First_Registration
 from app.domain.users.core.repositories import UserRepository, \
@@ -44,6 +45,8 @@ from a8t_tools.security.tokens import JwtHmacService, JwtRsaService, token_ctx_v
 
 class UserContainer(containers.DeclarativeContainer):
     transaction = providers.Dependency(instance_of=AsyncDbTransaction)
+
+    task_producer = providers.Dependency(instance_of=TaskProducer)
 
     secret_key = providers.Dependency(instance_of=str)
 
@@ -103,6 +106,7 @@ class UserContainer(containers.DeclarativeContainer):
         UserCreateCommand,
         user_repository=user_repository,
         staff_repository=staff_repository,
+        task_producer=task_producer,
     )
 
     activate_command = providers.Factory(

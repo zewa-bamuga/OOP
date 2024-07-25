@@ -6,7 +6,7 @@ set -o pipefail
 # Let the DB start
 python -m a8t_tools.db.wait_for_db
 
-alembic upgrade head
+#alembic upgrade head
 
 # Create superuser
 if [ -n "${EMAIL}" ]; then

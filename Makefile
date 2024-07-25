@@ -23,6 +23,7 @@ migration-apply:
 	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . \
 		run --rm fastapi_test alembic upgrade head
 
+
 migration-downgrade:
 	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . \
 		run --rm fastapi_test alembic downgrade -1

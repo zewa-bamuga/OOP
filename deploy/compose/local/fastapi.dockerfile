@@ -7,13 +7,15 @@ RUN apt-get update && \
 	poetry config virtualenvs.create false && \
 	poetry config installer.max-workers 10
 COPY pyproject.toml poetry.lock  ./
-RUN poetry install --only main --no-root --no-interaction --no-ansi
+RUN poetry install --no-root --no-interaction --no-ansi
 
 COPY ./deploy /
 
 RUN chmod +x /start-db-init.sh
 RUN chmod +x /start-fastapi.sh
 RUN chmod +x /start-reload-fastapi.sh
+RUN chmod +x /start-celery-worker.sh
+RUN chmod +x /start-celery-beat.sh
 RUN chmod +x /entrypoint.sh
 
 ADD ./src /src

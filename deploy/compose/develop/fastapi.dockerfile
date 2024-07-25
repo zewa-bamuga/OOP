@@ -14,6 +14,8 @@ COPY ./deploy /
 RUN chmod +x /start-db-init.sh
 RUN chmod +x /start-fastapi.sh
 RUN chmod +x /start-reload-fastapi.sh
+RUN chmod +x /start-celery-worker.sh
+RUN chmod +x /start-celery-beat.sh
 RUN chmod +x /entrypoint.sh
 
 ADD ./src /src

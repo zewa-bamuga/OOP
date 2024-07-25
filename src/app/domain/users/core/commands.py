@@ -1,11 +1,13 @@
 from uuid import UUID
 
+from a8t_tools.bus.producer import TaskProducer
 from a8t_tools.security.hashing import PasswordHashService
 from loguru import logger
 
 from app.domain.common import enums
 from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import PasswordResetCode
+from app.domain.common.schemas import IdContainer
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
 from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
@@ -113,9 +115,11 @@ class UserCreateCommand:
             self,
             user_repository: UserRepository,
             staff_repository: StaffRepository,
+            task_producer: TaskProducer,
     ):
         self.user_repository = user_repository
         self.staff_repository = staff_repository
+        self.task_producer = task_producer
 
     async def __call__(self, payload: schemas.StaffCreate) -> schemas.StaffDetails:
         if payload.permissions == {'employee'}:
@@ -137,10 +141,18 @@ class UserCreateCommand:
                 )
             )
             logger.info(f"User created: {user_id_container.id}")
+            await self._enqueue_user_activation(user_id_container)
             user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
             assert user
 
         return schemas.UserDetails.model_validate(user)
+
+    async def _enqueue_user_activation(self, user_id_container: IdContainer) -> None:
+        await self.task_producer.fire_task(
+            enums.TaskNames.activate_user,
+            queue=enums.TaskQueues.main_queue,
+            user_id_container_dict=user_id_container.json_dict(),
+        )
 
 
 class UserActivateCommand:

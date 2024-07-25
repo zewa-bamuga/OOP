@@ -50,9 +50,9 @@ class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DB_")
 
 
-# class MessageQueueSettings(BaseSettings):
-#     broker_uri: str | None = Field(default=None)
-#     model_config = SettingsConfigDict(env_prefix="MQ_")
+class MessageQueueSettings(BaseSettings):
+    broker_uri: str | None = Field(default=None)
+    model_config = SettingsConfigDict(env_prefix="MQ_")
 
 
 class StorageSettings(BaseSettings):
@@ -86,6 +86,6 @@ class Settings(BaseSettings):
     security: SecuritySettings = SecuritySettings()
     sentry: SentrySettings = SentrySettings()
     db: DatabaseSettings = DatabaseSettings()
-    # mq: MessageQueueSettings = MessageQueueSettings()
+    mq: MessageQueueSettings = MessageQueueSettings()
     storage: StorageSettings = StorageSettings()
     tasks: TasksSettings = TasksSettings()
