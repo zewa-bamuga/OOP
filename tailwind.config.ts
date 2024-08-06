@@ -180,8 +180,11 @@ const config: Config = {
 			blueSecondary: '#4318FF',
 			brandLinear: '#868CFF',
 			transparent: 'transparent',
-			butAuth:'#323232',
-			butVK: '#2D74FF',
+			oopyellow: '#FFC742',
+			oopgray: '#323232',
+			oopgrayhover: '#494848',
+			oopblue: '#2D74FF',
+			hyperlink: '#2D74FF',
 			gray: {
 				50: '#F5F6FA',
 				100: '#EEF0F6',

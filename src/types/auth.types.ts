@@ -3,13 +3,17 @@ export interface IRegForm {
 	lastname: string
 	email: string
 	password: string
+	isRememberMe?: boolean
 }
 
 export interface IAuthForm {
+	name: string
 	firstname: string
 	lastname: string
+	code?: string
 	email: string
 	password: string
+	isRememberMe?: boolean
 }
 
 export interface IUser {

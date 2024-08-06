@@ -2,17 +2,17 @@ import type { Metadata } from 'next'
 
 import { NO_INDEX_PAGE } from '@/constants/seo.constants'
 
-import { Auth } from './Auth'
+import { Register } from './Registration'
 
 {
-	/* cSpell:ignore Вход */
+	/* cSpell:ignore Регистрация */
 }
 
 export const metadata: Metadata = {
-	title: 'Вход',
+	title: 'Регистрация',
 	...NO_INDEX_PAGE
 }
 
 export default function AuthPage() {
-	return <Auth />
+	return <Register />
 }

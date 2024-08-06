@@ -2,17 +2,17 @@ import type { Metadata } from 'next'
 
 import { NO_INDEX_PAGE } from '@/constants/seo.constants'
 
-import { Auth } from './Auth'
+import { RecoverPassword } from './RecoverPassword'
 
 {
-	/* cSpell:ignore Вход */
+	/* cSpell:ignore Восстановление пароля */
 }
 
 export const metadata: Metadata = {
-	title: 'Вход',
+	title: 'Восстановление пароля',
 	...NO_INDEX_PAGE
 }
 
 export default function AuthPage() {
-	return <Auth />
+	return <RecoverPassword />
 }

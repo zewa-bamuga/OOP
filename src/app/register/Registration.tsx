@@ -3,13 +3,11 @@
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Heading } from '@/components/ui/Heading'
 import { Button } from '@/components/ui/buttons/Button'
-import Checkbox from '@/components/ui/checkbox/Checkbox'
-import { Field } from '@/components/ui/fields/Field'
 
 import { IAuthForm } from '@/types/auth.types'
 
@@ -18,28 +16,27 @@ import { DASHBOARD_PAGES } from '@/config/pages-url.config'
 import { authService } from '@/services/auth.service'
 
 {
-	/* cSpell:ignore главная клипы проекты Отдел Образовательных Программ Команда призванная побеждать создаём классные проекты обучаем новому саморазвиваемся запомнить меня Вход Регистрация Почта Пароль забыли */
+	/* cSpell:ignore главная клипы проекты Отдел Образовательных Программ Команда призванная побеждать создаём классные проекты обучаем новому саморазвиваемся запомнить меня Вход Регистрация Почта Пароль забыли Отправим сообщение с кодом на указанную почту Далее почте */
 }
 
-export function Auth() {
+export function Register() {
 	const { register, handleSubmit, reset, control } = useForm<IAuthForm>({
 		mode: 'onChange'
 	})
 
 	const [isLoginForm, setIsLoginForm] = useState(false)
 	const [showBoxes, setShowBoxes] = useState(false)
-	const [passwordVisible, setPasswordVisible] = useState(false)
 	const [hideBoxes, setHideBoxes] = useState(false)
 	const [showSecondBlock, setShowSecondBlock] = useState(false)
 
 	const { push } = useRouter()
 
 	const { mutate } = useMutation({
-		mutationKey: ['auth'],
+		mutationKey: ['register'],
 		mutationFn: (data: IAuthForm) =>
 			authService.main(isLoginForm ? 'login' : 'register', data),
 		onSuccess() {
-			toast.success('Successfully login!')
+			toast.success('Successfully registration!')
 			reset()
 			push(DASHBOARD_PAGES.HOME)
 		}
@@ -176,112 +173,36 @@ export function Auth() {
 			</div>
 
 			<form
-				className='bg-sidebar mt-28 ml-[900px] rounded-xl px-8 w-[430px] h-[480px]'
+				className='bg-sidebar mt-28 ml-[900px] rounded-xl px-8 w-[430px] h-[265px]'
 				onSubmit={handleSubmit(onSubmit)}
 			>
 				<div className='flex items-center justify-between mb-6'>
 					<Heading
 						title='Вход'
-						className='text-2xl pt-4 text-oopgray font-bold'
+						isButton={true}
+						onClick={() => push('../auth')}
+						className=' text-2xl pt-[25px] text-gray-600 font-bold'
 					/>
 					<Heading
 						title='Регистрация'
-						isButton={true}
-						onClick={() => push('../register')}
-						className=' text-2xl pt-[25px] text-gray-600 font-bold'
+						className='text-2xl pt-4 text-oopgray font-bold'
 					/>
 				</div>
-				<Field
-					id='email'
-					label='Почта'
-					placeholder=''
-					type='email'
-					extra=''
-					{...register('email', {
-						required: 'Email is required!'
-					})}
-				/>
-				<button
-					type='button'
-					className='mt-14 absolute z-[1] ml-[330px] transform -translate-y-1/2'
-					onClick={() => setPasswordVisible(prev => !prev)}
-				>
-					<img
-						src={passwordVisible ? '/eye-off.png' : '/eye.png'}
-						alt={passwordVisible ? 'Hide password' : 'Show password'}
-						className='w-5 h-5'
-					/>
-				</button>
-				<Field
-					id='password'
-					label='Пароль'
-					placeholder=''
-					type={passwordVisible ? 'text' : 'password'}
-					{...register('password', {
-						required: 'Password is required!'
-					})}
-					extra='mb-6'
-				/>
 
-				<Controller
-					name='isRememberMe'
-					control={control}
-					render={({ field: { value, onChange } }) => (
-						<div className='flex items-center'>
-							<Checkbox
-								onChange={onChange}
-								checked={value}
-							/>
-							<div className='flex-grow flex items-center'>
-								<label
-									htmlFor='isRememberMe'
-									className='text-sm text-cyan-50 ml-1'
-									style={{
-										fontFamily: 'Lato, sans-serif',
-										color: '#323232',
-										fontWeight: 100
-									}}
-								>
-									запомнить меня
-								</label>
-							</div>
-							<button
-								type='button'
-								className='relative text-sm text-hyperlink group'
-								style={{
-									fontFamily: 'Helvetica',
-									fontWeight: 200
-								}}
-								onClick={() => push('../recover-password')}
-							>
-								Забыли пароль?
-								<span className='absolute bottom-0 left-0 w-full h-px bg-hyperlink transform scale-x-0 transition-transform duration-300 ease-in-out group-hover:scale-x-100' />
-							</button>
-						</div>
-					)}
-				/>
 				<div className='flex flex-col items-center gap-4'>
 					<Button
 						variant='gray'
 						className={isLoginForm ? '' : 'bg-oopgray mt-4'}
-						onClick={() => setIsLoginForm(true)}
+						onClick={() => push('../register/email')}
 					>
-						Войти
+						По почте
 					</Button>
 					<Button
 						variant='blue'
 						className={isLoginForm ? '' : ''}
 						onClick={() => setIsLoginForm(false)}
 					>
-						{/* Контейнер с Flexbox для размещения иконки и текста в строку */}
-						<div className='flex items-center justify-center'>
-							<img
-								src='/vk-icon.png'
-								alt='VK Icon'
-								className='w-5 h-5 mr-2' // Размер и отступ от текста
-							/>
-							<span>Войти с VK ID</span> {/* Текст кнопки */}
-						</div>
+						Войти с VK ID
 					</Button>
 				</div>
 			</form>

@@ -1,19 +1,19 @@
-import type { Metadata } from "next"
-import { Lato } from "next/font/google"
+import type { Metadata } from 'next'
+import { Lato } from 'next/font/google'
 import { Toaster } from 'sonner'
 
 import { SITE_NAME } from '@/constants/seo.constants'
 
-import "./globals.scss"
+import './globals.scss'
 import { Providers } from './providers'
 
-const lato = Lato({
+const zen = Lato({
 	subsets: ['latin'],
-	weight: ['300', '400', '700'],
+	weight: ['100', '300', '400', '700'],
 	display: 'swap',
-	variable: '--font-lato',
+	variable: '--font-zen',
 	style: ['normal']
-});
+})
 
 export const metadata: Metadata = {
 	title: {
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({
-  children,
+	children
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode
 }>) {
-  return (
+	return (
 		<html lang='en'>
-			<body className={lato.className}>
+			<body className={zen.className}>
 				<Providers>
 					{children}
 
@@ -42,5 +42,5 @@ export default function RootLayout({
 				</Providers>
 			</body>
 		</html>
-  );
+	)
 }

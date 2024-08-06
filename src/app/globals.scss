@@ -3,36 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+	--foreground-rgb: 0, 0, 0;
+	--background-start-rgb: 214, 219, 220;
+	--background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+	:root {
+		--foreground-rgb: 255, 255, 255;
+		--background-start-rgb: 0, 0, 0;
+		--background-end-rgb: 0, 0, 0;
+	}
 }
 
 body {
-  @apply text-base overflow-hidden;
-  font-family: var(--font-zen), sans-serif;
-  color: rgb(var(--foreground-rgb));
-  background-color: #f0f4ff;
+	@apply text-base overflow-hidden;
+	font-family: 'Helvetica', 'Arial', 'Lato', sans-serif, var(--font-zen);
+	color: rgb(var(--foreground-rgb));
+	background-color: #f0f4ff;
 
-  @media (max-with: 120px){
-    font-size: 16px;
-  }
+	@media (max-with: 120px) {
+		font-size: 16px;
+	}
 
-  @media (max-with: 992px){
-    font-size: 14px;
-  }
+	@media (max-with: 992px) {
+		font-size: 14px;
+	}
 }
 
 input.defaultCheckbox {
 	color: black;
+	border-color: black;
 }
 
 input.defaultCheckbox::before {
@@ -55,12 +56,64 @@ input:checked.defaultCheckbox::before {
 	opacity: 1;
 }
 
-.slide {
-	animation: slide_anim 0.5s;
+input:checked.defaultCheckbox {
+	background-color: #2d74ff;
+	border-color: #2d74ff;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+	.text-balance {
+		text-wrap: balance;
+	}
+}
+
+.promo-box-anim {
+	visibility: hidden;
+	z-index: 1;
+	opacity: 0;
+	transform: translateX(0);
+	animation: slideInFromLeft 1.5s ease-out forwards;
+	transition:
+		background-color 0.3s ease-in-out,
+		transform 0.3s ease-in-out;
+}
+
+@keyframes slideInFromLeft {
+	from {
+		transform: translateX(-100%);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+.hidden {
+	visibility: hidden;
+	opacity: 0;
+}
+
+.show {
+	visibility: visible;
+}
+
+.promo-box-anim:nth-child(1) {
+	animation-delay: 0s;
+}
+
+.promo-box-anim:nth-child(2) {
+	animation-delay: 0.5s;
+}
+
+.promo-box-anim:nth-child(3) {
+	animation-delay: 1s;
+}
+
+.promo-box {
+	transition: transform 0.15s ease-in-out;
+}
+
+.promo-box:hover {
+	transform: translateX(10px);
 }
