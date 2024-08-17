@@ -1,3 +1,11 @@
+export interface IEmailVerificationRequest {
+	email: string
+}
+
+export interface IEmailVerificationConfirm {
+	code: BigInteger
+}
+
 export interface IRegForm {
 	firstname: string
 	lastname: string
@@ -7,25 +15,21 @@ export interface IRegForm {
 }
 
 export interface IAuthForm {
-	name: string
-	firstname: string
-	lastname: string
-	code?: string
 	email: string
 	password: string
-	isRememberMe?: boolean
+	code?: string
 }
 
 export interface IUser {
-	id: number
+	id: string // id в возвращаемом объекте — строка
 	firstname: string
 	lastname: string
-	qualification: string
-	post: string
+	qualification: string | null
+	post: string | null
 	email: string
-	description: string
-	linkToVk: string
-	avatarAttachmentId: number
+	description: string | null
+	linkToVk: string | null
+	avatarAttachmentId: number | null
 }
 
 export interface IAuthResponse {

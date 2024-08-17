@@ -10,7 +10,7 @@ interface InputFieldProps {
 	disabled?: boolean
 	type?: string
 	isNumber?: boolean
-	errorMessage?: string // Добавлено для отображения сообщений об ошибках
+	errorMessage?: string
 }
 
 export const Field = forwardRef<HTMLInputElement, InputFieldProps>(
@@ -30,7 +30,7 @@ export const Field = forwardRef<HTMLInputElement, InputFieldProps>(
 		ref
 	) => {
 		return (
-			<div className={`${extra} relative`}>
+			<div className={`${extra} mb-3 relative`}>
 				<label
 					htmlFor={id}
 					className={`text-xs text-white/60 dark:text-white font-medium`}

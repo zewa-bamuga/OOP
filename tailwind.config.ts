@@ -12,6 +12,9 @@ const config: Config = {
 	],
 	theme: {
 		extend: {
+			transitionDelay: {
+				'500': '500ms'
+			},
 			colors: COLORS,
 			spacing: {
 				0.5: '0.12rem',
@@ -181,10 +184,14 @@ const config: Config = {
 			brandLinear: '#868CFF',
 			transparent: 'transparent',
 			oopyellow: '#FFC742',
+			oopyellowopacity: '#ffe3a0',
 			oopgray: '#323232',
 			oopgrayhover: '#494848',
 			oopblue: '#2D74FF',
 			hyperlink: '#2D74FF',
+			ooplightblue: '#F0F4FF',
+			ooplightbluehover: '#e8ecf6',
+			oopblack: '#000000',
 			gray: {
 				50: '#F5F6FA',
 				100: '#EEF0F6',

@@ -2,6 +2,7 @@ import Cookies from 'js-cookie'
 
 export enum EnumTokens {
 	'ACCESS_TOKEN' = 'accessToken',
+	'TOKEN_TYPE' = 'token_type',
 	'REFRESH_TOKEN' = 'refreshToken'
 }
 

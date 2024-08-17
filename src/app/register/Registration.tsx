@@ -1,50 +1,22 @@
 'use client'
 
-import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 
 import { Heading } from '@/components/ui/Heading'
 import { Button } from '@/components/ui/buttons/Button'
-
-import { IAuthForm } from '@/types/auth.types'
-
-import { DASHBOARD_PAGES } from '@/config/pages-url.config'
-
-import { authService } from '@/services/auth.service'
 
 {
 	/* cSpell:ignore главная клипы проекты Отдел Образовательных Программ Команда призванная побеждать создаём классные проекты обучаем новому саморазвиваемся запомнить меня Вход Регистрация Почта Пароль забыли Отправим сообщение с кодом на указанную почту Далее почте */
 }
 
 export function Register() {
-	const { register, handleSubmit, reset, control } = useForm<IAuthForm>({
-		mode: 'onChange'
-	})
-
 	const [isLoginForm, setIsLoginForm] = useState(false)
 	const [showBoxes, setShowBoxes] = useState(false)
 	const [hideBoxes, setHideBoxes] = useState(false)
 	const [showSecondBlock, setShowSecondBlock] = useState(false)
 
 	const { push } = useRouter()
-
-	const { mutate } = useMutation({
-		mutationKey: ['register'],
-		mutationFn: (data: IAuthForm) =>
-			authService.main(isLoginForm ? 'login' : 'register', data),
-		onSuccess() {
-			toast.success('Successfully registration!')
-			reset()
-			push(DASHBOARD_PAGES.HOME)
-		}
-	})
-
-	const onSubmit: SubmitHandler<IAuthForm> = data => {
-		mutate(data)
-	}
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -79,6 +51,7 @@ export function Register() {
 						marginLeft: '-20px',
 						zIndex: 1
 					}}
+					onClick={() => push('../')}
 				>
 					главная
 				</button>
@@ -105,6 +78,7 @@ export function Register() {
 						paddingLeft: '180px',
 						zIndex: 1
 					}}
+					onClick={() => push('../')}
 				>
 					главная
 				</button>
@@ -172,10 +146,7 @@ export function Register() {
 				</div>
 			</div>
 
-			<form
-				className='bg-sidebar mt-28 ml-[900px] rounded-xl px-8 w-[430px] h-[265px]'
-				onSubmit={handleSubmit(onSubmit)}
-			>
+			<form className='bg-sidebar mt-28 ml-[900px] rounded-xl px-8 w-[430px] h-[265px]'>
 				<div className='flex items-center justify-between mb-6'>
 					<Heading
 						title='Вход'

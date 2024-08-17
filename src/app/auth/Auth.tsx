@@ -36,8 +36,9 @@ export function Auth() {
 
 	const { mutate } = useMutation({
 		mutationKey: ['auth'],
-		mutationFn: (data: IAuthForm) =>
-			authService.main(isLoginForm ? 'login' : 'register', data),
+		mutationFn: (data: IAuthForm) => {
+			return authService.main(data)
+		},
 		onSuccess() {
 			toast.success('Successfully login!')
 			reset()
@@ -82,6 +83,7 @@ export function Auth() {
 						marginLeft: '-20px',
 						zIndex: 1
 					}}
+					onClick={() => push('..')}
 				>
 					главная
 				</button>
@@ -108,6 +110,7 @@ export function Auth() {
 						paddingLeft: '180px',
 						zIndex: 1
 					}}
+					onClick={() => push('../')}
 				>
 					главная
 				</button>
@@ -273,14 +276,13 @@ export function Auth() {
 						className={isLoginForm ? '' : ''}
 						onClick={() => setIsLoginForm(false)}
 					>
-						{/* Контейнер с Flexbox для размещения иконки и текста в строку */}
 						<div className='flex items-center justify-center'>
 							<img
 								src='/vk-icon.png'
 								alt='VK Icon'
-								className='w-5 h-5 mr-2' // Размер и отступ от текста
+								className='w-5 h-5 mr-2'
 							/>
-							<span>Войти с VK ID</span> {/* Текст кнопки */}
+							<span>Войти с VK ID</span>
 						</div>
 					</Button>
 				</div>
