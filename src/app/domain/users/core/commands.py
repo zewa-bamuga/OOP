@@ -11,7 +11,7 @@ from app.domain.common.schemas import IdContainer
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
 from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
-from app.domain.users.core.schemas import UpdatePasswordRequest
+from app.domain.users.core.schemas import EmailForCode
 from app.domain.users.registration.hi import send_password_reset_email
 
 
@@ -24,7 +24,7 @@ class UpdatePasswordRequestCommand:
         self.user_retrieve_by_email_query = user_retrieve_by_email_query
         self.repository = repository
 
-    async def __call__(self, payload: schemas.UpdatePasswordRequest) -> UpdatePasswordRequest:
+    async def __call__(self, payload: schemas.EmailForCode) -> EmailForCode:
         email = payload.email
         user_internal = await self.user_retrieve_by_email_query(email)
 
@@ -40,7 +40,7 @@ class UpdatePasswordRequestCommand:
         await self.repository.create_update_password(password_reset_code)
         await send_password_reset_email(email, code)
 
-        return UpdatePasswordRequest(email=email)
+        return EmailForCode(email=email)
 
 
 class UserPartialUpdateCommand:

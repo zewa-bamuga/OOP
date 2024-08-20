@@ -7,7 +7,7 @@ from app.domain.users.auth.commands import TokenRefreshCommand, UserAuthenticate
 from app.domain.users.auth.schemas import TokenResponse
 from app.domain.users.core import schemas
 from app.domain.users.core.commands import UpdatePasswordRequestCommand, UpdatePasswordConfirmCommand
-from app.domain.users.core.schemas import UserCredentials, UpdatePasswordRequest
+from app.domain.users.core.schemas import UserCredentials, EmailForCode
 
 router = APIRouter()
 
@@ -42,7 +42,7 @@ async def update_refresh_token(
 )
 @wiring.inject
 async def password_reset_request(
-        payload: UpdatePasswordRequest,
+        payload: EmailForCode,
         command: UpdatePasswordRequestCommand = Depends(wiring.Provide[Container.user.update_password_request_command]),
 ):
     user_details = await command(payload)

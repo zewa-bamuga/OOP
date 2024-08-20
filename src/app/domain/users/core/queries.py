@@ -73,7 +73,6 @@ class UserRetrieveByEmailQuery:
         self.staff_repository = staff_repository
 
     async def __call__(self, email: str) -> schemas.UserInternal | None:
-        print("Выполняется UserRetrieveByEmailQuery: ")
         try:
             user_internal = await self.user_repository.get_user_by_filter_by_email_or_none(
                 schemas.UserWhere(email=email))

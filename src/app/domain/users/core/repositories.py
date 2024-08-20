@@ -14,6 +14,42 @@ from app.domain.common.schemas import IdContainer, IdContainerTables
 from app.domain.users.core import schemas
 
 
+class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.EmailCode
+        self.transaction = transaction
+
+    async def create_code(self, payload: schemas.EmailVerificationCode) -> IdContainerTables:
+        return IdContainerTables(id=await self._create(payload))
+
+    async def email_deletion(self, email: str) -> None:
+        async with self.transaction.use() as session:
+            check_query = select(models.EmailCode).where(models.EmailCode.email == email)
+            result = await session.execute(check_query)
+            email_exists = result.first()
+
+            if email_exists:
+                stmt = sa.delete(models.EmailCode).where(models.EmailCode.email == email)
+                await session.execute(stmt)
+                await session.commit()
+            # Не выполняем ничего, если запись не найдена
+
+    async def code_deletion(self, code: int) -> bool:
+        async with self.transaction.use() as session:
+            check_query = select(models.EmailCode).where(models.EmailCode.code == code)
+            result = await session.execute(check_query)
+            email_exists = result.first()
+
+            if email_exists:
+                stmt = sa.delete(models.EmailCode).where(models.EmailCode.code == code)
+                await session.execute(stmt)
+                await session.commit()
+                return True
+
+            # Если код не найден, бросаем стандартное исключение
+            raise ValueError(f"Code {code} not found.")
+
+
 class UpdatePasswordRepository(CrudRepositoryMixin[models.PasswordResetCode]):
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.PasswordResetCode
