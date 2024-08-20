@@ -1,3 +1,6 @@
+@import url('https://db.onlinewebfonts.com/c/75e6e29986cbf78e3aaebb7c39b0eac3?family=IntroFriday');
+@import url('https://fonts.googleapis.com/css2?family=ABeeZee:ital@0;1&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,16 +20,22 @@
 }
 
 body {
-	@apply text-base overflow-hidden;
-	font-family: 'Helvetica', 'Arial', 'Lato', sans-serif, var(--font-zen);
+	@apply text-base;
+	font-family:
+		'Helvetica',
+		'Arial',
+		'Lato',
+		'IntroFriday',
+		'ABeeZee' sans-serif,
+		var(--font-zen);
 	color: rgb(var(--foreground-rgb));
 	background-color: #f0f4ff;
 
-	@media (max-with: 120px) {
+	@media (max-width: 120px) {
 		font-size: 16px;
 	}
 
-	@media (max-with: 992px) {
+	@media (max-width: 992px) {
 		font-size: 14px;
 	}
 }
@@ -116,4 +125,74 @@ input:checked.defaultCheckbox {
 
 .promo-box:hover {
 	transform: translateX(10px);
+}
+
+header .logo {
+	font-weight: 600;
+	font-size: 20px;
+}
+
+header ul.nav {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	margin-left: 200px;
+}
+
+header ul.nav li {
+	margin-left: 30px;
+	cursor: pointer;
+	color: #000000;
+	padding: 10px 15px;
+	font-size: 16px;
+}
+
+header ul.nav li:first-child {
+	margin-left: 0;
+}
+
+header .presentation {
+	width: 100%;
+	height: 655px;
+	position: relative;
+}
+
+header .presentation img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Наложение градиента */
+header .presentation::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(
+		to right,
+		rgba(50, 50, 50, 0.35) 0%,
+		rgba(50, 50, 50, 0.15) 50%,
+		rgba(50, 50, 50, 0.35) 100%
+	);
+	pointer-events: none;
+	mix-blend-mode: multiply;
+	z-index: 1;
+}
+
+header .presentation::after {
+	content: 'ООП - КОМАНДА,\AПРИЗВАННАЯ\APОБЕЖДАТЬ';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 80%;
+	font-size: 40px;
+	font-weight: 600;
+	color: #ffffff;
+	text-align: center;
+	white-space: pre;
+	z-index: 2;
 }

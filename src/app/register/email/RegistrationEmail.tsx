@@ -9,16 +9,15 @@ import { Heading } from '@/components/ui/Heading'
 import { Button } from '@/components/ui/buttons/Button'
 import { Field } from '@/components/ui/fields/Field'
 
-import { IAuthForm } from '@/types/auth.types'
+import { IRegForm } from '@/types/auth.types'
 
-{
-	/* cSpell:ignore главная клипы проекты Отдел Образовательных Программ Команда призванная побеждать создаём классные проекты обучаем новому саморазвиваемся запомнить меня Вход Регистрация Почта Пароль забыли Отправим сообщение указанную почту пришло Поле обязательно заполнения Восстановление пароля Восстановить Изменить Отправили письмо Отправить Повторная отправка через Минимум символов Завершить регистрацию завершена успешно зарегистрировались Фамилия Закрыть кодом Далее */
-}
+import { registerService } from '@/services/register.service'
 
 export function RegByEmail() {
-	const { register, handleSubmit, reset, watch, control } = useForm<IAuthForm>({
-		mode: 'onSubmit'
-	})
+	const { register, handleSubmit, reset, watch, control, setValue } =
+		useForm<IRegForm>({
+			mode: 'onSubmit'
+		})
 	const { errors, isSubmitted } = useFormState({ control })
 
 	const [step, setStep] = useState(1)
@@ -27,46 +26,70 @@ export function RegByEmail() {
 	const [canResend, setCanResend] = useState(false)
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [passwordVisible, setPasswordVisible] = useState(false)
-	const [showSecondBlock, setShowSecondBlock] = useState(false)
-	const [showBoxes, setShowBoxes] = useState(false)
-	const [hideBoxes, setHideBoxes] = useState(false)
 
 	const { push } = useRouter()
 
-	const fakeMutation = (data: IAuthForm): Promise<void> => {
-		return new Promise((resolve, reject) => {
-			setTimeout(() => {
-				if (data.email || data.code || data.password) {
-					resolve()
-				} else {
-					reject(new Error('Mutation error'))
-				}
-			}, 1000)
-		})
-	}
-
-	const onSubmit: SubmitHandler<IAuthForm> = data => {
+	const onSubmit: SubmitHandler<IRegForm> = async data => {
 		if (step === 1) {
 			setEmail(data.email)
-		}
-		fakeMutation(data)
-			.then(() => {
-				if (step === 1) {
+			try {
+				const response = await registerService.verification_email_request({
+					email: data.email
+				})
+				if (response.status === 200) {
 					setStep(2)
 					toast.success('Email sent!')
-				} else if (step === 2) {
+				} else {
+					toast.error('Failed to send email.')
+				}
+			} catch (error) {
+				toast.error('An error occurred during the process')
+				console.error('Error during email submission', error)
+			}
+		} else if (step === 2) {
+			try {
+				const response = await registerService.verification_email_confirm({
+					email: email,
+					code: data.code
+				})
+				if (response.status === 200) {
 					setStep(3)
 					toast.success('Code verified!')
-				} else if (step === 3) {
-					setIsModalOpen(true)
-					toast.success('Registration complete!')
-					// push(DASHBOARD_PAGES.HOME)
+				} else {
+					toast.error('Failed to verify code.')
 				}
-			})
-			.catch(error => {
-				console.error('Error during mutation', error)
+			} catch (error) {
 				toast.error('An error occurred during the process')
-			})
+				console.error('Error during code verification', error)
+			}
+		} else if (step === 3) {
+			try {
+				const response = await registerService.main({
+					firstname: data.firstname,
+					lastname: data.lastname,
+					email: data.email,
+					password: data.password
+				})
+				if (response.status === 200) {
+					toast.success('Registration completed!')
+					toast.success('Successfully login!')
+					reset()
+					push('../auth')
+				} else {
+					toast.error('Failed to complete registration.')
+				}
+			} catch (error) {
+				toast.error('An error occurred during the process')
+				console.error('Error during registration', error)
+			}
+		}
+	}
+
+	const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const [firstname, ...lastnameArray] = e.target.value.split(' ')
+		const lastname = lastnameArray.join(' ')
+		setValue('firstname', firstname || '')
+		setValue('lastname', lastname || '')
 	}
 
 	useEffect(() => {
@@ -89,28 +112,22 @@ export function RegByEmail() {
 		setCanResend(false)
 	}
 
-	const handleResend = () => {
-		toast.success('Code resent!')
-		setCountdown(60)
-		setCanResend(false)
+	const handleResend = async () => {
+		try {
+			await registerService.verification_email_request({ email })
+			setCountdown(60)
+			setCanResend(false)
+			toast.success('Code resent!')
+		} catch (error) {
+			toast.error('An error occurred during the process')
+			console.error('Error during code resend', error)
+		}
 	}
 
 	const code = watch('code')
 	useEffect(() => {
 		if (code && code.length === 4) {
-			fakeMutation({ code })
-				.then(() => {
-					setStep(3)
-					toast.success('Code verified!')
-				})
-				.catch(error => {
-					console.error('Error during mutation', error)
-					toast.error('An error occurred during the process')
-				})
-
-			setShowBoxes(false)
-			setHideBoxes(false)
-			setShowSecondBlock(false)
+			// Эта часть может быть удалена, так как код будет подтвержден в `onSubmit`
 		}
 	}, [code])
 
@@ -193,7 +210,7 @@ export function RegByEmail() {
 			</div>
 
 			<form
-				className={`bg-sidebar mt-28 ml-[900px] rounded-xl px-8 ${step === 3 ? 'w-[430px] h-[490px]' : 'w-[430px] h-[320px]'} transition-all duration-300`}
+				className={`bg-sidebar mt-28 ml-[900px] rounded-xl px-8 ${step === 3 ? 'w-[430px] h-[540px]' : 'w-[430px] h-[320px]'} transition-all duration-300`}
 				onSubmit={handleSubmit(onSubmit)}
 			>
 				<div className='flex items-center justify-between mb-6'>
@@ -248,6 +265,7 @@ export function RegByEmail() {
 				{step === 2 && (
 					<>
 						<div className='flex justify-between items-center mb-4'>
+							{' '}
 							<p className='text-xs font-bold text-oopgray'>
 								Отправили сообщение с кодом на почту {email}
 							</p>
@@ -260,25 +278,18 @@ export function RegByEmail() {
 								<span className='absolute bottom-[-1px] left-0 w-full h-px bg-hyperlink transform scale-x-100 transition-transform duration-300 ease-in-out group-hover:scale-x-0' />
 							</button>
 						</div>
-
 						<Field
 							id='code'
 							label='Код'
 							placeholder=''
 							type='text'
+							extra='Укажите код из письма'
 							maxLength={4}
-							extra=''
 							{...register('code', {
-								required: 'Code is required!',
-								minLength: {
-									value: 4,
-									message: ''
-								},
-								maxLength: {
-									value: 4,
-									message: ''
-								}
+								required: 'Поле обязательно для заполнения!'
 							})}
+							state={errors.code ? 'error' : undefined}
+							errorMessage={isSubmitted ? errors.code?.message : undefined}
 						/>
 						{canResend ? (
 							<button
@@ -301,17 +312,22 @@ export function RegByEmail() {
 				)}
 				{step === 3 && (
 					<>
+						<p className='text-xs font-bold text-oopgray mb-4'>
+							Почта и пароль понадобятся для входа на сайт
+						</p>
 						<Field
 							id='name'
-							label='Имя'
+							label='Как тебя зовут'
 							placeholder='Имя Фамилия'
 							type='text'
 							extra=''
-							{...register('name', {
-								required: 'Поле обязательно для заполнения!'
-							})}
-							state={errors.name ? 'error' : undefined}
-							errorMessage={isSubmitted ? errors.name?.message : undefined}
+							onChange={handleNameChange}
+							state={errors.firstname || errors.lastname ? 'error' : undefined}
+							errorMessage={
+								isSubmitted
+									? `${errors.firstname?.message} ${errors.lastname?.message}`
+									: undefined
+							}
 						/>
 						<Field
 							id='email'
@@ -325,43 +341,35 @@ export function RegByEmail() {
 							state={errors.email ? 'error' : undefined}
 							errorMessage={isSubmitted ? errors.email?.message : undefined}
 						/>
-						<button
-							type='button'
-							className='absolute ml-[330px] mt-14 z-[1] transform -translate-y-1/2'
-							onClick={() => setPasswordVisible(prev => !prev)}
-						>
-							<img
-								src={passwordVisible ? '/eye-off.png' : '/eye.png'}
-								alt={passwordVisible ? 'Hide password' : 'Show password'}
-								className='w-5 h-5'
-							/>
-						</button>
-						<div className='relative'>
-							<Field
-								id='password'
-								label='Пароль'
-								placeholder=''
-								type={passwordVisible ? 'text' : 'password'}
-								extra=''
-								{...register('password', {
-									required: 'Минимум 6 символов',
-									minLength: {
-										value: 6,
-										message: 'Минимум 6 символов'
-									}
-								})}
-								state={errors.password ? 'error' : undefined}
-								errorMessage={
-									isSubmitted ? errors.password?.message : undefined
+						<Field
+							id='password'
+							label='Пароль'
+							placeholder=''
+							type={passwordVisible ? 'text' : 'password'}
+							extra={
+								<button
+									type='button'
+									className='text-gray-500'
+									onClick={() => setPasswordVisible(!passwordVisible)}
+								>
+									{passwordVisible ? 'Скрыть' : 'Показать'}
+								</button>
+							}
+							{...register('password', {
+								required: 'Поле обязательно для заполнения!',
+								minLength: {
+									value: 6,
+									message: 'Пароль должен содержать как минимум 6 символов'
 								}
-							/>
-						</div>
+							})}
+							state={errors.password ? 'error' : undefined}
+							errorMessage={isSubmitted ? errors.password?.message : undefined}
+						/>
 						<p className='text-[12px] text-oopgray mt-2'>Минимум 6 символов</p>
 						<div className='flex flex-col items-center gap-4'>
 							<Button
 								variant='gray'
-								className='bg-oopgray mt-6'
-								type='submit'
+								className='bg-oopgray mt-5'
 							>
 								Завершить регистрацию
 							</Button>
@@ -369,27 +377,6 @@ export function RegByEmail() {
 					</>
 				)}
 			</form>
-
-			{/* Заглушка */}
-			{isModalOpen && (
-				<div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
-					<div className='bg-white p-6 rounded-lg shadow-lg'>
-						<h2 className='text-xl text-oopgray font-bold'>
-							Регистрация завершена
-						</h2>
-						<p className='mt-2'>Вы успешно зарегистрировались!</p>
-						<div className='mt-4 flex justify-end'>
-							<Button
-								variant='gray'
-								className='bg-oopgray'
-								onClick={() => setIsModalOpen(false)}
-							>
-								Закрыть
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	)
 }

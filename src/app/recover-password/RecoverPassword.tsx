@@ -274,27 +274,6 @@ export function RecoverPassword() {
 					</>
 				)}
 			</form>
-
-			{/* Заглушка */}
-			{isModalOpen && (
-				<div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
-					<div className='bg-white p-6 rounded-lg shadow-lg'>
-						<h2 className='text-xl text-oopgray font-bold'>
-							Регистрация завершена
-						</h2>
-						<p className='mt-2'>Вы успешно зарегистрировались!</p>
-						<div className='mt-4 flex justify-end'>
-							<Button
-								variant='gray'
-								className='bg-oopgray'
-								onClick={() => setIsModalOpen(false)}
-							>
-								Закрыть
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	)
 }

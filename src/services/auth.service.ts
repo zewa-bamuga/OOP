@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 import { IAuthForm, IAuthResponse } from '@/types/auth.types'
 
 import { axiosClassic } from '@/api/interceptors'
@@ -5,20 +7,29 @@ import { axiosClassic } from '@/api/interceptors'
 import { removeFromStorage, saveTokenStorage } from './auth-token.service'
 
 export const authService = {
-	async main(type: 'login' | 'register', data: IAuthForm) {
-		const response = await axiosClassic.post<IAuthResponse>(
-			`/auth/${type}`,
-			data
-		)
+	async main(data: IAuthForm) {
+		try {
+			const response = await axiosClassic.post<IAuthResponse>(
+				`/authentication/v1/authentication`,
+				data
+			)
 
-		if (response.data.accessToken) saveTokenStorage(response.data.accessToken)
+			if (response.data.accessToken) saveTokenStorage(response.data.accessToken)
 
-		return response
+			return response
+		} catch (error) {
+			if (axios.isAxiosError(error) && error.response) {
+				console.error('Error response:', error.response.data)
+			} else {
+				console.error('Error message:', error.message)
+			}
+			throw error
+		}
 	},
 
 	async getNewTokens() {
 		const response = await axiosClassic.post<IAuthResponse>(
-			'/authentication/v1/authentication'
+			'/authentication/v1/refresh'
 		)
 
 		if (response.data.accessToken) saveTokenStorage(response.data.accessToken)

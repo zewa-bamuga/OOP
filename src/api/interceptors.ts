@@ -1,11 +1,7 @@
 import axios, { type CreateAxiosDefaults } from 'axios'
 
-import {
-	getAccessToken,
-	removeFromStorage
-} from '@/services/auth-token.service'
-import { authService } from '@/services/auth.service'
 import { errorCatch } from './error'
+import { getAccessToken } from '@/services/auth-token.service'
 
 const options: CreateAxiosDefaults = {
 	baseURL: 'http://localhost:80/api',
@@ -21,8 +17,7 @@ const axiosWithAuth = axios.create(options)
 axiosWithAuth.interceptors.request.use(config => {
 	const accessToken = getAccessToken()
 
-	if (config?.headers && accessToken)
-		config.headers.Authorization = `Bearer ${accessToken}`
+	if (config?.headers && accessToken) config.headers.token = `${accessToken}`
 
 	return config
 })
@@ -38,17 +33,18 @@ axiosWithAuth.interceptors.response.use(
 				errorCatch(error) === 'jwt must be provided') &&
 			error.config &&
 			!error.config._isRetry
-		) {
-			originalRequest._isRetry = true
-			try {
-				await authService.getNewTokens()
-				return axiosWithAuth.request(originalRequest)
-			} catch (error) {
-				if (errorCatch(error) === 'jwt expired') removeFromStorage()
-			}
-		}
+		)
+			// ) {
+			// 	originalRequest._isRetry = true
+			// 	try {
+			// 		await authService.getNewTokens()
+			// 		return axiosWithAuth.request(originalRequest)
+			// 	} catch (error) {
+			// 		if (errorCatch(error) === 'jwt expired') removeFromStorage()
+			// 	}
+			// }
 
-		throw error
+			throw error
 	}
 )
 
