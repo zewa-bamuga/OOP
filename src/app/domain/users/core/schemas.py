@@ -15,11 +15,31 @@ from a8t_tools.db import sorting as sr
 
 class User(APIModel):
     id: UUID
-    username: str
-    email: str
+    firstname: str
+    lastname: str
+    email: EmailStr
+    description: str | None = None
     status: UserStatuses
     avatar_attachment_id: UUID | None = None
     created_at: datetime
+
+
+class Staff(APIModel):
+    id: UUID
+    firstname: str
+    lastname: str
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr
+    description: str | None = None
+    link_to_vk: str | None = None
+    status: UserStatuses
+    avatar_attachment_id: UUID | None = None
+    created_at: datetime
+
+
+class StaffDetails(Staff):
+    avatar_attachment: Attachment | None = None
 
 
 class UserDetails(User):
@@ -31,17 +51,42 @@ class UserDetailsFull(UserDetails):
 
 
 class UserCredentials(APIModel):
-    username: str
+    email: str
+    password: str
+
+
+class UserCredentialsRegist(APIModel):
+    firstname: str
+    lastname: str
     email: str
     password: str
 
 
 class UserCreate(APIModel):
-    username: str
-    email: EmailStr
+    firstname: str | None = None
+    lastname: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
     password_hash: str
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
+
+
+class StaffCreate(APIModel):
+    firstname: str | None = None
+    lastname: str | None = None
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
+    link_to_vk: str | None = None
+    password_hash: str
+    avatar_attachment_id: UUID | None = None
+    permissions: set[str] | None = None
+
+
+class StaffCreateFull(StaffCreate):
+    status: UserStatuses
 
 
 class UserCreateFull(UserCreate):
@@ -49,21 +94,26 @@ class UserCreateFull(UserCreate):
 
 
 class UserPartialUpdate(APIModel):
-    username: str | None = None
+    firstname: str | None = None
     email: EmailStr | None = None
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
     status: str | None = None
 
 
-class UserPartialUpdateFull(UserPartialUpdate):
+class UserPartialUpdateFull(APIModel):
     password_hash: str | None = None
 
 
 class UserInternal(APIModel):
     id: UUID
-    username: str
-    email: str
+    firstname: str
+    lastname: str
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr
+    description: str | None = None
+    link_to_vk: str | None = None
     password_hash: str
     permissions: set[str] | None = None
     avatar_attachment_id: UUID | None = None
@@ -74,14 +124,27 @@ class UserInternal(APIModel):
 
 class UserSorts(enum.StrEnum):
     id = enum.auto()
-    username = enum.auto()
+    firstname = enum.auto()
     email = enum.auto()
     status = enum.auto()
     created_at = enum.auto()
 
 
-class UpdatePasswordRequest(APIModel):
-    email: str
+class StaffSorts(enum.StrEnum):
+    id = enum.auto()
+    firstname = enum.auto()
+    email = enum.auto()
+    status = enum.auto()
+    created_at = enum.auto()
+    post = enum.auto()
+
+
+class EmailForCode(APIModel):
+    email: str | None = None
+
+
+class VerificationCode(APIModel):
+    code: int
 
 
 class UpdatePasswordConfirm(APIModel):
@@ -91,13 +154,19 @@ class UpdatePasswordConfirm(APIModel):
 
 
 class UserProfilePartialUpdate(APIModel):
-    username: str | None = None
+    firstname: str | None = None
     password: str | None = None
 
 
 class PasswordResetCode(APIModel):
-    user_id: UUID
+    user_id: UUID | None = None
+    staff_id: UUID | None = None
     code: str
+
+
+class EmailVerificationCode(APIModel):
+    email: str
+    code: int
 
 
 class PasswordResetCodePartialUpdate(APIModel):
@@ -111,9 +180,15 @@ class UserListRequestSchema:
 
 
 @dataclass
+class StaffListRequestSchema:
+    pagination: pg.PaginationCallable[Staff] | None = None
+    sorting: sr.SortingData[StaffSorts] | None = None
+
+
+@dataclass
 class UserWhere:
     id: UUID | None = None
-    username: str | None = None
+    firstname: str | None = None
     email: str | None = None
 
 
@@ -121,4 +196,5 @@ class UserWhere:
 class PasswordResetCodeWhere:
     id: int | None = None
     user_id: UUID | None = None
+    staff_id: UUID | None = None
     code: str | None = None

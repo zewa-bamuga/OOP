@@ -6,7 +6,7 @@ from dependency_injector.wiring import Provide
 from fastapi import APIRouter, Depends, Header
 
 from app.containers import Container
-from app.domain.users.core.schemas import UserDetails
+from app.domain.users.core.schemas import StaffDetails
 from app.domain.users.profile.queries import UserProfileMeQuery
 
 router = APIRouter()
@@ -20,12 +20,12 @@ async def user_token(token: str):
 
 @router.get(
     "/me",
-    response_model=UserDetails,
+    response_model=StaffDetails,
 )
 @wiring.inject
 async def get_me(
-    token: str = Header(...),
-    query: UserProfileMeQuery = Depends(Provide[Container.user.profile_me_query]),
-) -> UserDetails:
+        token: str = Header(...),
+        query: UserProfileMeQuery = Depends(Provide[Container.user.profile_me_query]),
+) -> StaffDetails:
     async with user_token(token):
         return await query()

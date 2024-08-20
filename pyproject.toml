@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "oop"
+name = "OOP"
 version = "0.1.0"
 description = ""
 authors = ["zewa-bamuga <tikhonov.igor2028@yandex.ru>"]
 readme = "README.md"
+packages = [{include = "src/app"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -29,7 +30,9 @@ loguru = "0.7.2"
 tenacity = "8.2.3"
 boto3 = "1.34.9"
 a8t-tools = {extras = ["all"], version = "~0.1.1", source = "gitlab"}
-bcrypt = "^4.1.3"
+generate-password = "^1.0.0"
+sa = "^0.0.4"
+bcrypt = "4.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.0.4"

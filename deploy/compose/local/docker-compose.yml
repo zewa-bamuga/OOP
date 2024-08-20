@@ -1,11 +1,43 @@
-version: '3.7'
+version: '3'
 
 volumes:
-  postgres_data: { }
-  fastapi_media: { }
+  postgres_data: {}
+  rabbitmq_data: {}
+  fastapi_media: {}
 
 services:
-  fastapi:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.http.address=:80"
+    ports:
+      - "${APP_PORT:-80}:80"
+      - "${TRAEFIK_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: "unless-stopped"
+
+  #  react:
+  #    build:
+  #      context: .
+  #      dockerfile: ./deploy/compose/local/react.dockerfile
+  #    volumes:
+  #      - ./admin/src:/app/src
+  #      - ./admin/public:/app/public
+  #      - ./admin/index.html:/app/index.html
+  #    env_file:
+  #      - .env
+  #    restart: "unless-stopped"
+  #    labels:
+  #      - "traefik.enable=true"
+  #      - "traefik.http.routers.react.rule=PathPrefix(`/`)"
+  #      - "traefik.http.routers.react.service=react"
+  #      - "traefik.http.services.react.loadbalancer.server.port=5173"
+
+  fastapi: &core
     build:
       context: .
       dockerfile: ./deploy/compose/local/fastapi.dockerfile
@@ -16,13 +48,33 @@ services:
       - MODULE_NAME=app.fastapi
     depends_on:
       - postgres
+      - rabbitmq
+      - db-init
     command: /start-reload-fastapi.sh
     env_file:
-      - .env.example
       - .env
     restart: "unless-stopped"
-    ports:
-      - 8000:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+
+  celery-main: &background
+    <<: *core
+    command: /start-celery-worker.sh main_queue 1
+    labels:
+      - "traefik.enable=false"
+
+  celery-beat:
+    <<: *background
+    command: /start-celery-beat.sh
+
+  db-init:
+    <<: *background
+    depends_on:
+      - postgres
+    restart: "no"
+    command: /start-db-init.sh
+    ports: [ ]
 
   postgres:
     image: postgres:latest
@@ -31,8 +83,20 @@ services:
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
     env_file:
-      - .env.example
       - .env
     restart: "unless-stopped"
     ports:
       - 5432:5432
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/mnesia
+    env_file:
+      - .env
+    restart: "unless-stopped"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)"
+      - "traefik.http.routers.rabbitmq.service=rabbitmq"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
