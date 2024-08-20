@@ -7,6 +7,7 @@ from sqlalchemy import orm, Column, Integer, String, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+import random
 
 
 @orm.as_declarative()
@@ -99,6 +100,7 @@ class Token(Base):
 
 class PasswordResetCode(Base):
     __tablename__ = "password_reset_code"
+
     id = Column(Integer, primary_key=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=True)
     staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=True)
@@ -113,3 +115,55 @@ class PasswordResetCode(Base):
     @classmethod
     def generate_code(cls) -> str:
         return secrets.token_urlsafe(6)
+
+
+class EmailCode(Base):
+    __tablename__ = 'email_code'
+
+    id = Column(Integer, primary_key=True)
+    email: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
+    code: orm.Mapped[int] = orm.mapped_column(Integer, nullable=False)
+
+    @classmethod
+    def generate_code(cls) -> int:
+        return random.randint(1000, 9999)
+
+
+class Project(Base):
+    __tablename__ = "project"
+
+    id = Column(Integer, primary_key=True)
+    name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
+    start_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    end_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
+    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    avatar_attachment_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("attachment.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+    avatar_attachment = relationship(
+        "Attachment",
+        backref="project_avatar_attachment",
+        foreign_keys=[avatar_attachment_id],
+        uselist=False,
+    )
+
+    @classmethod
+    def add_like(cls):
+        cls.likes += 1
+
+
+class ProjectLike(Base):
+    __tablename__ = "project_like"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
+    project_id = Column(Integer, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+
+    user = relationship("User", backref="project_likes")
+    staff = relationship("Staff", backref="project_likes")
+    project = relationship("Project", backref="project_likes")

@@ -5,6 +5,6 @@ set -o pipefail
 set -o nounset
 
 # Run migrations
-alembic upgrade head
+#alembic upgrade head
 
 sleep 500

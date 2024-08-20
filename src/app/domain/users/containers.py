@@ -32,10 +32,11 @@ from app.domain.users.core.queries import (
 )
 from app.domain.users.registration.hi import Generate_Password, First_Registration
 from app.domain.users.core.repositories import UserRepository, \
-    UpdatePasswordRepository, StaffRepository
+    UpdatePasswordRepository, StaffRepository, EmailRpository
 from app.domain.users.permissions.queries import UserPermissionListQuery
 from app.domain.users.permissions.services import UserPermissionService
-from app.domain.users.registration.commands import UserRegisterCommand
+from app.domain.users.registration.commands import UserRegisterCommand, UserEmailVerificationRequestCommand, \
+    UserEmailVerificationConfirmCommand
 from app.domain.users.profile.queries import UserProfileMeQuery
 from app.domain.users.profile.commands import UserProfilePartialUpdateCommand
 from a8t_tools.db.transactions import AsyncDbTransaction
@@ -70,8 +71,19 @@ class UserContainer(containers.DeclarativeContainer):
         transaction=transaction,
     )
 
+    user_retrieve_query = providers.Factory(
+        UserRetrieveQuery,
+        user_repository=user_repository,
+        staff_repository=staff_repository,
+    )
+
     repository_update_password = providers.Factory(
         UpdatePasswordRepository,
+        transaction=transaction,
+    )
+
+    repository_email_verification = providers.Factory(
+        EmailRpository,
         transaction=transaction,
     )
 
@@ -162,8 +174,18 @@ class UserContainer(containers.DeclarativeContainer):
 
     register_command = providers.Factory(
         UserRegisterCommand,
-        user_create_command=create_command,
+        create_command=create_command,
         password_hash_service=password_hash_service,
+    )
+
+    email_verification_request_command = providers.Factory(
+        UserEmailVerificationRequestCommand,
+        repository=repository_email_verification,
+    )
+
+    email_verification_confirm_command = providers.Factory(
+        UserEmailVerificationConfirmCommand,
+        repository=repository_email_verification,
     )
 
     update_password_request_command = providers.Factory(

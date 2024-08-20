@@ -51,6 +51,11 @@ class UserDetailsFull(UserDetails):
 
 
 class UserCredentials(APIModel):
+    email: str
+    password: str
+
+
+class UserCredentialsRegist(APIModel):
     firstname: str
     lastname: str
     email: str
@@ -134,8 +139,12 @@ class StaffSorts(enum.StrEnum):
     post = enum.auto()
 
 
-class UpdatePasswordRequest(APIModel):
-    email: str
+class EmailForCode(APIModel):
+    email: str | None = None
+
+
+class VerificationCode(APIModel):
+    code: int
 
 
 class UpdatePasswordConfirm(APIModel):
@@ -153,6 +162,11 @@ class PasswordResetCode(APIModel):
     user_id: UUID | None = None
     staff_id: UUID | None = None
     code: str
+
+
+class EmailVerificationCode(APIModel):
+    email: str
+    code: int
 
 
 class PasswordResetCodePartialUpdate(APIModel):

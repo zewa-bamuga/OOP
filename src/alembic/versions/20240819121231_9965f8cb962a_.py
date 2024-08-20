@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 2f292ad6c4d0
+Revision ID: 9965f8cb962a
 Revises: 
-Create Date: 2024-07-08 13:13:51.246642
+Create Date: 2024-08-19 12:12:31.461556
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '2f292ad6c4d0'
+revision: str = '9965f8cb962a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,6 +30,28 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_attachment_id'), 'attachment', ['id'], unique=False)
+    op.create_table('email_code',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('code', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('project',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('start_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('end_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('description', sa.String(), nullable=True),
+    sa.Column('likes', sa.Integer(), nullable=False),
+    sa.Column('avatar_attachment_id', sa.UUID(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['avatar_attachment_id'], ['attachment.id'], ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_project_avatar_attachment_id'), 'project', ['avatar_attachment_id'], unique=False)
     op.create_table('staff',
     sa.Column('firstname', sa.String(), nullable=True),
     sa.Column('lastname', sa.String(), nullable=True),
@@ -82,6 +104,18 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_password_reset_code_staff_id'), 'password_reset_code', ['staff_id'], unique=False)
     op.create_index(op.f('ix_password_reset_code_user_id'), 'password_reset_code', ['user_id'], unique=False)
+    op.create_table('project_like',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.UUID(), nullable=True),
+    sa.Column('staff_id', sa.UUID(), nullable=True),
+    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['project_id'], ['project.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['staff_id'], ['staff.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('tokens',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
@@ -103,6 +137,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_tokens_user_id'), table_name='tokens')
     op.drop_index(op.f('ix_tokens_staff_id'), table_name='tokens')
     op.drop_table('tokens')
+    op.drop_table('project_like')
     op.drop_index(op.f('ix_password_reset_code_user_id'), table_name='password_reset_code')
     op.drop_index(op.f('ix_password_reset_code_staff_id'), table_name='password_reset_code')
     op.drop_table('password_reset_code')
@@ -112,6 +147,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_staff_id'), table_name='staff')
     op.drop_index(op.f('ix_staff_avatar_attachment_id'), table_name='staff')
     op.drop_table('staff')
+    op.drop_index(op.f('ix_project_avatar_attachment_id'), table_name='project')
+    op.drop_table('project')
+    op.drop_table('email_code')
     op.drop_index(op.f('ix_attachment_id'), table_name='attachment')
     op.drop_table('attachment')
     # ### end Alembic commands ###

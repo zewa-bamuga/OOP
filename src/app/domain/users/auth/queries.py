@@ -64,7 +64,6 @@ class CurrentUserQuery:
         self.user_query = user_query
 
     async def __call__(self) -> StaffDetails:
-        print("Выполняется CurrentUserQuery")
         token_payload = await self.token_query()
         if token_payload:
             user = await self.user_query(token_payload.sub)

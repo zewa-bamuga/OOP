@@ -14,7 +14,5 @@ class UserProfileMeQuery:
         self.current_user_query = current_user_query
 
     async def __call__(self) -> StaffDetails:
-        print("Выполняется UserProfileMeQuery")
         await self.permission_service.assert_permissions(BasePermissions.superuser)
-        print("Выполняется между UserProfileMeQuery")
         return await self.current_user_query()

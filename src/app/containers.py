@@ -14,6 +14,7 @@ from a8t_tools.logging.utils import setup_logging
 from a8t_tools.bus.celery import CeleryBackend
 
 from app.config import Settings
+from app.domain.projects.containers import ProjectContainer
 from app.domain.storage.attachments.containers import AttachmentContainer
 from app.domain.users.containers import UserContainer
 
@@ -87,10 +88,18 @@ class Container(containers.DeclarativeContainer):
         refresh_expiration_time=config.security.refresh_expiration_min,
     )
 
+    project = providers.Container(
+        ProjectContainer,
+        transaction=transaction,
+        user_container=user
+    )
+
     attachment = providers.Container(
         AttachmentContainer,
         transaction=transaction,
         file_storage=file_storage,
         bucket=config.storage.default_bucket,
-        user_container=user
+        user_container=user,
+        project_container=project
+
     )
