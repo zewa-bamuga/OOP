@@ -25,5 +25,6 @@ class UserPermissionService:
         return permissions.resolve(user_scopes)
 
     async def assert_permissions(self, permissions: PermissionResolver) -> None:
+        print("Выполняется проверка permissions")
         if not await self.has_permissions(permissions):
             raise UserPermissionError()

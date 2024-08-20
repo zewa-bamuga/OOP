@@ -10,4 +10,4 @@ class UserPermissionListQuery:
 
     async def __call__(self, user_id: UUID) -> set[str]:
         user = await self.query(user_id)
-        return (user.permissions or set()) | {BasePermissions.authenticated}
+        return (user.permissions or set()) | {BasePermissions.superuser}

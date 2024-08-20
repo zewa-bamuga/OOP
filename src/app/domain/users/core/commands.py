@@ -1,20 +1,17 @@
-import datetime
-import secrets
-import uuid
 from uuid import UUID
 
+from a8t_tools.bus.producer import TaskProducer
 from a8t_tools.security.hashing import PasswordHashService
-from fastapi import HTTPException
 from loguru import logger
-from pydantic import EmailStr
 
 from app.domain.common import enums
+from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import PasswordResetCode
+from app.domain.common.schemas import IdContainer
 from app.domain.users.core import schemas
-from app.domain.users.core.queries import UserRetrieveByUsernameQuery, UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
-from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository
-from app.domain.users.core.schemas import UpdatePasswordRequest, UpdatePasswordConfirm, UserProfilePartialUpdate, \
-    UserPartialUpdateFull
+from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
+from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
+from app.domain.users.core.schemas import EmailForCode
 from app.domain.users.registration.hi import send_password_reset_email
 
 
@@ -27,35 +24,46 @@ class UpdatePasswordRequestCommand:
         self.user_retrieve_by_email_query = user_retrieve_by_email_query
         self.repository = repository
 
-    async def __call__(self, payload: schemas.UpdatePasswordRequest) -> UpdatePasswordRequest:
+    async def __call__(self, payload: schemas.EmailForCode) -> EmailForCode:
         email = payload.email
         user_internal = await self.user_retrieve_by_email_query(email)
 
         user_id = user_internal.id
         code = PasswordResetCode.generate_code()
+
         password_reset_code = schemas.PasswordResetCode(
             user_id=user_id,
             code=code,
         )
-        password_reset_code_id_container = await self.repository.create_update_password(password_reset_code)
-        await send_password_reset_email(email, code)
-        logger.info("Password reset code created: {password_reset_code_id}",
-                    password_reset_code_id=password_reset_code_id_container.id)
 
-        return UpdatePasswordRequest(email=email)
+        await self.repository.delete_code(user_id)
+        await self.repository.create_update_password(password_reset_code)
+        await send_password_reset_email(email, code)
+
+        return EmailForCode(email=email)
 
 
 class UserPartialUpdateCommand:
-    def __init__(
-            self,
-            repository: UserRepository,
-    ):
-        self.repository = repository
+    def __init__(self, user_repository: UserRepository, staff_repository: StaffRepository):
+        self.user_repository = user_repository
+        self.staff_repository = staff_repository
 
-    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdateFull) -> schemas.UserDetailsFull:
-        await self.repository.partial_update_user(user_id, payload)
-        user = await self.repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-        assert user
+    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
+        try:
+            await self.user_repository.partial_update_user(user_id, payload)
+            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
+
+            if not user:
+                await self.staff_repository.partial_update_staff(user_id, payload)
+                user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=user_id))
+
+            if not user:
+                raise NotFoundError()
+
+        except Exception as e:
+            print("Произошла ошибка при обновлении пользователя или сотрудника:", e)
+            raise
+
         return schemas.UserDetailsFull.model_validate(user)
 
 
@@ -76,44 +84,75 @@ class UpdatePasswordConfirmCommand:
 
     async def __call__(self, payload: schemas.UpdatePasswordConfirm) -> None:
         email = payload.email
+        print("выполняется user_retrieve_by_email_query")
         user_internal = await self.user_retrieve_by_email_query(email)
+        print("выполняется user_internal: ", user_internal)
 
+        print("выполняется user_retrieve_by_code_query")
         code = payload.code
         code_internal = await self.user_retrieve_by_code_query(code)
+        print("после user_retrieve_by_code_query: ", code_internal)
 
         user_id = user_internal.id
         user_id_by_code = code_internal.user_id
+        print("user_id: ", user_id)
 
         password_hash = await self.password_hash_service.hash(payload.password)
 
         update_payload = schemas.UserPartialUpdateFull(
-            email=email,
             password_hash=password_hash
         )
 
-        await self.user_partial_update_command(
-            user_id, update_payload
-        )
+        print("Сейчас будет передаваться в user_partial_update_command")
+
+        await self.user_partial_update_command(user_id, update_payload)
+
+        print("user_id: ", user_id, "\nupdate_payload: ", update_payload)
 
 
 class UserCreateCommand:
     def __init__(
             self,
-            repository: UserRepository,
+            user_repository: UserRepository,
+            staff_repository: StaffRepository,
+            task_producer: TaskProducer,
     ):
-        self.repository = repository
+        self.user_repository = user_repository
+        self.staff_repository = staff_repository
+        self.task_producer = task_producer
 
-    async def __call__(self, payload: schemas.UserCreate) -> schemas.UserDetails:
-        user_id_container = await self.repository.create_user(
-            schemas.UserCreateFull(
-                status=enums.UserStatuses.unconfirmed,
-                **payload.model_dump(),
+    async def __call__(self, payload: schemas.StaffCreate) -> schemas.StaffDetails:
+        if payload.permissions == {'employee'}:
+            employee_id_container = await self.staff_repository.create_employee(
+                schemas.StaffCreateFull(
+                    status=enums.UserStatuses.unconfirmed,
+                    **payload.model_dump(),
+                )
             )
-        )
-        logger.info("User created: {user_id}", user_id=user_id_container.id)
-        user = await self.repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
-        assert user
+            logger.info(f"Employee created: {employee_id_container.id}")
+            user = await self.staff_repository.get_employee_by_filter_or_none(
+                schemas.UserWhere(id=employee_id_container.id))
+            assert user
+        else:
+            user_id_container = await self.user_repository.create_user(
+                schemas.UserCreateFull(
+                    status=enums.UserStatuses.unconfirmed,
+                    **payload.model_dump(),
+                )
+            )
+            logger.info(f"User created: {user_id_container.id}")
+            await self._enqueue_user_activation(user_id_container)
+            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
+            assert user
+
         return schemas.UserDetails.model_validate(user)
+
+    async def _enqueue_user_activation(self, user_id_container: IdContainer) -> None:
+        await self.task_producer.fire_task(
+            enums.TaskNames.activate_user,
+            queue=enums.TaskQueues.main_queue,
+            user_id_container_dict=user_id_container.json_dict(),
+        )
 
 
 class UserActivateCommand:

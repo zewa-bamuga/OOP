@@ -17,15 +17,29 @@ class User(APIModel):
     id: UUID
     firstname: str
     lastname: str
+    email: EmailStr
+    description: str | None = None
+    status: UserStatuses
+    avatar_attachment_id: UUID | None = None
+    created_at: datetime
+
+
+class Staff(APIModel):
+    id: UUID
+    firstname: str
+    lastname: str
     qualification: str | None = None
     post: str | None = None
     email: EmailStr
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     status: UserStatuses
     avatar_attachment_id: UUID | None = None
     created_at: datetime
+
+
+class StaffDetails(Staff):
+    avatar_attachment: Attachment | None = None
 
 
 class UserDetails(User):
@@ -37,6 +51,11 @@ class UserDetailsFull(UserDetails):
 
 
 class UserCredentials(APIModel):
+    email: str
+    password: str
+
+
+class UserCredentialsRegist(APIModel):
     firstname: str
     lastname: str
     email: str
@@ -46,15 +65,28 @@ class UserCredentials(APIModel):
 class UserCreate(APIModel):
     firstname: str | None = None
     lastname: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
+    password_hash: str
+    avatar_attachment_id: UUID | None = None
+    permissions: set[str] | None = None
+
+
+class StaffCreate(APIModel):
+    firstname: str | None = None
+    lastname: str | None = None
     qualification: str | None = None
     post: str | None = None
     email: EmailStr | None = None
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     password_hash: str
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
+
+
+class StaffCreateFull(StaffCreate):
+    status: UserStatuses
 
 
 class UserCreateFull(UserCreate):
@@ -69,7 +101,7 @@ class UserPartialUpdate(APIModel):
     status: str | None = None
 
 
-class UserPartialUpdateFull(UserPartialUpdate):
+class UserPartialUpdateFull(APIModel):
     password_hash: str | None = None
 
 
@@ -81,7 +113,6 @@ class UserInternal(APIModel):
     post: str | None = None
     email: EmailStr
     description: str | None = None
-    years: int | None = None
     link_to_vk: str | None = None
     password_hash: str
     permissions: set[str] | None = None
@@ -99,8 +130,21 @@ class UserSorts(enum.StrEnum):
     created_at = enum.auto()
 
 
-class UpdatePasswordRequest(APIModel):
-    email: str
+class StaffSorts(enum.StrEnum):
+    id = enum.auto()
+    firstname = enum.auto()
+    email = enum.auto()
+    status = enum.auto()
+    created_at = enum.auto()
+    post = enum.auto()
+
+
+class EmailForCode(APIModel):
+    email: str | None = None
+
+
+class VerificationCode(APIModel):
+    code: int
 
 
 class UpdatePasswordConfirm(APIModel):
@@ -115,8 +159,14 @@ class UserProfilePartialUpdate(APIModel):
 
 
 class PasswordResetCode(APIModel):
-    user_id: UUID
+    user_id: UUID | None = None
+    staff_id: UUID | None = None
     code: str
+
+
+class EmailVerificationCode(APIModel):
+    email: str
+    code: int
 
 
 class PasswordResetCodePartialUpdate(APIModel):
@@ -130,6 +180,12 @@ class UserListRequestSchema:
 
 
 @dataclass
+class StaffListRequestSchema:
+    pagination: pg.PaginationCallable[Staff] | None = None
+    sorting: sr.SortingData[StaffSorts] | None = None
+
+
+@dataclass
 class UserWhere:
     id: UUID | None = None
     firstname: str | None = None
@@ -140,4 +196,5 @@ class UserWhere:
 class PasswordResetCodeWhere:
     id: int | None = None
     user_id: UUID | None = None
+    staff_id: UUID | None = None
     code: str | None = None

@@ -8,7 +8,7 @@ from loguru import logger
 
 import app.domain
 from app.containers import Container
-from app.domain.users.core.schemas import UserCreate
+from app.domain.users.core.schemas import UserCreate, StaffCreate
 from app.domain.users.permissions.schemas import BasePermissions
 from a8t_tools.db.exceptions import DatabaseError
 
@@ -46,6 +46,7 @@ async def noop() -> None:
 @async_to_sync
 async def create_superuser(
         firstname: str = typer.Argument(...),
+        lastname: str = typer.Argument(...),
         email: str = typer.Argument(...),
         password: str = typer.Argument(...),
 ) -> None:
@@ -55,6 +56,7 @@ async def create_superuser(
         await command(
             UserCreate(
                 firstname=firstname,
+                lastname=lastname,
                 email=email,
                 password_hash=password_hash,
                 permissions={BasePermissions.superuser},
@@ -66,33 +68,33 @@ async def create_superuser(
 
 @typer_app.command()
 @async_to_sync
-async def create_user(
+async def create_staff(
         firstname: str = typer.Argument(...),
         lastname: str = typer.Argument(...),
         qualification: str = typer.Argument(...),
         post: str = typer.Argument(...),
         email: str = typer.Argument(...),
         description: str = typer.Argument(...),
-        years: int = typer.Argument(...),
         link_to_vk: str = typer.Argument(...),
-        password: str = typer.Argument(...),
 ) -> None:
-    password_hash = await container.user.password_hash_service().hash(password)
+    generate_password = container.user.generate_password()
+    password_hash = await container.user.password_hash_service().hash(generate_password)
     command = container.user.create_command()
     try:
         await command(
-            UserCreate(
+            StaffCreate(
                 firstname=firstname,
                 lastname=lastname,
                 qualification=qualification,
                 post=post,
                 email=email,
                 description=description,
-                years=years,
                 link_to_vk=link_to_vk,
                 password_hash=password_hash,
-                permissions={BasePermissions.user},
+                permissions={BasePermissions.employee},
             ),
         )
+        await container.user.first_registration(email, generate_password)
+
     except DatabaseError as err:
-        logger.warning(f"User creation error: {err}")
+        logger.warning(f"Employee creation error: {err}")

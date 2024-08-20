@@ -1,22 +1,13 @@
-from typing import Union
-from uuid import UUID
-
 from dependency_injector import wiring
-from fastapi import APIRouter, Body, Depends, HTTPException, Header, Query
-from pydantic import EmailStr
+from fastapi import APIRouter, Body, Depends
 from starlette import status
-from starlette.responses import JSONResponse
 
 from app.containers import Container
-from app.domain.common.models import PasswordResetCode
 from app.domain.users.auth.commands import TokenRefreshCommand, UserAuthenticateCommand
 from app.domain.users.auth.schemas import TokenResponse
 from app.domain.users.core import schemas
 from app.domain.users.core.commands import UpdatePasswordRequestCommand, UpdatePasswordConfirmCommand
-from app.domain.users.core.queries import UserRetrieveByUsernameQuery, UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
-from app.domain.users.core.schemas import UserCredentials, UpdatePasswordRequest
-# from app.domain.users.management.queries import UserManagementRetrieveQuery, EmailManagementRetrieveQuery
-from app.domain.users.profile.views import user_token
+from app.domain.users.core.schemas import UserCredentials, EmailForCode
 
 router = APIRouter()
 
@@ -51,7 +42,7 @@ async def update_refresh_token(
 )
 @wiring.inject
 async def password_reset_request(
-        payload: UpdatePasswordRequest,
+        payload: EmailForCode,
         command: UpdatePasswordRequestCommand = Depends(wiring.Provide[Container.user.update_password_request_command]),
 ):
     user_details = await command(payload)

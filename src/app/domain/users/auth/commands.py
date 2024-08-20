@@ -62,7 +62,6 @@ class TokenRefreshCommand:
             token_payload: TokenPayload = await self.query(refresh_token, validate=False)
             await self.repository.delete_tokens(token_payload.sub)
             raise e
-
         user_tokens = await self.repository.get_token_info(token_payload.sub)
 
         if not user_tokens or token_payload.sub != user_tokens.token_id:
@@ -86,10 +85,10 @@ class UserAuthenticateCommand:
 
     async def __call__(self, payload: UserCredentials) -> TokenResponse:
         user = await self.get_user_by_email(payload.email)
+
         if not user or not await self.password_hash_service.verify(
                 payload.password,
                 user.password_hash,
         ):
             raise AuthError(code=enums.AuthErrorCodes.invalid_credentials)
-
         return await self.command(user)

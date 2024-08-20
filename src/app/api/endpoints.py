@@ -5,6 +5,9 @@ import app.domain.users.auth.views
 import app.domain.users.management.views
 import app.domain.users.registration.views
 import app.domain.users.profile.views
+import app.domain.users.staff.views
+import app.domain.projects.views
+
 from app.api import schemas
 
 auth = APIRouter(prefix="/lol")
@@ -19,11 +22,25 @@ auth.include_router(
     tags=["Authentication"]
 )
 
+staff = APIRouter(prefix="/staff")
+staff.include_router(
+    app.domain.users.staff.views.router,
+    prefix="/v1",
+    tags=["Staff"]
+)
+
 profile = APIRouter(prefix="/profile")
 profile.include_router(
     app.domain.users.profile.views.router,
     prefix="/v1",
     tags=["Profile"],
+)
+
+projects = APIRouter(prefix="/projects")
+projects.include_router(
+    app.domain.projects.views.router,
+    prefix="/v1",
+    tags=["Projects"],
 )
 
 management = APIRouter(prefix="/management")
@@ -49,6 +66,8 @@ router = APIRouter(
 )
 
 router.include_router(auth)
+router.include_router(projects)
+router.include_router(staff)
 router.include_router(profile)
 router.include_router(management)
 router.include_router(storage_router)
