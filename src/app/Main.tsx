@@ -1,14 +1,29 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { ABeeZee } from 'next/font/google'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 
 import { Header } from '@/components/main-layout/header/Header'
+import { Sidebar } from '@/components/main-layout/sidebar/Sidebar'
+
+import './globals.scss'
+
+const abeezee = ABeeZee({
+	subsets: ['latin'],
+	weight: ['400']
+})
 
 const images = ['/banner.png', '/banner2.jpg', '/banner3.jpg']
 
 export function Main() {
 	const [currentIndex, setCurrentIndex] = useState(0)
+	const [startCount, setStartCount] = useState(false)
+
+	const { push } = useRouter()
+
+	const statsRef = useRef(null)
 
 	const nextSlide = () => {
 		setCurrentIndex(prevIndex => (prevIndex + 1) % images.length)
@@ -33,9 +48,66 @@ export function Main() {
 		}
 	}
 
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0].isIntersecting) {
+					setStartCount(true)
+				}
+			},
+			{ threshold: 0.3 }
+		)
+
+		if (statsRef.current) {
+			observer.observe(statsRef.current)
+		}
+
+		return () => {
+			if (statsRef.current) {
+				observer.unobserve(statsRef.current)
+			}
+		}
+	}, [])
+
+	const animateValue = (start, end, duration, setValue) => {
+		let startTime = null
+
+		// Функция для экспоненциального замедления (ease-out)
+		const easing = t => {
+			return t === 1 ? 1 : 1 - Math.pow(2, -10 * t)
+		}
+
+		const step = currentTime => {
+			if (!startTime) startTime = currentTime
+			const timeElapsed = currentTime - startTime
+			const progress = Math.min(timeElapsed / duration, 1)
+			const easedProgress = easing(progress)
+			setValue(Math.floor(easedProgress * (end - start) + start))
+
+			if (progress < 1) {
+				window.requestAnimationFrame(step)
+			}
+		}
+
+		window.requestAnimationFrame(step)
+	}
+
+	const [projects, setProjects] = useState(0)
+	const [employees, setEmployees] = useState(0)
+	const [subscribers, setSubscribers] = useState(0)
+
+	useEffect(() => {
+		if (startCount) {
+			animateValue(0, 6, 3000, setProjects)
+			animateValue(0, 38, 3000, setEmployees)
+			animateValue(0, 1092, 3000, setSubscribers)
+		}
+	}, [startCount])
+
 	return (
 		<div className='flex min-h-screen font-helvetica'>
 			<Header />
+			<Sidebar />
 
 			<div className='absolute mt-[60px] w-full h-[640px]'>
 				<div className='w-full h-full overflow-hidden relative'>
@@ -57,14 +129,14 @@ export function Main() {
 						>
 							<div className='absolute inset-0 flex flex-col items-center justify-center text-white text-center'>
 								<h1
-									className='text-[65px] mb-4 leading-tight'
+									className='text-[65px] mb-4 leading-tight font-intro'
 									style={{
-										fontFamily: 'Helvetica',
+										fontFamily: 'IntroFriday',
 										fontWeight: 'bold',
 										whiteSpace: 'nowrap'
 									}}
 								>
-									ООО - КОМАНДА,
+									ООП - КОМАНДА,
 									<br />
 									ПРИЗВАННАЯ
 									<br />
@@ -102,43 +174,162 @@ export function Main() {
 					</div>
 				</div>
 			</div>
-
-			<div className='absolute mt-[720px] w-full bg-oopgray py-12 flex flex-col items-center'>
-				<h2 className='text-2xl font-bold -mt-5'>О нас в цифрах</h2>
-				<p className='text-lg text-center'>
-					6<br />
-					проектов
-					<br />
-					за 2023 - 2024
-					<br />
-					учебный год
-				</p>
-			</div>
-
-			<div className={`flex flex-col items-start space-y-4 mt-[92px] absolute`}>
-				<button
-					className={`promo-box bg-oopyellow w-[320px] h-[35px] rounded-r-full flex items-center`}
+			<div
+				ref={statsRef}
+				className='absolute ${abeezee.className} mt-[720px] w-full h-[496px] bg-oopgray flex flex-col items-center'
+			>
+				<h2
+					className='text-4xl mt-10'
 					style={{
-						color: '#323232',
-						paddingLeft: '200px',
-						marginLeft: '-20px',
-						zIndex: 1
+						fontWeight: 100,
+						fontStyle: 'italic',
+						whiteSpace: 'nowrap'
 					}}
 				>
-					главная
-				</button>
-				<button
-					className={`promo-box bg-oopgray w-[320px] h-[35px] rounded-r-full flex items-center`}
-					style={{ paddingLeft: '200px', marginLeft: '-20px', zIndex: 1 }}
-				>
-					клипы
-				</button>
-				<button
-					className={`promo-box bg-oopblue w-[320px] h-[35px] rounded-r-full flex items-center`}
-					style={{ paddingLeft: '200px', marginLeft: '-20px', zIndex: 1 }}
-				>
-					проекты
-				</button>
+					О нас в цифрах
+				</h2>
+
+				<p className='text-lg text-center mr-[770px] mt-11'>
+					<span
+						className='text-9xl'
+						style={{
+							fontFamily: 'IntroFriday',
+							fontWeight: 'bold',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						{projects}
+					</span>
+					<br />
+					<span
+						className='text-oopblue'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 400,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						проектов
+					</span>
+
+					<br />
+					<span
+						style={{
+							fontFamily: 'sans-serif',
+							fontWeight: 100,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						за 2023 - 2024 <br /> учебный год
+					</span>
+				</p>
+
+				<div className='absolute mt-36 text-center'>
+					<span
+						className='text-9xl'
+						style={{
+							fontFamily: 'IntroFriday',
+							fontWeight: 'bold',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						{employees}
+					</span>
+					<br />
+					<span
+						className='text-oopyellow'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 400,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						сотрудников
+					</span>
+					<br />
+					<span
+						className='font-light'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 100,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						в подразделении
+					</span>
+				</div>
+
+				<div className='flex flex-col items-center text-center ml-[770px] mt-[-320px]'>
+					<span
+						className='text-9xl'
+						style={{
+							fontFamily: 'IntroFriday',
+							fontWeight: 'bold',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						{subscribers}
+					</span>
+					<br />
+					<span
+						className='text-oopblue -mt-7'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 400,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						подписчиков
+					</span>
+					<br />
+					<span
+						className='font-light -mt-7'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 100,
+							position: 'relative',
+							top: '-55px',
+							whiteSpace: 'nowrap'
+						}}
+					>
+						в социальной <br />
+					</span>
+					<div className='inline-flex items-center'>
+						<span
+							className='font-light'
+							style={{
+								fontFamily: 'Lato, sans-serif',
+								fontWeight: 100,
+								position: 'relative',
+								top: '-55px',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							сети
+						</span>
+						<a
+							href='https://vk.com/oop_tusur'
+							target='_blank'
+							rel='noopener noreferrer'
+						>
+							<img
+								src='/vk-icon-blue.png'
+								alt='VK Icon'
+								className='w-6 h-6 ml-2 mt-[-66px]'
+							/>
+						</a>
+					</div>
+				</div>
 			</div>
 		</div>
 	)

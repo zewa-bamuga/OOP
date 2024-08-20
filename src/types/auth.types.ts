@@ -21,7 +21,7 @@ export interface IAuthForm {
 }
 
 export interface IUser {
-	id: string // id в возвращаемом объекте — строка
+	id: string
 	firstname: string
 	lastname: string
 	qualification: string | null
