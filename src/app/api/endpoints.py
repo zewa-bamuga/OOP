@@ -10,12 +10,12 @@ import app.domain.projects.views
 
 from app.api import schemas
 
-auth = APIRouter(prefix="/lol")
-# auth.include_router(
-#     app.domain.users.registration.views.router,
-#     prefix="/v1",
-#     tags=["Authentication"]
-# )
+auth = APIRouter(prefix="/authentication")
+auth.include_router(
+    app.domain.users.registration.views.router,
+    prefix="/v1",
+    tags=["Authentication"]
+)
 auth.include_router(
     app.domain.users.auth.views.router,
     prefix="/v1",
@@ -51,11 +51,11 @@ management.include_router(
 )
 
 storage_router = APIRouter(prefix="/storage")
-# storage_router.include_router(
-#     app.domain.storage.attachments.views.router,
-#     prefix="/v1/attachments",
-#     tags=["attachments"],
-# )
+storage_router.include_router(
+    app.domain.storage.attachments.views.router,
+    prefix="/v1/attachments",
+    tags=["attachments"],
+)
 
 router = APIRouter(
     responses={

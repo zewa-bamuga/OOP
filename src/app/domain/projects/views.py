@@ -8,7 +8,7 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
-from app.domain.projects.queries import ProjectManagementListQuery
+from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery
 from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand
 from app.domain.projects import schemas
@@ -59,11 +59,11 @@ async def create_project_attachment(
 
     async with user_token(token):
         return await command(payload,
-            AttachmentSchema.AttachmentCreate(
-                file=attachment.file,
-                name=attachment.filename,
-            ),
-        )
+                             AttachmentSchema.AttachmentCreate(
+                                 file=attachment.file,
+                                 name=attachment.filename,
+                             ),
+                             )
 
 
 @router.post(
@@ -79,6 +79,19 @@ async def like_the_projects(
     async with user_token(token):
         project = await command(payload)
         return project
+
+
+@router.get(
+    "/project/by/id/{project_id}",
+    response_model=None
+)
+@wiring.inject
+async def get_project_by_id(
+        project_id: int,
+        query: ProjectRetrieveQuery = Depends(wiring.Provide[Container.project.project_retrieve_by_id_query]),
+):
+    project = await query(project_id)
+    return project
 
 
 @router.delete(
