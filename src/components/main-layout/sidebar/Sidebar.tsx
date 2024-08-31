@@ -22,6 +22,7 @@ export function Sidebar() {
 			<button
 				className={`promo-box bg-oopgray w-[320px] h-[35px] rounded-r-full flex items-center`}
 				style={{ paddingLeft: '200px', marginLeft: '-20px', zIndex: 1 }}
+				onClick={() => push('./clips')}
 			>
 				клипы
 			</button>

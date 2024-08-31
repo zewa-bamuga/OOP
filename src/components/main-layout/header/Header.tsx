@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation'
 import Loader from '@/components/ui/Loader'
 
 import { useAuth } from '@/hooks/useAuth'
+import { useProfile } from '@/hooks/useProfile'
 
 import { Profile } from './profile/Profile'
 
 export function Header() {
 	const { push } = useRouter()
 	const { isAuthenticated, isLoading } = useAuth()
+	const { data: profileData, isLoading: isProfileLoading } = useProfile()
 
-	if (isLoading) {
+	// Проверяем, идет ли загрузка данных профиля
+	if (isLoading || isProfileLoading) {
 		return (
 			<header className='relative w-full h-[60px]'>
 				<div className='absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center'>
@@ -21,6 +24,9 @@ export function Header() {
 			</header>
 		)
 	}
+
+	// Получаем URI аватара, если он есть
+	const avatarUri = profileData?.avatarAttachment?.uri
 
 	return (
 		<header className='relative w-full h-[60px]'>
@@ -34,21 +40,21 @@ export function Header() {
 					}}
 				>
 					<button
-						className='bg-ooplightblue text-oopblack border-none cursor-pointer py-2 px-5 text-sm rounded-3xl transition-colors duration-300 ease-in-out hover:bg-ooplightbluehover'
+						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
 						style={{ marginRight: '2rem' }}
 						onClick={() => push('/employees')}
 					>
 						сотрудники
 					</button>
 					<button
-						className='bg-ooplightblue text-oopblack border-none cursor-pointer py-2 px-5 text-sm rounded-3xl transition-colors duration-300 ease-in-out hover:bg-ooplightbluehover'
+						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
 						style={{ marginRight: '2rem' }}
 						onClick={() => push('/directions')}
 					>
 						направления
 					</button>
 					<button
-						className='bg-ooplightblue text-oopblack border-none cursor-pointer py-2 px-5 text-sm rounded-3xl transition-colors duration-300 ease-in-out hover:bg-ooplightbluehover'
+						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl'
 						onClick={() => push('/news')}
 					>
 						новости
@@ -57,11 +63,20 @@ export function Header() {
 			</div>
 			<div className='absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120px] h-[120px] bg-white rounded-full z-30 flex items-center justify-center'>
 				<div className='w-[85px] h-[85px] bg-white rounded-full overflow-hidden shadow-inner'>
-					<img
-						src='/logo.png'
-						alt='logo.png'
-						className='w-full h-full object-cover'
-					/>
+					{/* Если пользователь авторизован и есть аватар, показываем его, иначе показываем логотип */}
+					{isAuthenticated && avatarUri ? (
+						<img
+							src={avatarUri}
+							alt='User Avatar'
+							className='w-full h-full object-cover'
+						/>
+					) : (
+						<img
+							src='/logo.png'
+							alt='logo.png'
+							className='w-full h-full object-cover'
+						/>
+					)}
 				</div>
 			</div>
 			<div className='absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center space-x-2 text-oopblack text-sm'>

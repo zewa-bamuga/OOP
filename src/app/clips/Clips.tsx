@@ -1,7 +1,6 @@
 'use client'
 
 import { ABeeZee } from 'next/font/google'
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 import { Header } from '@/components/main-layout/header/Header'
@@ -20,7 +19,7 @@ const abeezee = ABeeZee({
 	weight: ['400']
 })
 
-export function Projects() {
+export function Clips() {
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [startCount, setStartCount] = useState(false)
 	const [projects, setProjects] = useState<Project[]>([])
@@ -255,136 +254,6 @@ export function Projects() {
 					</p>
 				</div>
 			</div>
-
-			<div className='absolute mt-[340px] px-48'>
-				<div className='space-y-8'>
-					{Object.keys(groupedProjects)
-						.sort()
-						.reverse()
-						.map(year => (
-							<div key={year}>
-								<h2
-									className='text-oopblack text-4xl font-bold ml-4 mb-1'
-									style={{
-										fontFamily: 'Helvetica',
-										fontWeight: 'bold',
-										fontStyle: 'italic',
-										whiteSpace: 'nowrap'
-									}}
-								>
-									{year}
-								</h2>
-								<div className='grid grid-cols-3 gap-8'>
-									{groupedProjects[+year].map(project => {
-										const {
-											id: projectId,
-											avatarAttachment,
-											name,
-											startDate,
-											endDate,
-											likes
-										} = project
-
-										return (
-											<div
-												key={projectId}
-												className='rounded-md p-4'
-											>
-												{avatarAttachment && (
-													<img
-														src={avatarAttachment.uri}
-														alt={avatarAttachment.name}
-														className='w-[300px] h-[300px] object-cover rounded-md mb-4'
-													/>
-												)}
-
-												<div className='flex justify-between mb-1'>
-													<h3
-														className='text-oopblack text-lg font-semibold'
-														style={{
-															fontFamily: 'Helvetica',
-															fontStyle: 'bold',
-															whiteSpace: 'nowrap'
-														}}
-													>
-														{name}
-													</h3>
-													<div className='flex items-center'>
-														<span
-															className='text-oopgray text-sm mr-2 leading-7'
-															style={{
-																fontFamily: 'Lato, sans-serif',
-																fontWeight: 400,
-																letterSpacing: '0.09em'
-															}}
-														>
-															{likes}
-														</span>
-														<button
-															onClick={() => toggleLike(projectId)}
-															className={`w-6 h-6 transition-colors duration-300 ease-in-out ${
-																likedProjects[projectId]
-																	? 'bg-red-500'
-																	: 'bg-oopyellow'
-															} rounded-md flex items-center justify-center hover:bg-oopredhover`}
-														>
-															<img
-																src='/heart.png'
-																alt='like'
-																className={`w-4 h-4 filter invert`}
-															/>
-														</button>
-													</div>
-												</div>
-
-												<p
-													className='text-oopgray text-base mb-4'
-													style={{
-														fontFamily: 'Lato, sans-serif',
-														fontWeight: 300
-													}}
-												>
-													{endDate
-														? formatDateRange(
-																new Date(startDate),
-																new Date(endDate)
-															)
-														: formatDate(new Date(startDate))}
-												</p>
-
-												<Link
-													href={`/projects/${projectId}`}
-													className='bg-oopyellow text-oopblack px-4 py-2 rounded-md transition-colors duration-300 ease-in-out hover:bg-oopyellowhover'
-												>
-													перейти
-												</Link>
-											</div>
-										)
-									})}
-								</div>
-							</div>
-						))}
-				</div>
-			</div>
-
-			{showAuthNotification && (
-				<div className='fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75'>
-					<div className='bg-white p-6 rounded-lg shadow-lg text-center'>
-						<h2 className='text-oopblack text-lg font-bold mb-4'>
-							Необходима авторизация
-						</h2>
-						<p className='text-oopblack mb-6'>
-							Пожалуйста, войдите в систему, чтобы использовать эту функцию.
-						</p>
-						<button
-							onClick={handleAuthRedirect}
-							className='bg-blue-500 text-white px-4 py-2 rounded-md'
-						>
-							Перейти на страницу авторизации
-						</button>
-					</div>
-				</div>
-			)}
 		</div>
 	)
 }

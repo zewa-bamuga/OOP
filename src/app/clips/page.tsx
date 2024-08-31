@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 
 import { NO_INDEX_PAGE } from '@/constants/seo.constants'
 
-import { Projects } from './Projects'
+import { Clips } from './Clips'
 
 export const metadata: Metadata = {
-	title: 'Проекты',
+	title: 'Клипы',
 	...NO_INDEX_PAGE
 }
 
 export default function ProjectsPage() {
-	return <Projects />
+	return <Clips />
 }
