@@ -41,9 +41,9 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
             options=self.load_options,
         )
 
-    async def get_project_by_filter_or_none(self, where: schemas.ProjectWhere) -> schemas.Project | None:
+    async def get_project_by_filter_or_none(self, where: schemas.ProjectWhere) -> schemas.ProjectDetailsFull | None:
         return await self._get_or_none(
-            schemas.Project,
+            schemas.ProjectDetailsFull,
             condition=await self._format_filters(where),
             options=self.load_options,
         )
@@ -67,6 +67,15 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
         return and_(*filters)
 
 
+class AddEmployeesRepository(CrudRepositoryMixin[models.ProjectStaff]):
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.ProjectStaff
+        self.transaction = transaction
+
+    async def create_add_employees_project(self, payload: schemas.AddEmployees) -> IdContainerTables:
+        return IdContainerTables(id=await self._create(payload))
+
+
 class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.ProjectLike
@@ -75,25 +84,42 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
     async def create_like_project(self, payload: schemas.LikeTheProject) -> IdContainerTables:
         async with self.transaction.use() as session:
             try:
-                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
-                staff_exists = await session.execute(staff_query)
+                # Проверяем, существует ли запись с таким сочетанием user_id/staff_id и project_id
+                like_query = select(models.ProjectLike).where(
+                    (models.ProjectLike.user_id == payload.user_id) &
+                    (models.ProjectLike.project_id == payload.project_id)
+                )
+                like_exists = await session.execute(like_query)
+                existing_like = like_exists.scalar_one_or_none()
 
-                if staff_exists.first():
-                    stmt = insert(models.ProjectLike).values(
-                        {
-                            "staff_id": payload.user_id,
-                            "project_id": payload.project_id,
-                        }
+                if existing_like:
+                    # Если лайк существует, удаляем его
+                    delete_stmt = delete(models.ProjectLike).where(
+                        (models.ProjectLike.user_id == payload.user_id) &
+                        (models.ProjectLike.project_id == payload.project_id)
                     )
+                    await session.execute(delete_stmt)
                 else:
-                    stmt = insert(models.ProjectLike).values(
-                        {
-                            "user_id": payload.user_id,
-                            "project_id": payload.project_id,
-                        }
-                    )
+                    # Если лайка нет, добавляем новый
+                    staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                    staff_exists = await session.execute(staff_query)
 
-                await session.execute(stmt)
+                    if staff_exists.first():
+                        stmt = insert(models.ProjectLike).values(
+                            {
+                                "staff_id": payload.user_id,
+                                "project_id": payload.project_id,
+                            }
+                        )
+                    else:
+                        stmt = insert(models.ProjectLike).values(
+                            {
+                                "user_id": payload.user_id,
+                                "project_id": payload.project_id,
+                            }
+                        )
+
+                    await session.execute(stmt)
 
             except Exception as e:
                 print(f"Error creating like info: {e}")

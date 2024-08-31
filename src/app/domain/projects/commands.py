@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import EmailCode
 from app.domain.projects.queries import ProjectRetrieveQuery
-from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository
-from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like
+from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, AddEmployeesRepository
+from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like, AddEmployees
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.common.models import Project as ProjectModel
 
@@ -32,9 +32,30 @@ class ProjectCreateCommand:
             start_date=payload.start_date,
             end_date=payload.end_date,
             description=payload.description,
+            participants=payload.participants,
+            lessons=payload.lessons,
         )
 
         await self.project_repository.create_project(create_project)
+
+
+class AddEmployeesCommand:
+    def __init__(
+            self,
+            add_employees_project_repository: AddEmployeesRepository,
+    ) -> None:
+        self.add_employees_project_repository = add_employees_project_repository
+
+    async def __call__(self, payload: AddEmployees) -> None:
+        project_id = payload.project_id
+        staff_id = payload.staff_id
+
+        create_like_the_project = schemas.AddEmployees(
+            project_id=project_id,
+            staff_id=staff_id,
+        )
+
+        await self.add_employees_project_repository.create_add_employees_project(create_like_the_project)
 
 
 class LikeTheProjectCommand:

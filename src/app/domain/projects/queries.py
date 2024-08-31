@@ -30,6 +30,6 @@ class ProjectRetrieveQuery:
     def __init__(self, project_repository: ProjectRepository):
         self.project_repository = project_repository
 
-    async def __call__(self, project_id: int) -> schemas.Project:
+    async def __call__(self, project_id: int) -> schemas.ProjectDetailsFull:
         project_result = await self.project_repository.get_project_by_filter_or_none(schemas.ProjectWhere(id=project_id))
-        return schemas.Project.model_validate(project_result)
+        return schemas.ProjectDetailsFull.model_validate(project_result)

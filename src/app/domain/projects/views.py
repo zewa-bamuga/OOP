@@ -9,8 +9,9 @@ from fastapi.params import Form
 from app.api import deps
 from app.containers import Container
 from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery
-from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like
-from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand
+from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like, AddEmployees
+from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
+    AddEmployeesCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import AttachmentCreateCommand, ProjectAttachmentCreateCommand
@@ -38,6 +39,21 @@ async def create_projects(
         payload: ProjectCreate,
         token: str = Header(...),
         command: ProjectCreateCommand = Depends(wiring.Provide[Container.project.create_command]),
+):
+    async with user_token(token):
+        project = await command(payload)
+        return project
+
+
+@router.post(
+    "/add/employees",
+    response_model=None
+)
+@wiring.inject
+async def add_employees(
+        payload: AddEmployees,
+        token: str = Header(...),
+        command: AddEmployeesCommand = Depends(wiring.Provide[Container.project.create_add_employees_command]),
 ):
     async with user_token(token):
         project = await command(payload)

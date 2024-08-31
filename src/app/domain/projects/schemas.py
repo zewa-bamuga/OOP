@@ -17,6 +17,8 @@ class Project(APIModel):
     start_date: datetime
     end_date: datetime
     description: str
+    participants: int
+    lessons: int
     likes: int
     avatar_attachment_id: UUID | None = None
     created_at: datetime
@@ -27,6 +29,13 @@ class ProjectCreate(APIModel):
     start_date: datetime
     end_date: datetime
     description: str
+    participants: int
+    lessons: int
+
+
+class AddEmployees(APIModel):
+    project_id: int
+    staff_id: UUID
 
 
 class ProjectPartialUpdate(APIModel):
@@ -53,6 +62,8 @@ class ProjectSorts(enum.StrEnum):
     start_date: datetime
     end_date: datetime
     description = enum.auto()
+    participants = enum.auto()
+    lessons = enum.auto()
     likes = enum.auto()
     created_at = enum.auto()
 

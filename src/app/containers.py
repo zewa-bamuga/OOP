@@ -14,6 +14,7 @@ from a8t_tools.logging.utils import setup_logging
 from a8t_tools.bus.celery import CeleryBackend
 
 from app.config import Settings
+from app.domain.news.containers import NewsContainer
 from app.domain.projects.containers import ProjectContainer
 from app.domain.storage.attachments.containers import AttachmentContainer
 from app.domain.users.containers import UserContainer
@@ -90,6 +91,12 @@ class Container(containers.DeclarativeContainer):
 
     project = providers.Container(
         ProjectContainer,
+        transaction=transaction,
+        user_container=user
+    )
+
+    news = providers.Container(
+        NewsContainer,
         transaction=transaction,
         user_container=user
     )

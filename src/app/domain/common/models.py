@@ -85,6 +85,8 @@ class Staff(Base):
     tokens = relationship("Token", back_populates="staff")
     password_reset_code = relationship("PasswordResetCode", back_populates="staff")
 
+    projects = relationship("ProjectStaff", back_populates="staff")
+
 
 class Token(Base):
     __tablename__ = "tokens"
@@ -137,6 +139,8 @@ class Project(Base):
     start_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
     end_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
     description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
+    participants: orm.Mapped[int] = orm.mapped_column(Integer, nullable=True)
+    lessons: orm.Mapped[int] = orm.mapped_column(Integer, nullable=True)
     likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
     avatar_attachment_id = Column(
         UUID(as_uuid=True),
@@ -151,9 +155,22 @@ class Project(Base):
         uselist=False,
     )
 
+    staff_members = relationship("ProjectStaff", back_populates="project")
+
     @classmethod
     def add_like(cls):
         cls.likes += 1
+
+
+class ProjectStaff(Base):
+    __tablename__ = "project_staff"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=False)
+
+    project = relationship("Project", back_populates="staff_members")
+    staff = relationship("Staff", back_populates="projects")
 
 
 class ProjectLike(Base):
@@ -167,3 +184,86 @@ class ProjectLike(Base):
     user = relationship("User", backref="project_likes")
     staff = relationship("Staff", backref="project_likes")
     project = relationship("Project", backref="project_likes")
+
+
+class News(Base):
+    __tablename__ = "news"
+
+    id = Column(Integer, primary_key=True)
+    name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
+    date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
+    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    reminder: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    avatar_attachment_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("attachment.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+    avatar_attachment = relationship(
+        "Attachment",
+        backref="news_avatar_attachment",
+        foreign_keys=[avatar_attachment_id],
+        uselist=False,
+    )
+
+    @classmethod
+    def add_like(cls):
+        cls.likes += 1
+
+    @classmethod
+    def add_reminder(cls):
+        cls.reminder += 1
+
+
+class NewsLike(Base):
+    __tablename__ = "news_like"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
+    news_id = Column(Integer, ForeignKey("news.id", ondelete="CASCADE"), nullable=False)
+
+    user = relationship("User", backref="news_likes")
+    staff = relationship("Staff", backref="news_likes")
+    news = relationship("News", backref="news_likes")
+
+
+class Clip(Base):
+    __tablename__ = "clip"
+
+    id = Column(Integer, primary_key=True)
+    name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
+    date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
+    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    clip_attachment_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("attachment.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+    clip_attachment = relationship(
+        "Attachment",
+        backref="clip_attachment",
+        foreign_keys=[clip_attachment_id],
+        uselist=False,
+    )
+
+    @classmethod
+    def add_like(cls):
+        cls.likes += 1
+
+
+class ClipLike(Base):
+    __tablename__ = "clip_like"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
+    clip_id = Column(Integer, ForeignKey("clip.id", ondelete="CASCADE"), nullable=False)
+
+    user = relationship("User", backref="clip_likes")
+    staff = relationship("Staff", backref="clip_likes")
+    clip = relationship("Clip", backref="clip_likes")
