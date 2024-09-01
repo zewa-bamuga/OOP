@@ -36,7 +36,7 @@ async def email_verification_code_confirm(
             wiring.Provide[Container.user.email_verification_confirm_command]),
 ):
     user_details = await command(payload)
-    if user_details:  # Предположим, что `user_details` содержит информацию о том, был ли код удален
+    if user_details:
         return {"message": "Код был удален"}
     else:
         print(payload)

@@ -1,15 +1,14 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import List
 
 from a8t_tools.security import tokens
 
 import app
 from app.domain.common import enums
-from app.domain.common.exceptions import AuthError, NotFoundError
+from app.domain.common.exceptions import AuthError
 from app.domain.users.auth import schemas
 from app.domain.users.core.queries import UserRetrieveQuery
-from app.domain.users.core.schemas import UserDetails, StaffDetails
+from app.domain.users.core.schemas import StaffDetails
 
 
 class CurrentUserTokenQuery:

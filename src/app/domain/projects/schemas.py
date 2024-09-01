@@ -1,7 +1,6 @@
 import enum
 from dataclasses import dataclass
 from datetime import datetime
-from typing import IO
 from uuid import UUID
 
 from a8t_tools.db import pagination as pg
@@ -47,7 +46,8 @@ class ProjectDetailsFull(Project):
 
 
 class Like(APIModel):
-    project_id: int
+    project_id: int | None = None
+    news_id: int | None = None
 
 
 class LikeTheProject(APIModel):

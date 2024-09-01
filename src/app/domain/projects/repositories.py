@@ -1,6 +1,5 @@
 from uuid import UUID
 
-import sqlalchemy as sa
 from a8t_tools.db.pagination import PaginationCallable, Paginated
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
@@ -9,8 +8,8 @@ from sqlalchemy import ColumnElement, and_, select, insert, update, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
-from app.domain.common import models, enums
-from app.domain.common.schemas import IdContainer, IdContainerTables
+from app.domain.common import models
+from app.domain.common.schemas import IdContainerTables
 from app.domain.projects import schemas
 
 

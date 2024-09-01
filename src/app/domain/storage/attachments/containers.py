@@ -3,8 +3,10 @@ from dependency_injector import containers, providers
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.storage.facade import FileStorage
 
+from app.domain.news.containers import NewsContainer
 from app.domain.projects.containers import ProjectContainer
-from app.domain.storage.attachments.commands import AttachmentCreateCommand, ProjectAttachmentCreateCommand
+from app.domain.storage.attachments.commands import AttachmentCreateCommand, ProjectAttachmentCreateCommand, \
+    NewsAttachmentCreateCommand
 from app.domain.storage.attachments.queries import (
     AttachmentListQuery,
     AttachmentRetrieveQuery,
@@ -30,6 +32,8 @@ class AttachmentContainer(containers.DeclarativeContainer):
 
     project_container = providers.Container(ProjectContainer)
 
+    news_container = providers.Container(NewsContainer)
+
     create_command = providers.Factory(
         AttachmentCreateCommand,
         repository=repository,
@@ -46,4 +50,13 @@ class AttachmentContainer(containers.DeclarativeContainer):
         bucket=bucket,
         current_project_query=project_container.current_project_query,
         project_partial_update_command=project_container.project_partial_update_command,
+    )
+
+    news_create_command = providers.Factory(
+        NewsAttachmentCreateCommand,
+        repository=repository,
+        file_storage=file_storage,
+        bucket=bucket,
+        current_news_query=news_container.current_news_query,
+        news_partial_update_command=news_container.news_partial_update_command,
     )

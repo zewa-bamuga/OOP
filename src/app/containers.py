@@ -107,6 +107,6 @@ class Container(containers.DeclarativeContainer):
         file_storage=file_storage,
         bucket=config.storage.default_bucket,
         user_container=user,
-        project_container=project
-
+        project_container=project,
+        news_container=news
     )
