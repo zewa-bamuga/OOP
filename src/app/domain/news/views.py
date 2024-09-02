@@ -84,7 +84,7 @@ async def get_news_list(
 
 
 @router.get(
-    "/news/by/id/{news_id}",
+    "/get/by/id/{news_id}",
     response_model=None
 )
 @wiring.inject

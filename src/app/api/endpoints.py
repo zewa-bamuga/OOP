@@ -8,6 +8,7 @@ import app.domain.users.profile.views
 import app.domain.users.staff.views
 import app.domain.projects.views
 import app.domain.news.views
+import app.domain.clips.views
 
 from app.api import schemas
 
@@ -51,6 +52,13 @@ news.include_router(
     tags=["News"],
 )
 
+clips = APIRouter(prefix="/clips")
+clips.include_router(
+    app.domain.clips.views.router,
+    prefix="/v1",
+    tags=["Clips"],
+)
+
 management = APIRouter(prefix="/management")
 management.include_router(
     app.domain.users.management.views.router,
@@ -76,6 +84,7 @@ router = APIRouter(
 router.include_router(auth)
 router.include_router(projects)
 router.include_router(news)
+router.include_router(clips)
 router.include_router(staff)
 router.include_router(profile)
 router.include_router(management)

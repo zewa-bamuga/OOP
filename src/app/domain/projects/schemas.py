@@ -48,6 +48,7 @@ class ProjectDetailsFull(Project):
 class Like(APIModel):
     project_id: int | None = None
     news_id: int | None = None
+    clip_id: int | None = None
 
 
 class LikeTheProject(APIModel):
