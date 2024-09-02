@@ -4,20 +4,14 @@ from dependency_injector import wiring
 from fastapi import APIRouter, Depends, UploadFile, Header
 from fastapi.params import Form
 
-from app.api import deps
 from app.containers import Container
-from app.domain.clips.commands import ClipCreateCommand
+from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand
 from app.domain.clips.queries import ClipRetrieveQuery
 from app.domain.clips.schemas import ClipCreate
-from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand
-from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery
-from app.domain.news.schemas import NewsCreate
 from app.domain.projects.schemas import Like
-from app.domain.news import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import NewsAttachmentCreateCommand
 
-from a8t_tools.db import pagination, sorting
 from a8t_tools.security.tokens import override_user_token
 
 router = APIRouter()
@@ -79,6 +73,7 @@ async def get_clip_by_id(
     return clip
 
 
+# Если один пользователь сначала отправляет лайк на фото, а потом отправляет опять, то лайк убирается
 @router.post(
     "/like",
     response_model=None
@@ -87,7 +82,7 @@ async def get_clip_by_id(
 async def like_the_clip(
         payload: Like,
         token: str = Header(...),
-        command: LikeTheNewsCommand = Depends(wiring.Provide[Container.clip.like_the_news_command]),
+        command: LikeTheClipCommand = Depends(wiring.Provide[Container.clip.like_the_clip_command]),
 ):
     async with user_token(token):
         clip = await command(payload)

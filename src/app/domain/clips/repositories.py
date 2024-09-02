@@ -1,7 +1,5 @@
 from uuid import UUID
 
-from a8t_tools.db.pagination import PaginationCallable, Paginated
-from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
 from sqlalchemy import ColumnElement, and_, select, insert, update, delete
@@ -83,14 +81,14 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
                         stmt = insert(models.ClipLike).values(
                             {
                                 "staff_id": payload.user_id,
-                                "news_id": payload.clip_id,
+                                "clip_id": payload.clip_id,
                             }
                         )
                     else:
                         stmt = insert(models.ClipLike).values(
                             {
                                 "user_id": payload.user_id,
-                                "news_id": payload.clip_id,
+                                "clip_id": payload.clip_id,
                             }
                         )
 
@@ -105,8 +103,8 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
                 delete(models.ClipLike)
                 .where(
                     and_(
-                        models.NewsLike.news_id == clip_id,
-                        models.NewsLike.user_id == user_id
+                        models.ClipLike.clip_id == clip_id,
+                        models.ClipLike.user_id == user_id
                     )
                 )
             )

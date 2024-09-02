@@ -4,10 +4,6 @@ from app.domain.clips.queries import ClipRetrieveQuery
 from app.domain.clips.repositories import ClipRepository, LikeClipRepository
 from app.domain.clips.schemas import ClipCreate
 from app.domain.common.exceptions import NotFoundError
-from app.domain.common.models import EmailCode
-from app.domain.news.queries import NewsRetrieveQuery
-from app.domain.news.repositories import NewsRepository, LikeNewsRepository
-from app.domain.news.schemas import NewsCreate
 from app.domain.projects.schemas import Like
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.clips import schemas
@@ -70,7 +66,7 @@ class LikeTheClipCommand:
         clip = await self.clip_retrieve_by_id_query(clip_id)
 
         if clip is None:
-            raise HTTPException(status_code=404, detail="News not found")
+            raise HTTPException(status_code=404, detail="Clip not found")
 
         like_exists = await self.clip_like_repository.check_like_exists(clip_id, user_id)
 
@@ -79,10 +75,10 @@ class LikeTheClipCommand:
             await self.clip_like_repository.delete_like_clip(clip_id, user_id)
         else:
             clip_likes_count = clip.likes + 1
-            create_like_the_news = schemas.LikeTheClip(
+            create_like_the_clip = schemas.LikeTheClip(
                 clip_id=clip_id,
                 user_id=user_id,
             )
-            await self.clip_like_repository.create_like_clip(create_like_the_news)
+            await self.clip_like_repository.create_like_clip(create_like_the_clip)
 
         await self.clip_repository.update_clip_likes(clip_id, clip_likes_count)

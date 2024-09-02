@@ -13,6 +13,7 @@ class NewsContainer(containers.DeclarativeContainer):
     transaction = providers.Dependency(instance_of=AsyncDbTransaction)
 
     news_repository = providers.Factory(NewsRepository, transaction=transaction)
+
     news_like_repository = providers.Factory(LikeNewsRepository, transaction=transaction)
 
     user_container = providers.Container(UserContainer)

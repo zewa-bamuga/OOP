@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e43c90e55dd5
+Revision ID: a59f8ac6199a
 Revises: 
-Create Date: 2024-08-31 18:19:29.169896
+Create Date: 2024-09-02 07:20:13.611390
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'e43c90e55dd5'
+revision: str = 'a59f8ac6199a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -120,7 +120,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_user_avatar_attachment_id'), 'user', ['avatar_attachment_id'], unique=False)
     op.create_index(op.f('ix_user_id'), 'user', ['id'], unique=False)
-    op.create_table('Clip_like',
+    op.create_table('clip_like',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('staff_id', sa.UUID(), nullable=True),
@@ -206,7 +206,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_password_reset_code_staff_id'), table_name='password_reset_code')
     op.drop_table('password_reset_code')
     op.drop_table('news_like')
-    op.drop_table('Clip_like')
+    op.drop_table('clip_like')
     op.drop_index(op.f('ix_user_id'), table_name='user')
     op.drop_index(op.f('ix_user_avatar_attachment_id'), table_name='user')
     op.drop_table('user')
