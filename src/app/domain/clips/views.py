@@ -4,15 +4,18 @@ from dependency_injector import wiring
 from fastapi import APIRouter, Depends, UploadFile, Header
 from fastapi.params import Form
 
+from app.api import deps
 from app.containers import Container
 from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand
-from app.domain.clips.queries import ClipRetrieveQuery
+from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery
 from app.domain.clips.schemas import ClipCreate
 from app.domain.projects.schemas import Like
+from app.domain.clips import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import NewsAttachmentCreateCommand
 
 from a8t_tools.security.tokens import override_user_token
+from a8t_tools.db import pagination, sorting
 
 router = APIRouter()
 
@@ -58,6 +61,26 @@ async def create_clip_attachment(
                                  name=attachment.filename,
                              ),
                              )
+
+
+@router.get(
+    "/get",
+    response_model=pagination.CountPaginationResults[schemas.ClipDetailsFull],
+)
+@wiring.inject
+async def get_clip_list(
+        query: ClipManagementListQuery = Depends(wiring.Provide[Container.clip.management_list_query]),
+        pagination: pagination.PaginationCallable[schemas.ClipDetailsFull] = Depends(
+            deps.get_skip_limit_pagination_dep(schemas.ClipDetailsFull)),
+        sorting: sorting.SortingData[schemas.ClipSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ClipSorts,
+                schemas.ClipSorts.created_at,
+                sorting.SortOrders.desc,
+            )
+        ),
+) -> pagination.Paginated[schemas.ClipDetailsFull]:
+    return await query(schemas.ClipListRequestSchema(pagination=pagination, sorting=sorting))
 
 
 @router.get(

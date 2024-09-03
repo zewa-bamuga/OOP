@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from a8t_tools.db.pagination import PaginationCallable, Paginated
+from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
 from sqlalchemy import ColumnElement, and_, select, insert, update, delete
@@ -22,6 +24,18 @@ class ClipRepository(CrudRepositoryMixin[models.Clip]):
 
     async def create_clip(self, payload: schemas.ClipCreate) -> IdContainerTables:
         return IdContainerTables(id=await self._create(payload))
+
+    async def get_clip(
+            self,
+            pagination: PaginationCallable[schemas.Clip] | None = None,
+            sorting: SortingData[schemas.ClipSorts] | None = None,
+    ) -> Paginated[schemas.Clip]:
+        return await self._get_list(
+            schemas.Clip,
+            pagination=pagination,
+            sorting=sorting,
+            options=self.load_options,
+        )
 
     async def partial_update_clip(self, clip_id: UUID, payload: schemas.ClipPartialUpdate) -> None:
         return await self._partial_update(clip_id, payload)

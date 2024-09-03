@@ -40,6 +40,21 @@ class LikeTheClip(APIModel):
     staff_id: UUID | None = None
 
 
+class ClipSorts(enum.StrEnum):
+    id = enum.auto()
+    name = enum.auto()
+    date = enum.auto()
+    description = enum.auto()
+    likes = enum.auto()
+    created_at = enum.auto()
+
+
+@dataclass
+class ClipListRequestSchema:
+    pagination: pg.PaginationCallable[ClipDetailsFull] | None = None
+    sorting: sr.SortingData[ClipSorts] | None = None
+
+
 @dataclass
 class ClipWhere:
     id: int | None = None
