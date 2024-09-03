@@ -196,3 +196,40 @@ header .presentation::after {
 	white-space: pre;
 	z-index: 2;
 }
+
+.overlay {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 3rem;
+	color: white;
+	opacity: 0;
+	transition: opacity 0.3s ease-in-out;
+}
+
+.show-pause {
+	opacity: 1;
+}
+
+.show-play {
+	opacity: 1;
+}
+
+.icon {
+	background: rgba(0, 0, 0, 0.5);
+	padding: 1rem;
+	border-radius: 50%;
+}
+
+.pause-overlay {
+	background: rgba(0, 0, 0, 0.5);
+	padding: 1rem;
+	border-radius: 50%;
+}
+
+.play-overlay {
+	background: rgba(0, 0, 0, 0.5);
+	padding: 1rem;
+	border-radius: 50%;
+}

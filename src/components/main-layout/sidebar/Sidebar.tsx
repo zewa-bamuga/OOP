@@ -6,7 +6,9 @@ export function Sidebar() {
 	const { push } = useRouter()
 
 	return (
-		<div className={`flex flex-col items-start space-y-4 mt-[92px] absolute`}>
+		<div
+			className={`flex flex-col items-start space-y-4 mt-[92px] fixed left-0 top-0 h-full w-[320px]`}
+		>
 			<button
 				className={`promo-box bg-oopyellow w-[320px] h-[35px] rounded-r-full flex items-center`}
 				style={{

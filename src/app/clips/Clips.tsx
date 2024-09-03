@@ -6,13 +6,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Header } from '@/components/main-layout/header/Header'
 import { Sidebar } from '@/components/main-layout/sidebar/Sidebar'
 
-import { Project } from '@/types/project.types'
+import { Clip } from '@/types/clips.types'
 
 import { useAuth } from '@/hooks/useAuth'
 
-import { userService } from '@/services/project.service'
-
-const images = ['/banner.png', '/banner2.jpg', '/banner3.jpg']
+import { userService } from '@/services/clip.service'
 
 const abeezee = ABeeZee({
 	subsets: ['latin'],
@@ -20,134 +18,113 @@ const abeezee = ABeeZee({
 })
 
 export function Clips() {
-	const [currentIndex, setCurrentIndex] = useState(0)
-	const [startCount, setStartCount] = useState(false)
-	const [projects, setProjects] = useState<Project[]>([])
-	const [likedProjects, setLikedProjects] = useState<Record<string, boolean>>(
-		{}
-	)
+	const [currentClipIndex, setCurrentClipIndex] = useState(0)
+	const [clips, setClips] = useState<Clip[]>([])
+	const [likedClips, setLikedClips] = useState<Record<string, boolean>>({})
+	const [isPlaying, setIsPlaying] = useState(true)
+	const [showOverlay, setShowOverlay] = useState('')
+	const [currentTime, setCurrentTime] = useState(0)
+	const [duration, setDuration] = useState(0)
 
 	const { isAuthenticated } = useAuth()
 	const [showAuthNotification, setShowAuthNotification] = useState(false)
-	const statsRef = useRef<HTMLDivElement | null>(null)
 
-	const nextSlide = () => {
-		setCurrentIndex(prevIndex => (prevIndex + 1) % images.length)
-	}
-
-	const prevSlide = () => {
-		setCurrentIndex(
-			prevIndex => (prevIndex - 1 + images.length) % images.length
-		)
-	}
-
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString)
-		return date.toLocaleDateString('ru-RU', {
-			day: 'numeric',
-			month: 'long'
-		})
-	}
-
-	const formatDateRange = (startDate: Date, endDate: Date) => {
-		const options = { day: 'numeric', month: 'long' } as const
-		const start = new Intl.DateTimeFormat('ru-RU', options).format(startDate)
-		const end = new Intl.DateTimeFormat('ru-RU', options).format(endDate)
-		return `${start} - ${end}`
-	}
-
-	const getSlideClass = (index: number) => {
-		if (index === currentIndex) {
-			return 'translate-x-0'
-		} else if (index === (currentIndex - 1 + images.length) % images.length) {
-			return '-translate-x-full z-[-1]'
-		} else {
-			return 'translate-x-full z-[-2]'
-		}
-	}
+	const videoRef = useRef<HTMLVideoElement | null>(null)
+	const timelineRef = useRef<HTMLDivElement | null>(null)
 
 	useEffect(() => {
-		const observer = new IntersectionObserver(
-			entries => {
-				if (entries[0].isIntersecting) {
-					setStartCount(true)
-				}
-			},
-			{ threshold: 0.3 }
-		)
-
-		if (statsRef.current) {
-			observer.observe(statsRef.current)
-		}
-
-		return () => {
-			if (statsRef.current) {
-				observer.unobserve(statsRef.current)
-			}
-		}
-	}, [])
-
-	useEffect(() => {
-		const fetchProjects = async () => {
+		const fetchClips = async () => {
 			try {
-				const data = await userService.getProject()
-				setProjects(data.items)
+				const data = await userService.getClips()
+				setClips(data.items)
 			} catch (error) {
-				console.error('Ошибка при загрузке проектов:', error)
+				console.error('Ошибка при загрузке клипов:', error)
 			}
 		}
 
-		fetchProjects()
+		fetchClips()
 	}, [])
 
-	const animateValue = (
-		start: number,
-		end: number,
-		duration: number,
-		setValue: React.Dispatch<React.SetStateAction<number>>
-	) => {
-		let startTime: number | null = null
-		const easing = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t))
+	useEffect(() => {
+		const storedLikedClips = localStorage.getItem('likedClips')
+		if (storedLikedClips) {
+			setLikedClips(JSON.parse(storedLikedClips))
+		}
+	}, [])
 
-		const step = (currentTime: number) => {
-			if (!startTime) startTime = currentTime
-			const timeElapsed = currentTime - startTime
-			const progress = Math.min(timeElapsed / duration, 1)
-			const easedProgress = easing(progress)
-			setValue(Math.floor(easedProgress * (end - start) + start))
-
-			if (progress < 1) {
-				window.requestAnimationFrame(step)
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'ArrowDown') {
+				nextClip()
+			}
+			if (event.key === ' ') {
+				event.preventDefault() // Предотвращаем скроллинг страницы при нажатии пробела
+				togglePlayPause()
 			}
 		}
 
-		window.requestAnimationFrame(step)
-	}
-
-	const saveLikedProjectsToLocalStorage = (
-		likedProjects: Record<string, boolean>
-	) => {
-		localStorage.setItem('likedProjects', JSON.stringify(likedProjects))
-	}
-
-	const [projectsCount, setProjectsCount] = useState(0)
-	const [employees, setEmployees] = useState(0)
-	const [subscribers, setSubscribers] = useState(0)
+		window.addEventListener('keydown', handleKeyDown)
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [clips, currentClipIndex, isPlaying])
 
 	useEffect(() => {
-		if (startCount) {
-			animateValue(0, 6, 3000, setProjectsCount)
-			animateValue(0, 38, 3000, setEmployees)
-			animateValue(0, 1092, 3000, setSubscribers)
+		if (videoRef.current) {
+			const handlePlayPause = () => {
+				if (videoRef.current?.paused) {
+					setShowOverlay('pause')
+					const timer = setTimeout(() => {
+						setShowOverlay('')
+					}, 1000) // Длительность отображения иконки паузы
+
+					return () => {
+						clearTimeout(timer)
+					}
+				} else {
+					setShowOverlay('play')
+					const timer = setTimeout(() => {
+						setShowOverlay('')
+					}, 1000) // Длительность отображения иконки воспроизведения
+
+					return () => {
+						clearTimeout(timer)
+					}
+				}
+			}
+
+			const handleTimeUpdate = () => {
+				if (videoRef.current) {
+					setCurrentTime(videoRef.current.currentTime)
+					setDuration(videoRef.current.duration)
+				}
+			}
+
+			videoRef.current.addEventListener('play', handlePlayPause)
+			videoRef.current.addEventListener('pause', handlePlayPause)
+			videoRef.current.addEventListener('timeupdate', handleTimeUpdate)
+
+			return () => {
+				videoRef.current?.removeEventListener('play', handlePlayPause)
+				videoRef.current?.removeEventListener('pause', handlePlayPause)
+				videoRef.current?.removeEventListener('timeupdate', handleTimeUpdate)
+			}
 		}
-	}, [startCount])
+	}, [videoRef.current])
 
 	useEffect(() => {
-		const storedLikedProjects = localStorage.getItem('likedProjects')
-		if (storedLikedProjects) {
-			setLikedProjects(JSON.parse(storedLikedProjects))
+		const updateTimeline = () => {
+			if (videoRef.current && timelineRef.current) {
+				const progress =
+					(videoRef.current.currentTime / videoRef.current.duration) * 100
+				timelineRef.current.style.width = `${progress}%`
+				requestAnimationFrame(updateTimeline)
+			}
 		}
-	}, [])
+		if (isPlaying) {
+			requestAnimationFrame(updateTimeline)
+		}
+	}, [isPlaying])
 
 	const toggleLike = async (id: string) => {
 		if (!isAuthenticated) {
@@ -156,104 +133,172 @@ export function Clips() {
 		}
 
 		try {
-			const projectId = parseInt(id, 10) // Преобразование строки в число
+			const clipId = parseInt(id, 10)
 
-			if (likedProjects[id]) {
-				await userService.unlikeProject(projectId)
-				setProjects(prevProjects =>
-					prevProjects.map(project =>
-						project.id === id
-							? { ...project, likes: (project.likes || 0) - 1 }
-							: project
+			if (likedClips[id]) {
+				await userService.unlikeClip(clipId)
+				setClips(prevClips =>
+					prevClips.map(clip =>
+						clip.id === id ? { ...clip, likes: (clip.likes || 0) - 1 } : clip
 					)
 				)
 			} else {
-				await userService.likeProject(projectId)
-				setProjects(prevProjects =>
-					prevProjects.map(project =>
-						project.id === id
-							? { ...project, likes: (project.likes || 0) + 1 }
-							: project
+				await userService.likeClip(clipId)
+				setClips(prevClips =>
+					prevClips.map(clip =>
+						clip.id === id ? { ...clip, likes: (clip.likes || 0) + 1 } : clip
 					)
 				)
 			}
 
-			const updatedLikedProjects = {
-				...likedProjects,
-				[id]: !likedProjects[id]
+			const updatedLikedClips = {
+				...likedClips,
+				[id]: !likedClips[id]
 			}
-			setLikedProjects(updatedLikedProjects)
-			saveLikedProjectsToLocalStorage(updatedLikedProjects)
+			setLikedClips(updatedLikedClips)
+			saveLikedClipsToLocalStorage(updatedLikedClips)
 		} catch (error) {
 			console.error('Ошибка при обновлении лайков:', error)
 		}
 	}
 
-	const handleAuthRedirect = () => {
-		window.location.href = '../auth'
-		setShowAuthNotification(false)
+	const nextClip = () => {
+		setCurrentClipIndex(prevIndex => (prevIndex + 1) % clips.length)
 	}
 
-	const groupProjectsByYear = (projects: Project[]) => {
-		return projects.reduce(
-			(acc, project) => {
-				const year = new Date(project.startDate).getFullYear()
-				if (!acc[year]) {
-					acc[year] = []
-				}
-				acc[year].push(project)
-				return acc
-			},
-			{} as Record<number, Project[]>
+	const togglePlayPause = () => {
+		if (videoRef.current) {
+			if (videoRef.current.paused) {
+				videoRef.current.play()
+				setIsPlaying(true)
+			} else {
+				videoRef.current.pause()
+				setIsPlaying(false)
+			}
+		}
+	}
+
+	const handleVideoClick = () => {
+		togglePlayPause()
+	}
+
+	const handleAuthRedirect = () => {
+		// Перенаправление на страницу авторизации
+	}
+
+	const handleTimelineClick = (event: React.MouseEvent<HTMLDivElement>) => {
+		if (videoRef.current) {
+			const rect = (event.target as HTMLDivElement).getBoundingClientRect()
+			const clickX = event.clientX - rect.left
+			const newTime = (clickX / rect.width) * duration
+			videoRef.current.currentTime = newTime
+			setCurrentTime(newTime)
+		}
+	}
+
+	if (clips.length === 0) {
+		return (
+			<div className='flex min-h-screen items-center justify-center'>
+				<p className='text-gray-700 text-2xl'>Нет доступных клипов.</p>
+			</div>
 		)
 	}
 
-	const groupedProjects = groupProjectsByYear(projects)
-
 	return (
-		<div className='flex min-h-screen font-helvetica'>
+		<div className='flex min-h-screen items-center flex-col bg-black'>
 			<Header />
 			<Sidebar />
 
-			<div className='absolute mt-[60px] w-full h-[230px] flex'>
-				{/* Левая половина с изображением и текстом */}
-				<div className='w-1/2 h-full relative'>
-					<img
-						src='/qwerty.jpg'
-						alt='Проекты'
-						className='w-full h-full object-cover'
-					/>
-					<div className='absolute inset-0 flex items-center justify-center'>
-						<h1
-							className='text-[65px] text-white leading-tight'
-							style={{
-								fontFamily: 'IntroFriday',
-								fontWeight: 'bold',
-								whiteSpace: 'nowrap'
-							}}
+			<div className='relative flex-grow w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg'>
+				<div className='relative flex flex-col items-center justify-center h-screen'>
+					<div className='relative w-full h-full'>
+						{clips.length > 0 && (
+							<>
+								<video
+									ref={videoRef}
+									src={clips[currentClipIndex].clipAttachment?.uri}
+									alt={clips[currentClipIndex].name}
+									className='absolute inset-0 transform scale-90 translate-x-1/10 translate-y-1/10 object-cover rounded-lg' // Масштабирование видео на 80% и сдвиг
+									controls={false}
+									autoPlay
+									loop
+									onClick={handleVideoClick}
+								/>
+								<div
+									className={`overlay ${showOverlay === 'pause' ? 'show-pause' : ''}`}
+								>
+									<span className='icon'>❚❚</span>
+								</div>
+								<div
+									className={`overlay ${showOverlay === 'play' ? 'show-play' : ''}`}
+								>
+									<span className='icon'>▶</span>
+								</div>
+								<div className='absolute bottom-0 left-0 w-full'>
+									<div className='relative w-full h-1'>
+										{/* Градиент для улучшения видимости текста не работает */}
+
+										<div
+											className='absolute inset-0 bg-gradient-to-t from-black to-transparent'
+											style={{ height: '100%' }}
+										/>
+										<div
+											className='w-full h-1 bg-gray-600 cursor-pointer relative'
+											onClick={handleTimelineClick}
+										>
+											<div
+												ref={timelineRef}
+												className='bg-oopblue'
+											/>
+										</div>
+									</div>
+									<div className='absolute bottom-0 left-0 w-full p-4'>
+										{/* Градиент для улучшения видимости текста не работает */}
+										<div className='absolute inset-0 bottom-0 h-1/4 bg-gradient-to-t from-black via-transparent to-transparent z-10' />
+										<div className='relative z-20 flex flex-col items-start'>
+											<h3 className='text-white text-lg font-semibold'>
+												{clips[currentClipIndex].name}
+											</h3>
+											<p className='text-gray-300'>
+												{clips[currentClipIndex].description}
+											</p>
+										</div>
+									</div>
+								</div>
+							</>
+						)}
+					</div>
+					<div className='absolute right-0 top-1/2 transform -translate-y-1/2'>
+						<button
+							onClick={nextClip}
+							className='text-white text-4xl hover:text-gray-400 focus:outline-none'
 						>
-							ПРОЕКТЫ
-						</h1>
+							↓
+						</button>
 					</div>
 				</div>
-
-				{/* Правая половина с серым фоном и текстом */}
-				<div className='w-1/2 h-full bg-oopgray flex items-center justify-center'>
-					<p className='text-white text-[20px] leading-tight px-10'>
-						<span
-							className='text-oopyellow'
-							style={{
-								fontStyle: 'italic'
-							}}
-						>
-							Проект
-						</span>{' '}
-						- совокупность действий и мероприятий, направленных <br />
-						на создание уникального продукта, в частности <br />{' '}
-						образовательного
-					</p>
-				</div>
 			</div>
+
+			{showAuthNotification && (
+				<div className='fixed inset-0 flex items-center justify-center z-50'>
+					<div className='bg-white p-8 rounded-lg shadow-lg'>
+						<h2 className='text-2xl font-bold mb-4'>Требуется авторизация</h2>
+						<p className='mb-4'>
+							Чтобы ставить лайки, пожалуйста, войдите в свою учетную запись.
+						</p>
+						<div className='flex justify-end'>
+							<button
+								onClick={handleAuthRedirect}
+								className='bg-blue-500 text-white px-4 py-2 rounded-lg'
+							>
+								Войти
+							</button>
+						</div>
+					</div>
+					{/* Overlay для затемнения экрана */}
+					<div className='fixed inset-0 bg-black opacity-50' />
+				</div>
+			)}
 		</div>
 	)
 }
