@@ -31,6 +31,8 @@ export function Clips() {
 
 	const videoRef = useRef<HTMLVideoElement | null>(null)
 	const timelineRef = useRef<HTMLDivElement | null>(null)
+	const backgroundTimelineRef = useRef<HTMLDivElement | null>(null)
+	const animationRef = useRef<number | null>(null)
 
 	useEffect(() => {
 		const fetchClips = async () => {
@@ -57,6 +59,9 @@ export function Clips() {
 			if (event.key === 'ArrowDown') {
 				nextClip()
 			}
+			if (event.key === 'ArrowUp') {
+				previousClip()
+			}
 			if (event.key === ' ') {
 				event.preventDefault() // Предотвращаем скроллинг страницы при нажатии пробела
 				togglePlayPause()
@@ -70,10 +75,34 @@ export function Clips() {
 	}, [clips, currentClipIndex, isPlaying])
 
 	useEffect(() => {
+		const updateTimeline = () => {
+			if (videoRef.current && timelineRef.current) {
+				const progress =
+					(videoRef.current.currentTime / videoRef.current.duration) * 100
+				timelineRef.current.style.width = `${progress}%`
+				animationRef.current = requestAnimationFrame(updateTimeline)
+			}
+		}
+
+		if (isPlaying) {
+			animationRef.current = requestAnimationFrame(updateTimeline)
+		} else if (animationRef.current) {
+			cancelAnimationFrame(animationRef.current)
+		}
+
+		return () => {
+			if (animationRef.current) {
+				cancelAnimationFrame(animationRef.current)
+			}
+		}
+	}, [isPlaying])
+
+	useEffect(() => {
 		if (videoRef.current) {
 			const handlePlayPause = () => {
 				if (videoRef.current?.paused) {
 					setShowOverlay('pause')
+					setIsPlaying(false)
 					const timer = setTimeout(() => {
 						setShowOverlay('')
 					}, 1000) // Длительность отображения иконки паузы
@@ -83,6 +112,7 @@ export function Clips() {
 					}
 				} else {
 					setShowOverlay('play')
+					setIsPlaying(true)
 					const timer = setTimeout(() => {
 						setShowOverlay('')
 					}, 1000) // Длительность отображения иконки воспроизведения
@@ -112,19 +142,25 @@ export function Clips() {
 		}
 	}, [videoRef.current])
 
-	useEffect(() => {
-		const updateTimeline = () => {
-			if (videoRef.current && timelineRef.current) {
-				const progress =
-					(videoRef.current.currentTime / videoRef.current.duration) * 100
-				timelineRef.current.style.width = `${progress}%`
-				requestAnimationFrame(updateTimeline)
+	const togglePlayPause = () => {
+		if (videoRef.current) {
+			if (videoRef.current.paused) {
+				videoRef.current.play()
+			} else {
+				videoRef.current.pause()
 			}
 		}
-		if (isPlaying) {
-			requestAnimationFrame(updateTimeline)
-		}
-	}, [isPlaying])
+	}
+
+	const nextClip = () => {
+		setCurrentClipIndex(prevIndex => (prevIndex + 1) % clips.length)
+	}
+
+	const previousClip = () => {
+		setCurrentClipIndex(
+			prevIndex => (prevIndex - 1 + clips.length) % clips.length
+		)
+	}
 
 	const toggleLike = async (id: string) => {
 		if (!isAuthenticated) {
@@ -136,14 +172,14 @@ export function Clips() {
 			const clipId = parseInt(id, 10)
 
 			if (likedClips[id]) {
-				await userService.unlikeClip(clipId)
+				await userService.likeClip(clipId) // Удаление лайка
 				setClips(prevClips =>
 					prevClips.map(clip =>
 						clip.id === id ? { ...clip, likes: (clip.likes || 0) - 1 } : clip
 					)
 				)
 			} else {
-				await userService.likeClip(clipId)
+				await userService.likeClip(clipId) // Добавление лайка
 				setClips(prevClips =>
 					prevClips.map(clip =>
 						clip.id === id ? { ...clip, likes: (clip.likes || 0) + 1 } : clip
@@ -162,33 +198,16 @@ export function Clips() {
 		}
 	}
 
-	const nextClip = () => {
-		setCurrentClipIndex(prevIndex => (prevIndex + 1) % clips.length)
-	}
-
-	const togglePlayPause = () => {
-		if (videoRef.current) {
-			if (videoRef.current.paused) {
-				videoRef.current.play()
-				setIsPlaying(true)
-			} else {
-				videoRef.current.pause()
-				setIsPlaying(false)
-			}
-		}
-	}
-
-	const handleVideoClick = () => {
-		togglePlayPause()
-	}
-
 	const handleAuthRedirect = () => {
-		// Перенаправление на страницу авторизации
+		window.location.href = '../auth'
+		setShowAuthNotification(false)
 	}
 
 	const handleTimelineClick = (event: React.MouseEvent<HTMLDivElement>) => {
 		if (videoRef.current) {
-			const rect = (event.target as HTMLDivElement).getBoundingClientRect()
+			const rect = (
+				event.currentTarget as HTMLDivElement
+			).getBoundingClientRect()
 			const clickX = event.clientX - rect.left
 			const newTime = (clickX / rect.width) * duration
 			videoRef.current.currentTime = newTime
@@ -210,7 +229,7 @@ export function Clips() {
 			<Sidebar />
 
 			<div className='relative flex-grow w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg'>
-				<div className='relative flex flex-col items-center justify-center h-screen'>
+				<div className='relative flex flex-col scale-75 items-center justify-center h-screen'>
 					<div className='relative w-full h-full'>
 						{clips.length > 0 && (
 							<>
@@ -218,11 +237,11 @@ export function Clips() {
 									ref={videoRef}
 									src={clips[currentClipIndex].clipAttachment?.uri}
 									alt={clips[currentClipIndex].name}
-									className='absolute inset-0 transform scale-90 translate-x-1/10 translate-y-1/10 object-cover rounded-lg' // Масштабирование видео на 80% и сдвиг
+									className='relative z-10 w-full h-full object-cover rounded-lg'
 									controls={false}
 									autoPlay
 									loop
-									onClick={handleVideoClick}
+									onClick={() => togglePlayPause()}
 								/>
 								<div
 									className={`overlay ${showOverlay === 'pause' ? 'show-pause' : ''}`}
@@ -234,36 +253,43 @@ export function Clips() {
 								>
 									<span className='icon'>▶</span>
 								</div>
-								<div className='absolute bottom-0 left-0 w-full'>
-									<div className='relative w-full h-1'>
-										{/* Градиент для улучшения видимости текста не работает */}
-
+								<div className='absolute bottom-0 z-20 items-start p-4'>
+									<h3 className='text-white text-lg font-semibold'>
+										{clips[currentClipIndex].name}
+									</h3>
+									<p className='text-gray-300'>
+										{clips[currentClipIndex].description}
+									</p>
+								</div>
+								<div className='absolute bottom-0 left-0 z-30 w-[98%] ml-[5px] rounded-full bg-gray-700'>
+									<div
+										ref={backgroundTimelineRef}
+										className='relative h-2 bg-gray-400 rounded-full'
+										style={{ width: '100%' }}
+									>
 										<div
-											className='absolute inset-0 bg-gradient-to-t from-black to-transparent'
-											style={{ height: '100%' }}
-										/>
-										<div
-											className='w-full h-1 bg-gray-600 cursor-pointer relative'
+											ref={timelineRef}
+											className='absolute bg-oopblue h-full rounded-full cursor-pointer'
+											style={{ width: '0%', transition: 'width 0.1s linear' }}
 											onClick={handleTimelineClick}
-										>
-											<div
-												ref={timelineRef}
-												className='bg-oopblue'
-											/>
-										</div>
+										/>
 									</div>
-									<div className='absolute bottom-0 left-0 w-full p-4'>
-										{/* Градиент для улучшения видимости текста не работает */}
-										<div className='absolute inset-0 bottom-0 h-1/4 bg-gradient-to-t from-black via-transparent to-transparent z-10' />
-										<div className='relative z-20 flex flex-col items-start'>
-											<h3 className='text-white text-lg font-semibold'>
-												{clips[currentClipIndex].name}
-											</h3>
-											<p className='text-gray-300'>
-												{clips[currentClipIndex].description}
-											</p>
-										</div>
-									</div>
+								</div>
+								<div className='absolute bottom-0 z-10 right-0 p-4'>
+									<button
+										onClick={() => toggleLike(clips[currentClipIndex].id)}
+										className={`w-6 h-6 transition-colors duration-300 ease-in-out ${
+											likedClips[clips[currentClipIndex].id]
+												? 'bg-red-500'
+												: 'bg-yellow-500'
+										} rounded-md flex items-center justify-center hover:bg-red-600`}
+									>
+										<img
+											src='/heart.png'
+											alt='like'
+											className='w-4 h-4 filter invert'
+										/>
+									</button>
 								</div>
 							</>
 						)}
@@ -276,29 +302,39 @@ export function Clips() {
 							↓
 						</button>
 					</div>
+					<div className='absolute left-0 top-1/2 transform -translate-y-1/2'>
+						<button
+							onClick={previousClip}
+							className='text-white text-4xl hover:text-gray-400 focus:outline-none'
+						>
+							↑
+						</button>
+					</div>
 				</div>
 			</div>
 
 			{showAuthNotification && (
-				<div className='fixed inset-0 flex items-center justify-center z-50'>
-					<div className='bg-white p-8 rounded-lg shadow-lg'>
-						<h2 className='text-2xl font-bold mb-4'>Требуется авторизация</h2>
-						<p className='mb-4'>
-							Чтобы ставить лайки, пожалуйста, войдите в свою учетную запись.
+				<div className='fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75'>
+					<div className='bg-white p-6 rounded-lg shadow-lg text-center'>
+						<h2 className='text-oopblack text-lg font-bold mb-4'>
+							Необходима авторизация
+						</h2>
+						<p className='text-oopblack mb-6'>
+							Пожалуйста, войдите в систему, чтобы использовать эту функцию.
 						</p>
-						<div className='flex justify-end'>
-							<button
-								onClick={handleAuthRedirect}
-								className='bg-blue-500 text-white px-4 py-2 rounded-lg'
-							>
-								Войти
-							</button>
-						</div>
+						<button
+							onClick={handleAuthRedirect}
+							className='bg-blue-500 text-white px-4 py-2 rounded-md'
+						>
+							Перейти на страницу авторизации
+						</button>
 					</div>
-					{/* Overlay для затемнения экрана */}
-					<div className='fixed inset-0 bg-black opacity-50' />
 				</div>
 			)}
 		</div>
 	)
+}
+
+const saveLikedClipsToLocalStorage = (likedClips: Record<string, boolean>) => {
+	localStorage.setItem('likedClips', JSON.stringify(likedClips))
 }

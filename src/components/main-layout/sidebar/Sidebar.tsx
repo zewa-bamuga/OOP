@@ -7,7 +7,7 @@ export function Sidebar() {
 
 	return (
 		<div
-			className={`flex flex-col items-start space-y-4 mt-[92px] fixed left-0 top-0 h-full w-[320px]`}
+			className={`absolute flex flex-col items-start space-y-4 mt-[92px] left-0 top-0 h-full w-[320px]`}
 		>
 			<button
 				className={`promo-box bg-oopyellow w-[320px] h-[35px] rounded-r-full flex items-center`}
