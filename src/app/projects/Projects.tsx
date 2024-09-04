@@ -1,6 +1,7 @@
 'use client'
 
 import { ABeeZee } from 'next/font/google'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 import { Header } from '@/components/main-layout/header/Header'
@@ -26,6 +27,7 @@ export function Projects() {
 	const [likedProjects, setLikedProjects] = useState<Record<string, boolean>>(
 		{}
 	)
+
 	const { isAuthenticated } = useAuth()
 	const [showAuthNotification, setShowAuthNotification] = useState(false)
 	const statsRef = useRef<HTMLDivElement | null>(null)
@@ -148,18 +150,20 @@ export function Projects() {
 		}
 	}, [])
 
-	const toggleLike = async (projectId: string) => {
+	const toggleLike = async (id: string) => {
 		if (!isAuthenticated) {
 			setShowAuthNotification(true)
 			return
 		}
 
 		try {
-			if (likedProjects[projectId]) {
+			const projectId = parseInt(id, 10) // Преобразование строки в число
+
+			if (likedProjects[id]) {
 				await userService.unlikeProject(projectId)
 				setProjects(prevProjects =>
 					prevProjects.map(project =>
-						project.id === projectId
+						project.id === id
 							? { ...project, likes: (project.likes || 0) - 1 }
 							: project
 					)
@@ -168,7 +172,7 @@ export function Projects() {
 				await userService.likeProject(projectId)
 				setProjects(prevProjects =>
 					prevProjects.map(project =>
-						project.id === projectId
+						project.id === id
 							? { ...project, likes: (project.likes || 0) + 1 }
 							: project
 					)
@@ -177,7 +181,7 @@ export function Projects() {
 
 			const updatedLikedProjects = {
 				...likedProjects,
-				[projectId]: !likedProjects[projectId]
+				[id]: !likedProjects[id]
 			}
 			setLikedProjects(updatedLikedProjects)
 			saveLikedProjectsToLocalStorage(updatedLikedProjects)
@@ -212,48 +216,47 @@ export function Projects() {
 			<Header />
 			<Sidebar />
 
-			<div className='absolute mt-[60px] w-full h-[640px]'>
-				<div className='w-full h-full overflow-hidden relative'>
-					<div className='absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out'>
-						<img
-							src='/qwerty.jpg'
-							alt='logo.png'
-						/>
-						<div className='absolute inset-0 flex flex-col items-center justify-center text-white text-center mb-[430px]'>
-							<h1
-								className='text-[65px] leading-tight mt-5'
-								style={{
-									fontFamily: 'IntroFriday',
-									fontWeight: 'bold',
-									whiteSpace: 'nowrap'
-								}}
-							>
-								ПРОЕКТЫ
-							</h1>
-						</div>
+			<div className='absolute mt-[60px] w-full h-[230px] flex'>
+				{/* Левая половина с изображением и текстом */}
+				<div className='w-1/2 h-full relative'>
+					<img
+						src='/qwerty.jpg'
+						alt='Проекты'
+						className='w-full h-full object-cover'
+					/>
+					<div className='absolute inset-0 flex items-center justify-center'>
+						<h1
+							className='text-[65px] text-white leading-tight'
+							style={{
+								fontFamily: 'IntroFriday',
+								fontWeight: 'bold',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							ПРОЕКТЫ
+						</h1>
 					</div>
+				</div>
+
+				{/* Правая половина с серым фоном и текстом */}
+				<div className='w-1/2 h-full bg-oopgray flex items-center justify-center'>
+					<p className='text-white text-[20px] leading-tight px-10'>
+						<span
+							className='text-oopyellow'
+							style={{
+								fontStyle: 'italic'
+							}}
+						>
+							Проект
+						</span>{' '}
+						- совокупность действий и мероприятий, направленных <br />
+						на создание уникального продукта, в частности <br />{' '}
+						образовательного
+					</p>
 				</div>
 			</div>
 
-			<div
-				ref={statsRef}
-				className='absolute mt-[290px] w-full h-[110px] bg-oopblue flex flex-col items-center justify-center'
-			>
-				<p className='text-white text-[20px] leading-tight px-52'>
-					<span
-						className='text-oopyellow'
-						style={{
-							fontStyle: 'italic'
-						}}
-					>
-						Проект
-					</span>{' '}
-					- совокупность действий и мероприятий, направленных на создание
-					уникального продукта, в частности образовательного
-				</p>
-			</div>
-
-			<div className='absolute mt-[450px] px-48'>
+			<div className='absolute mt-[340px] px-48'>
 				<div className='space-y-8'>
 					{Object.keys(groupedProjects)
 						.sort()
@@ -272,84 +275,92 @@ export function Projects() {
 									{year}
 								</h2>
 								<div className='grid grid-cols-3 gap-8'>
-									{groupedProjects[+year].map(project => (
-										<div
-											key={project.id}
-											className='rounded-md p-4'
-										>
-											{project.avatarAttachment && (
-												<img
-													src={project.avatarAttachment.uri}
-													alt={project.avatarAttachment.name}
-													className='w-[300px] h-[300px] object-cover rounded-md mb-4'
-												/>
-											)}
+									{groupedProjects[+year].map(project => {
+										const {
+											id: projectId,
+											avatarAttachment,
+											name,
+											startDate,
+											endDate,
+											likes
+										} = project
 
-											<div className='flex justify-between mb-1'>
-												<h3
-													className='text-oopblack text-lg font-semibold'
-													style={{
-														fontFamily: 'Helvetica',
-														fontStyle: 'bold',
-														whiteSpace: 'nowrap'
-													}}
-												>
-													{project.name}
-												</h3>
-												<div className='flex items-center'>
-													<span
-														className='text-oopgray text-sm mr-2 leading-7'
+										return (
+											<div
+												key={projectId}
+												className='rounded-md p-4'
+											>
+												{avatarAttachment && (
+													<img
+														src={avatarAttachment.uri}
+														alt={avatarAttachment.name}
+														className='w-[300px] h-[300px] object-cover rounded-md mb-4'
+													/>
+												)}
+
+												<div className='flex justify-between mb-1'>
+													<h3
+														className='text-oopblack text-lg font-semibold'
 														style={{
-															fontFamily: 'Lato, sans-serif',
-															fontWeight: 400,
-															letterSpacing: '0.09em'
+															fontFamily: 'Helvetica',
+															fontStyle: 'bold',
+															whiteSpace: 'nowrap'
 														}}
 													>
-														{project.likes}
-													</span>
-													<button
-														onClick={() => toggleLike(project.id)}
-														className={`w-6 h-6 transition-colors duration-300 ease-in-out ${
-															likedProjects[project.id]
-																? 'bg-red-500'
-																: 'bg-oopyellow'
-														} rounded-md flex items-center justify-center hover:bg-oopredhover`}
-													>
-														<img
-															src='/heart.png'
-															alt='like'
-															className={`w-4 h-4 filter invert`}
-														/>
-													</button>
+														{name}
+													</h3>
+													<div className='flex items-center'>
+														<span
+															className='text-oopgray text-sm mr-2 leading-7'
+															style={{
+																fontFamily: 'Lato, sans-serif',
+																fontWeight: 400,
+																letterSpacing: '0.09em'
+															}}
+														>
+															{likes}
+														</span>
+														<button
+															onClick={() => toggleLike(projectId)}
+															className={`w-6 h-6 transition-colors duration-300 ease-in-out ${
+																likedProjects[projectId]
+																	? 'bg-red-500'
+																	: 'bg-oopyellow'
+															} rounded-md flex items-center justify-center hover:bg-oopredhover`}
+														>
+															<img
+																src='/heart.png'
+																alt='like'
+																className={`w-4 h-4 filter invert`}
+															/>
+														</button>
+													</div>
 												</div>
+
+												<p
+													className='text-oopgray text-base mb-4'
+													style={{
+														fontFamily: 'Lato, sans-serif',
+														fontWeight: 300
+													}}
+												>
+													{endDate
+														? formatDateRange(
+																new Date(startDate),
+																new Date(endDate)
+															)
+														: formatDate(new Date(startDate))}
+												</p>
+
+												<Link
+													href={`/projects/${projectId}`}
+													className='bg-oopyellow text-oopblack px-4 py-2 rounded-md transition-colors duration-300 ease-in-out hover:bg-oopyellowhover'
+												>
+													перейти
+												</Link>
 											</div>
-
-											<p
-												className='text-oopgray text-base mb-4'
-												style={{
-													fontFamily: 'Lato, sans-serif',
-													fontWeight: 300
-												}}
-											>
-												{project.endDate
-													? formatDateRange(
-															new Date(project.startDate),
-															new Date(project.endDate)
-														)
-													: formatDate(new Date(project.startDate))}
-											</p>
-
-											<button
-												className='bg-oopyellow text-oopblack px-4 py-2 rounded-md transition-colors duration-300 ease-in-out hover:bg-oopyellowhover'
-												style={{
-													fontFamily: 'Lato, sans-serif',
-													fontWeight: 200
-												}}
-											>
-												перейти
-											</button>
-										</div>
-									))}
+										)
+									})}
 								</div>
 							</div>
 						))}

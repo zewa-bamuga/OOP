@@ -1,4 +1,3 @@
-// project.service.ts
 import { Project } from '@/types/project.types'
 
 import { axiosWithAuth } from '@/api/interceptors'
@@ -29,6 +28,15 @@ class ProjectService {
 				projectId: parseInt(projectId, 10) // передаем projectId в теле запроса
 			}
 		})
+		return response.data
+	}
+
+	async getProjectById(projectIdNumber: number) {
+		console.log(`Fetching project with ID: ${projectIdNumber}`)
+
+		const response = await axiosWithAuth.get<Project>(
+			`/projects/v1/project/by/id/${projectIdNumber}`
+		)
 		return response.data
 	}
 }

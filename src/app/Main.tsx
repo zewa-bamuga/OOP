@@ -109,7 +109,7 @@ export function Main() {
 			<Header />
 			<Sidebar />
 
-			<div className='absolute mt-[60px] w-full h-[640px]'>
+			<div className='absolute mt-[60px] w-full h-[790px]'>
 				<div className='w-full h-full overflow-hidden relative'>
 					{images.map((image, index) => (
 						<div
@@ -176,7 +176,7 @@ export function Main() {
 			</div>
 			<div
 				ref={statsRef}
-				className='absolute ${abeezee.className} mt-[720px] w-full h-[496px] bg-oopgray flex flex-col items-center'
+				className='absolute ${abeezee.className} mt-[890px] w-full h-[496px] bg-oopgray flex flex-col items-center'
 			>
 				<h2
 					className='text-4xl mt-10'

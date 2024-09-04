@@ -1,16 +1,13 @@
 import { UUID } from 'crypto'
 
-export interface Project {
+export interface Clip {
 	id: string
 	name: string
-	startDate: Date
-	endDate: Date
+	date: Date
 	description: string | null
-	participants: number
-	lessons: number
 	likes: number | null
-	avatarAttachmentId: UUID
-	avatarAttachment: {
+	clipAttachmentId: UUID
+	clipAttachment: {
 		id: string
 		name: string
 		path: string
