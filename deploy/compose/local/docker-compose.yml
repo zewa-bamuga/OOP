@@ -1,9 +1,9 @@
 version: '3'
 
 volumes:
-  postgres_data: {}
-  rabbitmq_data: {}
-  fastapi_media: {}
+  postgres_data: { }
+  rabbitmq_data: { }
+  fastapi_media: { }
 
 services:
   traefik:
@@ -20,22 +20,25 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: "unless-stopped"
 
-  #  react:
-  #    build:
-  #      context: .
-  #      dockerfile: ./deploy/compose/local/react.dockerfile
-  #    volumes:
-  #      - ./admin/src:/app/src
-  #      - ./admin/public:/app/public
-  #      - ./admin/index.html:/app/index.html
-  #    env_file:
-  #      - .env
-  #    restart: "unless-stopped"
-  #    labels:
-  #      - "traefik.enable=true"
-  #      - "traefik.http.routers.react.rule=PathPrefix(`/`)"
-  #      - "traefik.http.routers.react.service=react"
-  #      - "traefik.http.services.react.loadbalancer.server.port=5173"
+  next:
+    build:
+      context: .
+      dockerfile: ./deploy/compose/local/next.dockerfile
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    env_file:
+      - .env.example
+      - .env
+    restart: "unless-stopped"
+    ports:
+      - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.next.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.next.service=next"
+      - "traefik.http.services.next.loadbalancer.server.port=3000"
+
 
   fastapi: &core
     build:

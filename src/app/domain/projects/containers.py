@@ -1,18 +1,11 @@
 from dependency_injector import containers, providers
 
 from a8t_tools.db.transactions import AsyncDbTransaction
-from a8t_tools.storage.facade import FileStorage
 
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    ProjectPartialUpdateCommand
+    ProjectPartialUpdateCommand, AddEmployeesCommand
 from app.domain.projects.queries import ProjectManagementListQuery, ProjectListQuery, ProjectRetrieveQuery
-from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository
-from app.domain.storage.attachments.commands import AttachmentCreateCommand
-from app.domain.storage.attachments.queries import (
-    AttachmentListQuery,
-    AttachmentRetrieveQuery,
-)
-from app.domain.storage.attachments.repositories import AttachmentRepository
+from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, AddEmployeesRepository
 from app.domain.users.containers import UserContainer
 
 
@@ -21,12 +14,18 @@ class ProjectContainer(containers.DeclarativeContainer):
 
     project_repository = providers.Factory(ProjectRepository, transaction=transaction)
     project_like_repository = providers.Factory(LikeTheProjectRepository, transaction=transaction)
+    add_employees_repository = providers.Factory(AddEmployeesRepository, transaction=transaction)
 
     user_container = providers.Container(UserContainer)
 
     create_command = providers.Factory(
         ProjectCreateCommand,
         project_repository=project_repository,
+    )
+
+    create_add_employees_command = providers.Factory(
+        AddEmployeesCommand,
+        add_employees_project_repository=add_employees_repository,
     )
 
     project_retrieve_by_id_query = providers.Factory(

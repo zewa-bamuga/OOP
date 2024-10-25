@@ -10,7 +10,7 @@ from app.domain.common.exceptions import AuthError
 from app.domain.users.auth.queries import TokenPayloadQuery
 from app.domain.users.auth.repositories import TokenRepository
 from app.domain.users.auth.schemas import TokenResponse, TokenInfo, TokenPayload
-from app.domain.users.core.queries import UserRetrieveQuery, UserRetrieveByUsernameQuery, UserRetrieveByEmailQuery
+from app.domain.users.core.queries import UserRetrieveQuery, UserRetrieveByEmailQuery
 from app.domain.users.core.schemas import UserInternal, UserCredentials
 
 

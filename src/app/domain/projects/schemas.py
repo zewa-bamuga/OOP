@@ -1,7 +1,6 @@
 import enum
 from dataclasses import dataclass
 from datetime import datetime
-from typing import IO
 from uuid import UUID
 
 from a8t_tools.db import pagination as pg
@@ -17,6 +16,8 @@ class Project(APIModel):
     start_date: datetime
     end_date: datetime
     description: str
+    participants: int
+    lessons: int
     likes: int
     avatar_attachment_id: UUID | None = None
     created_at: datetime
@@ -27,6 +28,13 @@ class ProjectCreate(APIModel):
     start_date: datetime
     end_date: datetime
     description: str
+    participants: int
+    lessons: int
+
+
+class AddEmployees(APIModel):
+    project_id: int
+    staff_id: UUID
 
 
 class ProjectPartialUpdate(APIModel):
@@ -38,7 +46,9 @@ class ProjectDetailsFull(Project):
 
 
 class Like(APIModel):
-    project_id: int
+    project_id: int | None = None
+    news_id: int | None = None
+    clip_id: int | None = None
 
 
 class LikeTheProject(APIModel):
@@ -53,6 +63,8 @@ class ProjectSorts(enum.StrEnum):
     start_date: datetime
     end_date: datetime
     description = enum.auto()
+    participants = enum.auto()
+    lessons = enum.auto()
     likes = enum.auto()
     created_at = enum.auto()
 

@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from uuid import UUID
 
 from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring
@@ -8,16 +7,14 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
-from app.domain.projects.queries import ProjectManagementListQuery
-from app.domain.projects.schemas import Project, ProjectCreate, LikeTheProject, Like
-from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand
+from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery
+from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees
+from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
+    AddEmployeesCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
-from app.domain.storage.attachments.commands import AttachmentCreateCommand, ProjectAttachmentCreateCommand
-from app.domain.storage.attachments.queries import (
-    AttachmentListQuery,
-    AttachmentRetrieveQuery,
-)
+from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand
+
 from a8t_tools.db import pagination, sorting
 
 router = APIRouter()
@@ -45,6 +42,21 @@ async def create_projects(
 
 
 @router.post(
+    "/add/employees",
+    response_model=None
+)
+@wiring.inject
+async def add_employees(
+        payload: AddEmployees,
+        token: str = Header(...),
+        command: AddEmployeesCommand = Depends(wiring.Provide[Container.project.create_add_employees_command]),
+):
+    async with user_token(token):
+        project = await command(payload)
+        return project
+
+
+@router.post(
     "/create/attachment",
     response_model=AttachmentSchema.Attachment
 )
@@ -59,41 +71,11 @@ async def create_project_attachment(
 
     async with user_token(token):
         return await command(payload,
-            AttachmentSchema.AttachmentCreate(
-                file=attachment.file,
-                name=attachment.filename,
-            ),
-        )
-
-
-@router.post(
-    "/like",
-    response_model=None
-)
-@wiring.inject
-async def like_the_projects(
-        payload: Like,
-        token: str = Header(...),
-        command: LikeTheProjectCommand = Depends(wiring.Provide[Container.project.like_the_project_command]),
-):
-    async with user_token(token):
-        project = await command(payload)
-        return project
-
-
-@router.delete(
-    "/unlike",
-    response_model=None
-)
-@wiring.inject
-async def unlike_the_projects(
-        payload: Like,
-        token: str = Header(...),
-        command: UnlikeTheProjectCommand = Depends(wiring.Provide[Container.project.unlike_the_project_command]),
-):
-    async with user_token(token):
-        await command(payload)
-        return {"status": "success"}
+                             AttachmentSchema.AttachmentCreate(
+                                 file=attachment.file,
+                                 name=attachment.filename,
+                             ),
+                             )
 
 
 @router.get(
@@ -114,3 +96,46 @@ async def get_projects_list(
         ),
 ) -> pagination.Paginated[schemas.ProjectDetailsFull]:
     return await query(schemas.ProjectListRequestSchema(pagination=pagination, sorting=sorting))
+
+
+@router.get(
+    "/project/by/id/{project_id}",
+    response_model=None
+)
+@wiring.inject
+async def get_project_by_id(
+        project_id: int,
+        query: ProjectRetrieveQuery = Depends(wiring.Provide[Container.project.project_retrieve_by_id_query]),
+):
+    project = await query(project_id)
+    return project
+
+
+@router.post(
+    "/like",
+    response_model=None
+)
+@wiring.inject
+async def like_the_project(
+        payload: Like,
+        token: str = Header(...),
+        command: LikeTheProjectCommand = Depends(wiring.Provide[Container.project.like_the_project_command]),
+):
+    async with user_token(token):
+        project = await command(payload)
+        return project
+
+
+@router.delete(
+    "/unlike",
+    response_model=None
+)
+@wiring.inject
+async def unlike_the_project(
+        payload: Like,
+        token: str = Header(...),
+        command: UnlikeTheProjectCommand = Depends(wiring.Provide[Container.project.unlike_the_project_command]),
+):
+    async with user_token(token):
+        await command(payload)
+        return {"status": "success"}
