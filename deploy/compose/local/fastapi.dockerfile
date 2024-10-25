@@ -9,8 +9,7 @@ RUN apt-get update && \
 COPY pyproject.toml poetry.lock  ./
 RUN poetry install --no-root --no-interaction --no-ansi
 
-COPY ./deploy /
-
+COPY ./deploy/compose/common /
 RUN chmod +x /start-db-init.sh
 RUN chmod +x /start-fastapi.sh
 RUN chmod +x /start-reload-fastapi.sh

@@ -20,17 +20,17 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: "unless-stopped"
 
-#  react:
+#  nextjs:
 #    build:
 #      context: .
-#      dockerfile: ./deploy/compose/develop/react.dockerfile
+#      dockerfile: ./deploy/compose/develop/nextjs.dockerfile
 #    env_file:
 #      - .env.example
 #      - .env
 #    restart: "unless-stopped"
 #    labels:
 #      - "traefik.enable=true"
-#      - "traefik.http.routers.react.rule=PathPrefix(`/`)"
+#      - "traefik.http.routers.nextjs.rule=PathPrefix(`/`)"
 
   fastapi: &core
     build:
