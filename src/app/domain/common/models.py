@@ -134,7 +134,6 @@ class EmailCode(Base):
 class Project(Base):
     __tablename__ = "project"
 
-    id = Column(Integer, primary_key=True)
     name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
     start_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
     end_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
@@ -165,21 +164,24 @@ class Project(Base):
 class ProjectStaff(Base):
     __tablename__ = "project_staff"
 
-    id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(UUID, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
     staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=False)
 
     project = relationship("Project", back_populates="staff_members")
-    staff = relationship("Staff", back_populates="projects")
+    staff = relationship(
+        "Staff",
+        back_populates="projects",
+        foreign_keys=[staff_id],
+        uselist=False,
+    )
 
 
 class ProjectLike(Base):
     __tablename__ = "project_like"
 
-    id = Column(Integer, primary_key=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
-    project_id = Column(Integer, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(UUID, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", backref="project_likes")
     staff = relationship("Staff", backref="project_likes")
