@@ -8,10 +8,11 @@ from a8t_tools.db import sorting as sr
 
 from app.domain.common.schemas import APIModel
 from app.domain.storage.attachments.schemas import Attachment
+from app.domain.users.core.schemas import Staff, StaffDetails
 
 
 class Project(APIModel):
-    id: int
+    id: UUID
     name: str
     start_date: datetime
     end_date: datetime
@@ -33,7 +34,7 @@ class ProjectCreate(APIModel):
 
 
 class AddEmployees(APIModel):
-    project_id: int
+    project_id: UUID
     staff_id: UUID
 
 
@@ -45,14 +46,27 @@ class ProjectDetailsFull(Project):
     avatar_attachment: Attachment | None = None
 
 
+class ProjectStaffShort(APIModel):
+    id: UUID
+    staff_id: UUID
+    first_name: str | None = None
+    last_name: str | None = None
+    post: str | None = None
+    avatar_attachment_id: UUID | None = None
+
+
+class ProjectStaffDetailsShort(APIModel):
+    staff: Staff | None = None
+
+
 class Like(APIModel):
-    project_id: int | None = None
+    project_id: UUID | None = None
     news_id: int | None = None
     clip_id: int | None = None
 
 
 class LikeTheProject(APIModel):
-    project_id: int
+    project_id: UUID
     user_id: UUID | None = None
     staff_id: UUID | None = None
 
@@ -69,6 +83,14 @@ class ProjectSorts(enum.StrEnum):
     created_at = enum.auto()
 
 
+class ProjectStaffSorts(enum.StrEnum):
+    id = enum.auto()
+    first_name = enum.auto()
+    last_name: enum.auto()
+    project_id = enum.auto()
+    created_at = enum.auto()
+
+
 @dataclass
 class ProjectListRequestSchema:
     pagination: pg.PaginationCallable[ProjectDetailsFull] | None = None
@@ -76,5 +98,11 @@ class ProjectListRequestSchema:
 
 
 @dataclass
+class ProjectStaffListRequestSchema:
+    pagination: pg.PaginationCallable[StaffDetails] | None = None
+    sorting: sr.SortingData[ProjectStaffSorts] | None = None
+
+
+@dataclass
 class ProjectWhere:
-    id: int | None = None
+    id: UUID | None = None

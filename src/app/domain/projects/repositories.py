@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.domain.common import models
-from app.domain.common.schemas import IdContainerTables
+from app.domain.common.schemas import IdContainer
 from app.domain.projects import schemas
 
 
@@ -22,8 +22,8 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
         self.model = models.Project
         self.transaction = transaction
 
-    async def create_project(self, payload: schemas.ProjectCreate) -> IdContainerTables:
-        return IdContainerTables(id=await self._create(payload))
+    async def create_project(self, payload: schemas.ProjectCreate) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
 
     async def partial_update_project(self, project_id: UUID, payload: schemas.ProjectPartialUpdate) -> None:
         return await self._partial_update(project_id, payload)
@@ -66,13 +66,29 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
         return and_(*filters)
 
 
-class AddEmployeesRepository(CrudRepositoryMixin[models.ProjectStaff]):
+class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
+    load_options: list[ExecutableOption] = [
+        selectinload(models.ProjectStaff.staff),
+    ]
+
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.ProjectStaff
         self.transaction = transaction
 
-    async def create_add_employees_project(self, payload: schemas.AddEmployees) -> IdContainerTables:
-        return IdContainerTables(id=await self._create(payload))
+    async def create_add_staff_project(self, payload: schemas.AddEmployees) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
+
+    async def get_project_staff(
+            self,
+            pagination: PaginationCallable[schemas.ProjectStaffDetailsShort] | None = None,
+            sorting: SortingData[schemas.ProjectStaffSorts] | None = None,
+    ) -> Paginated[schemas.ProjectStaffDetailsShort]:
+        return await self._get_list(
+            schemas.StaffDetails,
+            pagination=pagination,
+            sorting=sorting,
+            options=self.load_options,
+        )
 
 
 class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
@@ -80,10 +96,9 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
         self.model = models.ProjectLike
         self.transaction = transaction
 
-    async def create_like_project(self, payload: schemas.LikeTheProject) -> IdContainerTables:
+    async def create_like_project(self, payload: schemas.LikeTheProject) -> IdContainer:
         async with self.transaction.use() as session:
             try:
-                # Проверяем, существует ли запись с таким сочетанием user_id/staff_id и project_id
                 like_query = select(models.ProjectLike).where(
                     (models.ProjectLike.user_id == payload.user_id) &
                     (models.ProjectLike.project_id == payload.project_id)
@@ -92,14 +107,12 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
                 existing_like = like_exists.scalar_one_or_none()
 
                 if existing_like:
-                    # Если лайк существует, удаляем его
                     delete_stmt = delete(models.ProjectLike).where(
                         (models.ProjectLike.user_id == payload.user_id) &
                         (models.ProjectLike.project_id == payload.project_id)
                     )
                     await session.execute(delete_stmt)
                 else:
-                    # Если лайка нет, добавляем новый
                     staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
                     staff_exists = await session.execute(staff_query)
 
