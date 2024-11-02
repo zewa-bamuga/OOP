@@ -120,6 +120,7 @@ async def get_project_by_id(
 )
 @wiring.inject
 async def get_project_staff_list(
+        project_id: UUID,
         query: ProjectStaffManagementListQuery = Depends(wiring.Provide[Container.project.staff_management_list_query]),
         pagination: pagination.PaginationCallable[schemas.ProjectStaffDetailsShort] = Depends(
             deps.get_skip_limit_pagination_dep(schemas.ProjectStaffDetailsShort)),
@@ -131,7 +132,8 @@ async def get_project_staff_list(
             )
         ),
 ) -> pagination.Paginated[schemas.ProjectStaffDetailsShort]:
-    return await query(schemas.ProjectStaffListRequestSchema(pagination=pagination, sorting=sorting))
+    return await query(
+        schemas.ProjectStaffListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
 
 
 @router.post(

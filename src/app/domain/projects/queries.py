@@ -21,7 +21,11 @@ class ProjectStaffListQuery:
 
     async def __call__(self, payload: schemas.ProjectStaffListRequestSchema) -> Paginated[
         schemas.ProjectStaffDetailsShort]:
-        return await self.project_staff_repository.get_project_staff(payload.pagination, payload.sorting)
+        return await self.project_staff_repository.get_project_staff(
+            project_id=payload.project_id,
+            pagination=payload.pagination,
+            sorting=payload.sorting
+        )
 
 
 class ProjectManagementListQuery:

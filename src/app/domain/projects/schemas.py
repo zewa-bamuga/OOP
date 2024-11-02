@@ -99,6 +99,7 @@ class ProjectListRequestSchema:
 
 @dataclass
 class ProjectStaffListRequestSchema:
+    project_id: UUID
     pagination: pg.PaginationCallable[StaffDetails] | None = None
     sorting: sr.SortingData[ProjectStaffSorts] | None = None
 
