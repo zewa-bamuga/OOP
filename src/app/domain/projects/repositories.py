@@ -80,13 +80,16 @@ class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
 
     async def get_project_staff(
             self,
+            project_id: UUID,
             pagination: PaginationCallable[schemas.ProjectStaffDetailsShort] | None = None,
             sorting: SortingData[schemas.ProjectStaffSorts] | None = None,
     ) -> Paginated[schemas.ProjectStaffDetailsShort]:
+        condition = self.model.project_id == project_id
         return await self._get_list(
-            schemas.StaffDetails,
+            schema=schemas.ProjectStaffDetailsShort,
             pagination=pagination,
             sorting=sorting,
+            condition=condition,
             options=self.load_options,
         )
 

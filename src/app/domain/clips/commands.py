@@ -68,17 +68,45 @@ class LikeTheClipCommand:
         if clip is None:
             raise HTTPException(status_code=404, detail="Clip not found")
 
-        like_exists = await self.clip_like_repository.check_like_exists(clip_id, user_id)
+        clip_likes_count = clip.likes + 1
 
-        if like_exists:
-            clip_likes_count = clip.likes - 1
-            await self.clip_like_repository.delete_like_clip(clip_id, user_id)
-        else:
-            clip_likes_count = clip.likes + 1
-            create_like_the_clip = schemas.LikeTheClip(
-                clip_id=clip_id,
-                user_id=user_id,
-            )
-            await self.clip_like_repository.create_like_clip(create_like_the_clip)
+        create_like_the_clip = schemas.LikeTheClip(
+            clip_id=clip_id,
+            user_id=user_id,
+        )
+        await self.clip_like_repository.create_like_clip(create_like_the_clip)
 
         await self.clip_repository.update_clip_likes(clip_id, clip_likes_count)
+
+
+class UnlikeTheClipCommand:
+    def __init__(
+            self,
+            clip_like_repository: LikeClipRepository,
+            clip_retrieve_by_id_query: ClipRetrieveQuery,
+            current_user_query: CurrentUserQuery,
+            clip_repository: ClipRepository
+    ) -> None:
+        self.clip_like_repository = clip_like_repository
+        self.clip_retrieve_by_id_query = clip_retrieve_by_id_query
+        self.current_user_query = current_user_query
+        self.clip_repository = clip_repository
+
+    async def __call__(self, payload: Like) -> None:
+        clip_id = payload.clip_id
+        current_user = await self.current_user_query()
+        user_id = current_user.id
+
+        clip = await self.clip_retrieve_by_id_query(clip_id)
+
+        if clip is None:
+            raise HTTPException(status_code=404, detail="Clip not found")
+
+        new_likes_count = clip.likes - 1
+
+        like_exists = await self.clip_like_repository.check_like_exists(clip_id, user_id)
+        if not like_exists:
+            raise HTTPException(status_code=404, detail="Like not found")
+
+        await self.clip_repository.update_clip_likes(clip_id, new_likes_count)
+        await self.clip_like_repository.delete_like_clip(clip_id, user_id)

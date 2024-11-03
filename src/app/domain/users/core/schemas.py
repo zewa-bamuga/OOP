@@ -95,12 +95,13 @@ class UserCreateFull(UserCreate):
 class UserPartialUpdate(APIModel):
     firstname: str | None = None
     email: EmailStr | None = None
+    description: str | None = None
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
     status: str | None = None
 
 
-class UserPartialUpdateFull(APIModel):
+class UserPartialUpdateFull(UserPartialUpdate):
     password_hash: str | None = None
 
 
