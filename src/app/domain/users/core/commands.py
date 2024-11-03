@@ -44,18 +44,13 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(self, user_repository: UserRepository, staff_repository: StaffRepository):
+    def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
-        self.staff_repository = staff_repository
 
     async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
         try:
             await self.user_repository.partial_update_user(user_id, payload)
             user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-
-            if not user:
-                await self.staff_repository.partial_update_staff(user_id, payload)
-                user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=user_id))
 
             if not user:
                 raise NotFoundError()

@@ -157,7 +157,6 @@ class UserContainer(containers.DeclarativeContainer):
     partial_update_command = providers.Factory(
         UserPartialUpdateCommand,
         user_repository=user_repository,
-        staff_repository=staff_repository,
     )
 
     token_ctx_var_object = providers.Object(token_ctx_var)
@@ -274,7 +273,6 @@ class UserContainer(containers.DeclarativeContainer):
 
     profile_partial_update_command = providers.Factory(
         UserProfilePartialUpdateCommand,
-        permission_service=permission_service,
         current_user_query=current_user_query,
         user_partial_update_command=partial_update_command,
     )
