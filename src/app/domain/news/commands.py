@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import EmailCode
 from app.domain.news.queries import NewsRetrieveQuery
-from app.domain.news.repositories import NewsRepository, LikeNewsRepository
-from app.domain.news.schemas import NewsCreate
+from app.domain.news.repositories import NewsRepository, LikeNewsRepository, ReminderNewsRepository
+from app.domain.news.schemas import NewsCreate, ReminderTheNews
 from app.domain.projects.schemas import Like
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.news import schemas
@@ -44,6 +44,39 @@ class NewsPartialUpdateCommand:
             raise
 
         return schemas.NewsDetailsFull.model_validate(user)
+
+
+class ReminderTheNewsCommand:
+    def __init__(
+            self,
+            news_retrieve_by_id_query: NewsRetrieveQuery,
+            current_user_query: CurrentUserQuery,
+            news_repository: NewsRepository,
+            reminder_news_repository: ReminderNewsRepository,
+    ) -> None:
+        self.news_retrieve_by_id_query = news_retrieve_by_id_query
+        self.current_user_query = current_user_query
+        self.news_repository = news_repository
+        self.reminder_news_repository = reminder_news_repository
+
+    async def __call__(self, payload: ReminderTheNews) -> None:
+        news_id = payload.news_id
+        current_user = await self.current_user_query()
+        user_id = current_user.id
+
+        news = await self.news_retrieve_by_id_query(news_id)
+
+        if news is None:
+            raise HTTPException(status_code=404, detail="News not found")
+
+        new_reminder_count = news.reminder + 1
+        create_reminder_the_news = schemas.ReminderCreate(
+            news_id=news_id,
+            user_id=user_id,
+        )
+        await self.reminder_news_repository.create_reminder(create_reminder_the_news)
+
+        await self.news_repository.update_news_reminder(news_id, new_reminder_count)
 
 
 class LikeTheNewsCommand:
