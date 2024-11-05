@@ -55,6 +55,7 @@ class NewsContainer(containers.DeclarativeContainer):
         current_user_query=user_container.current_user_query,
         news_repository=news_repository,
         reminder_news_repository=reminder_news_repository,
+        task_producer=user_container.task_producer,
     )
 
     like_the_news_command = providers.Factory(

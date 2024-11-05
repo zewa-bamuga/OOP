@@ -23,7 +23,7 @@ from app.domain.users.core.commands import (
     UserActivateCommand,
     UserCreateCommand,
     UserPartialUpdateCommand, UpdatePasswordRequestCommand,
-    UpdatePasswordConfirmCommand,
+    UpdatePasswordConfirmCommand, EmailSenderCommand,
 )
 from app.domain.users.core.queries import (
     UserListQuery,
@@ -124,6 +124,10 @@ class UserContainer(containers.DeclarativeContainer):
     activate_command = providers.Factory(
         UserActivateCommand,
         repository=user_repository,
+    )
+
+    email_sender_command = providers.Factory(
+        EmailSenderCommand,
     )
 
     generate_password = providers.Factory(
