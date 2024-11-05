@@ -1,4 +1,6 @@
+import datetime
 import smtplib
+from datetime import timedelta
 from email.mime.text import MIMEText
 from uuid import UUID
 
@@ -116,20 +118,23 @@ class ReminderTheNewsCommand:
         await self.news_repository.update_news_reminder(news_id, new_reminder_count)
 
         logger.info(f"Reminder created: {reminder_id_container.id}")
-        await self._enqueue_news_reminder(reminder_id_container)
 
-        user_email = current_user.email
-        news_name = news.name
-        news_description = news.description
+        # Вычисляем время для уведомления (24 часа до события)
+        notification_time = news.date - timedelta(days=1)
+
+        # Запланируем задачу напоминания на указанное время
+        await self._enqueue_news_reminder(reminder_id_container, notification_time)
+
+    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer,
+                                     notification_time: datetime.datetime) -> None:
         print("Сейчас _enqueue_news_reminder")
 
-    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer) -> None:
-        print("Сейчас _enqueue_news_reminder")
-
+        # Передаем время выполнения задачи
         await self.task_producer.fire_task(
             enums.TaskNames.reminder_news,
             queue=enums.TaskQueues.main_queue,
             reminder_id_container_dict=reminder_id_container.json_dict(),
+            execution_time=notification_time.isoformat()  # передаем время в формате ISO 8601
         )
 
 
