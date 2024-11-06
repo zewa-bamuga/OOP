@@ -46,10 +46,16 @@ async def reminder_news(
 
         # Логируем запланированное время отправки в вашем часовом поясе
         logger.info(f"Уведомление запланировано на отправку в {scheduled_time.isoformat()} (ваш часовой пояс)")
+        logger.info(f"Task ID: {reminder_id_container.id}")
+        logger.info(f"Task ID_dict: {reminder_id_container_dict}")
 
         if delay > 0:
             await asyncio.sleep(delay)  # Ждем до назначенного времени
 
     # Логируем фактическое время отправки в вашем часовом поясе
     logger.info(f"Отправка уведомления в {datetime.now(user_timezone).isoformat()} (ваш часовой пояс)")
+    logger.info(f"Task ID: {reminder_id_container.id}")
+
     await reminder_news()
+
+    # Логируем task_id

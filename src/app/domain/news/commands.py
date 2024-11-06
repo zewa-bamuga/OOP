@@ -130,12 +130,14 @@ class ReminderTheNewsCommand:
         print("Сейчас _enqueue_news_reminder")
 
         # Передаем время выполнения задачи
-        await self.task_producer.fire_task(
+        task_id = await self.task_producer.fire_task(
             enums.TaskNames.reminder_news,
             queue=enums.TaskQueues.main_queue,
             reminder_id_container_dict=reminder_id_container.json_dict(),
             execution_time=notification_time.isoformat()  # передаем время в формате ISO 8601
         )
+        print("В _enqueue_news_reminder task_id: ", task_id)
+        await self.reminder_news_repository.save_task_id(reminder_id_container.id, task_id)
 
 
 class LikeTheNewsCommand:
