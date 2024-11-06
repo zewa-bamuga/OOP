@@ -1,4 +1,7 @@
+from email.message import EmailMessage
+from email.mime.text import MIMEText
 from uuid import UUID
+import smtplib
 
 from a8t_tools.bus.producer import TaskProducer
 from a8t_tools.security.hashing import PasswordHashService
@@ -44,18 +47,13 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(self, user_repository: UserRepository, staff_repository: StaffRepository):
+    def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
-        self.staff_repository = staff_repository
 
     async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
         try:
             await self.user_repository.partial_update_user(user_id, payload)
             user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-
-            if not user:
-                await self.staff_repository.partial_update_staff(user_id, payload)
-                user = await self.staff_repository.get_employee_by_filter_or_none(schemas.UserWhere(id=user_id))
 
             if not user:
                 raise NotFoundError()
@@ -164,3 +162,42 @@ class UserActivateCommand:
 
     async def __call__(self, user_id: UUID) -> None:
         await self.repository.set_user_status(user_id, enums.UserStatuses.active)
+
+
+class EmailSenderCommand:
+    async def __call__(self) -> None:
+        print("Выполняется Отправка на почту")
+
+        email_address = "tikhonov.igor2028@yandex.ru"
+        email_password = "abqiulywjvibrefg"
+
+        msg = EmailMessage()
+        msg['Subject'] = "Напоминание о новости"
+        msg['From'] = email_address
+        msg['To'] = 'tikhonov.igor2028@yandex.ru'
+
+        html_content = f"""\
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #003366; background-color: #486DB5;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;">
+                <h2 style="color: #FFD700;">Сброс пароля</h2>
+                <p>Здравствуйте,</p>
+                <p>Подтверждение почты на платформе Отдела Образовательных Программ.</p>
+                <p>Код для подтверждения почты:</p>
+                <p style="font-size: 18px; font-weight: bold; color: #FFD700;"></p>
+                <p>Если вы не запрашивали подтверждения почты, проигнорируйте это письмо.</p>
+                <p>С уважением,<br>Ваш Отдел Образовательных Программ</p>
+                <p style="margin-top: 20px; color: #777; font-size: 12px;">Если у вас возникли какие-либо вопросы, пожалуйста, свяжитесь с нами.</p>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.set_content(
+            f"Здравствуйте,\n\nВы запросили сброс пароля на платформе Отдела Образовательных Программ.\n\nКод для сброса пароля:\n\nЕсли вы не запрашивали сброс пароля, проигнорируйте это письмо.\n\nС уважением,\nВаш Отдел Образовательных Программ"
+        )
+        msg.add_alternative(html_content, subtype='html')
+
+        with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as smtp:
+            smtp.login(email_address, email_password)
+            smtp.send_message(msg)

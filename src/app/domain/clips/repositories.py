@@ -82,31 +82,27 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
                 existing_like = like_exists.scalar_one_or_none()
 
                 if existing_like:
-                    delete_stmt = delete(models.ClipLike).where(
-                        (models.ClipLike.user_id == payload.user_id) &
-                        (models.ClipLike.clip_id == payload.clip_id)
+                    return
+
+                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                staff_exists = await session.execute(staff_query)
+
+                if staff_exists.first():
+                    stmt = insert(models.ClipLike).values(
+                        {
+                            "staff_id": payload.user_id,
+                            "clip_id": payload.clip_id,
+                        }
                     )
-                    await session.execute(delete_stmt)
                 else:
-                    staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
-                    staff_exists = await session.execute(staff_query)
+                    stmt = insert(models.ClipLike).values(
+                        {
+                            "user_id": payload.user_id,
+                            "clip_id": payload.clip_id,
+                        }
+                    )
 
-                    if staff_exists.first():
-                        stmt = insert(models.ClipLike).values(
-                            {
-                                "staff_id": payload.user_id,
-                                "clip_id": payload.clip_id,
-                            }
-                        )
-                    else:
-                        stmt = insert(models.ClipLike).values(
-                            {
-                                "user_id": payload.user_id,
-                                "clip_id": payload.clip_id,
-                            }
-                        )
-
-                    await session.execute(stmt)
+                await session.execute(stmt)
 
             except Exception as e:
                 print(f"Error creating like info: {e}")

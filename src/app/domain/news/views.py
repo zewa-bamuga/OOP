@@ -1,21 +1,22 @@
 from contextlib import asynccontextmanager
+from uuid import UUID
 
 from dependency_injector import wiring
 from fastapi import APIRouter, Depends, UploadFile, Header
 from fastapi.params import Form
 
+from a8t_tools.db import pagination, sorting
+from a8t_tools.security.tokens import override_user_token
+
 from app.api import deps
 from app.containers import Container
-from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand
+from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand, ReminderTheNewsCommand
 from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery
-from app.domain.news.schemas import NewsCreate
+from app.domain.news.schemas import NewsCreate, ReminderTheNews
 from app.domain.projects.schemas import Like
 from app.domain.news import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import NewsAttachmentCreateCommand
-
-from a8t_tools.db import pagination, sorting
-from a8t_tools.security.tokens import override_user_token
 
 router = APIRouter()
 
@@ -48,7 +49,7 @@ async def create_news(
 @wiring.inject
 async def create_news_attachment(
         attachment: UploadFile,
-        news_id: int = Form(...),
+        news_id: UUID = Form(...),
         token: str = Header(...),
         command: NewsAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.news_create_command]),
 ) -> AttachmentSchema.Attachment:
@@ -94,6 +95,21 @@ async def get_news_by_id(
 ):
     news = await query(news_id)
     return news
+
+
+@router.post(
+    "/reminder",
+    response_model=None
+)
+@wiring.inject
+async def reminder_the_news(
+        payload: ReminderTheNews,
+        token: str = Header(...),
+        command: ReminderTheNewsCommand = Depends(wiring.Provide[Container.news.reminder_the_news_command]),
+):
+    async with user_token(token):
+        news = await command(payload)
+        return news
 
 
 @router.post(

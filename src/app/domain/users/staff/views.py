@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from uuid import UUID
 
 from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring

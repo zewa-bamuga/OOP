@@ -25,14 +25,14 @@ class User(APIModel):
 
 class Staff(APIModel):
     id: UUID
-    firstname: str
-    lastname: str
+    firstname: str | None = None
+    lastname: str | None = None
     qualification: str | None = None
     post: str | None = None
-    email: EmailStr
+    email: EmailStr | None = None
     description: str | None = None
     link_to_vk: str | None = None
-    status: UserStatuses
+    status: UserStatuses | None = None
     avatar_attachment_id: UUID | None = None
     created_at: datetime
 
@@ -95,12 +95,13 @@ class UserCreateFull(UserCreate):
 class UserPartialUpdate(APIModel):
     firstname: str | None = None
     email: EmailStr | None = None
+    description: str | None = None
     avatar_attachment_id: UUID | None = None
     permissions: set[str] | None = None
     status: str | None = None
 
 
-class UserPartialUpdateFull(APIModel):
+class UserPartialUpdateFull(UserPartialUpdate):
     password_hash: str | None = None
 
 

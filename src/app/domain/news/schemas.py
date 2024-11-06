@@ -11,7 +11,7 @@ from app.domain.storage.attachments.schemas import Attachment
 
 
 class News(APIModel):
-    id: int
+    id: UUID
     name: str
     date: datetime
     description: str
@@ -45,9 +45,19 @@ class NewsSorts(enum.StrEnum):
 
 
 class LikeTheNews(APIModel):
-    news_id: int
+    news_id: UUID
     user_id: UUID | None = None
     staff_id: UUID | None = None
+
+
+class ReminderCreate(APIModel):
+    news_id: UUID
+    user_id: UUID | None = None
+    staff_id: UUID | None = None
+
+
+class ReminderTheNews(APIModel):
+    news_id: UUID
 
 
 @dataclass
@@ -58,4 +68,4 @@ class NewsListRequestSchema:
 
 @dataclass
 class NewsWhere:
-    id: int | None = None
+    id: UUID | None = None
