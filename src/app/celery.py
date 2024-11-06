@@ -3,6 +3,7 @@ from celery import Celery
 import app.domain
 from app.containers import Container
 
+
 def create_celery_app() -> Celery:
     container = Container()
     container.wire(packages=[app.domain])

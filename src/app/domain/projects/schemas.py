@@ -61,7 +61,7 @@ class ProjectStaffDetailsShort(APIModel):
 
 class Like(APIModel):
     project_id: UUID | None = None
-    news_id: int | None = None
+    news_id: UUID | None = None
     clip_id: int | None = None
 
 

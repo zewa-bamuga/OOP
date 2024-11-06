@@ -24,6 +24,7 @@ class UserStatuses(enum.StrEnum):
 
 class TaskNames(enum.StrEnum):
     activate_user = enum.auto()
+    reminder_news = enum.auto()
 
 
 class TaskQueues(enum.StrEnum):

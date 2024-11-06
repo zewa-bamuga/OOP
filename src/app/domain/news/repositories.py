@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.domain.common import models
-from app.domain.common.schemas import IdContainerTables
+from app.domain.common.schemas import IdContainerTables, IdContainer
 from app.domain.news import schemas
 
 
@@ -22,8 +22,8 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
         self.model = models.News
         self.transaction = transaction
 
-    async def create_news(self, payload: schemas.NewsCreate) -> IdContainerTables:
-        return IdContainerTables(id=await self._create(payload))
+    async def create_news(self, payload: schemas.NewsCreate) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
 
     async def get_news(
             self,
@@ -37,12 +37,22 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
             options=self.load_options,
         )
 
-    async def update_news_likes(self, news_id: int, new_likes_count: int) -> None:
+    async def update_news_likes(self, news_id: UUID, new_likes_count: int) -> None:
         async with self.transaction.use() as session:
             stmt = (
                 update(models.News)
                 .where(models.News.id == news_id)
                 .values(likes=new_likes_count)
+            )
+            await session.execute(stmt)
+            await session.commit()
+
+    async def update_news_reminder(self, news_id: UUID, new_reminder_count: int) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                update(models.News)
+                .where(models.News.id == news_id)
+                .values(likes=new_reminder_count)
             )
             await session.execute(stmt)
             await session.commit()
@@ -66,12 +76,21 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
         return and_(*filters)
 
 
+class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.NewsReminder
+        self.transaction = transaction
+
+    async def create_reminder(self, payload: schemas.ReminderCreate) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
+
+
 class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.NewsLike
         self.transaction = transaction
 
-    async def create_like_news(self, payload: schemas.LikeTheNews) -> IdContainerTables:
+    async def create_like_news(self, payload: schemas.LikeTheNews) -> IdContainer:
         async with self.transaction.use() as session:
             try:
                 like_query = select(models.NewsLike).where(
