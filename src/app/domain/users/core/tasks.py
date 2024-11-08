@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 
+from celery import current_task
 from dependency_injector import wiring
 
 from app.containers import Container
@@ -22,6 +23,8 @@ async def activate_user(
         activate_user: UserActivateCommand = wiring.Provide[Container.user.activate_command],
 ) -> None:
     user_id_container = IdContainer.model_validate(user_id_container_dict)
+    task_id = current_task.request.id
+    logger.info(f"Task ID: {task_id}")
     await activate_user(user_id_container.id)
 
 
@@ -37,6 +40,10 @@ async def reminder_news(
 ) -> None:
     reminder_id_container = IdContainer.model_validate(reminder_id_container_dict)
 
+    # Получаем идентификатор текущей задачи
+    task_id = current_task.request.id
+    logger.info(f"Task ID: {task_id}")
+
     if execution_time:
         # Преобразуем `execution_time` в нужный часовой пояс
         scheduled_time = datetime.fromisoformat(execution_time).astimezone(user_timezone)
@@ -46,7 +53,7 @@ async def reminder_news(
 
         # Логируем запланированное время отправки в вашем часовом поясе
         logger.info(f"Уведомление запланировано на отправку в {scheduled_time.isoformat()} (ваш часовой пояс)")
-        logger.info(f"Task ID: {reminder_id_container.id}")
+        logger.info(f"Task ID: {task_id}")
         logger.info(f"Task ID_dict: {reminder_id_container_dict}")
 
         if delay > 0:
@@ -54,7 +61,7 @@ async def reminder_news(
 
     # Логируем фактическое время отправки в вашем часовом поясе
     logger.info(f"Отправка уведомления в {datetime.now(user_timezone).isoformat()} (ваш часовой пояс)")
-    logger.info(f"Task ID: {reminder_id_container.id}")
+    logger.info(f"Task ID: {task_id}")
 
     await reminder_news()
 

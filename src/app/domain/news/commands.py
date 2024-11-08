@@ -125,8 +125,7 @@ class ReminderTheNewsCommand:
         # Запланируем задачу напоминания на указанное время
         await self._enqueue_news_reminder(reminder_id_container, notification_time)
 
-    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer,
-                                     notification_time: datetime.datetime) -> None:
+    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer, notification_time: datetime) -> None:
         print("Сейчас _enqueue_news_reminder")
 
         # Передаем время выполнения задачи
@@ -134,8 +133,12 @@ class ReminderTheNewsCommand:
             enums.TaskNames.reminder_news,
             queue=enums.TaskQueues.main_queue,
             reminder_id_container_dict=reminder_id_container.json_dict(),
-            execution_time=notification_time.isoformat()  # передаем время в формате ISO 8601
+            execution_time=notification_time.isoformat()
         )
+
+        # Логируем task_id
+        logger.info(f"Task ID создан и передан: {task_id}")
+
         print("В _enqueue_news_reminder task_id: ", task_id)
         await self.reminder_news_repository.save_task_id(reminder_id_container.id, task_id)
 
