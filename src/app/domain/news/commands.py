@@ -117,24 +117,16 @@ class ReminderTheNewsCommand:
 
         await self.news_repository.update_news_reminder(news_id, new_reminder_count)
 
-        logger.info(f"Reminder created: {reminder_id_container.id}")
-
-        # Вычисляем время для уведомления (24 часа до события)
         notification_time = news.date - timedelta(days=1)
 
-        # Запланируем задачу напоминания на указанное время
         await self._enqueue_news_reminder(reminder_id_container, notification_time)
 
-    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer,
-                                     notification_time: datetime.datetime) -> None:
-        print("Сейчас _enqueue_news_reminder")
-
-        # Передаем время выполнения задачи
+    async def _enqueue_news_reminder(self, reminder_id_container: IdContainer, notification_time: datetime) -> None:
         await self.task_producer.fire_task(
             enums.TaskNames.reminder_news,
             queue=enums.TaskQueues.main_queue,
             reminder_id_container_dict=reminder_id_container.json_dict(),
-            execution_time=notification_time.isoformat()  # передаем время в формате ISO 8601
+            execution_time=notification_time.isoformat()
         )
 
 

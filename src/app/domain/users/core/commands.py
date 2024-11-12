@@ -165,9 +165,7 @@ class UserActivateCommand:
 
 
 class EmailSenderCommand:
-    async def __call__(self) -> None:
-        print("Выполняется Отправка на почту")
-
+    async def __call__(self, task_id: UUID) -> None:
         email_address = "tikhonov.igor2028@yandex.ru"
         email_password = "abqiulywjvibrefg"
 

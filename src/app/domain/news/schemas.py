@@ -54,6 +54,11 @@ class ReminderCreate(APIModel):
     news_id: UUID
     user_id: UUID | None = None
     staff_id: UUID | None = None
+    task_id: str | None = None
+
+
+class TaskIdCreate(APIModel):
+    task_id: str | None = None
 
 
 class ReminderTheNews(APIModel):

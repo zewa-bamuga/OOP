@@ -84,6 +84,10 @@ class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
     async def create_reminder(self, payload: schemas.ReminderCreate) -> IdContainer:
         return IdContainer(id=await self._create(payload))
 
+    async def create_task_id(self, news_id: UUID, payload: schemas.TaskIdCreate) -> None:
+        print("Проискходит запись task_id в таблицу")
+        return await self._partial_update(news_id, payload)
+
 
 class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
     def __init__(self, transaction: AsyncDbTransaction):
