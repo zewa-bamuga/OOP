@@ -224,6 +224,7 @@ class NewsReminder(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
     news_id = Column(UUID(as_uuid=True), ForeignKey("news.id", ondelete="CASCADE"), nullable=False)
+    task_id: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
 
     user = relationship("User", backref="news_reminders")
     staff = relationship("Staff", backref="news_reminders")
