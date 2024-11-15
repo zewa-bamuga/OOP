@@ -4,8 +4,9 @@ from a8t_tools.db.transactions import AsyncDbTransaction
 
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
     ProjectPartialUpdateCommand, AddEmployeesCommand
-from app.domain.projects.queries import ProjectManagementListQuery, ProjectListQuery, ProjectRetrieveQuery
-from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, AddEmployeesRepository
+from app.domain.projects.queries import ProjectManagementListQuery, ProjectListQuery, ProjectRetrieveQuery, \
+    ProjectStaffManagementListQuery, ProjectStaffListQuery
+from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, ProjectStaffRepository
 from app.domain.users.containers import UserContainer
 
 
@@ -14,7 +15,7 @@ class ProjectContainer(containers.DeclarativeContainer):
 
     project_repository = providers.Factory(ProjectRepository, transaction=transaction)
     project_like_repository = providers.Factory(LikeTheProjectRepository, transaction=transaction)
-    add_employees_repository = providers.Factory(AddEmployeesRepository, transaction=transaction)
+    project_staff_repository = providers.Factory(ProjectStaffRepository, transaction=transaction)
 
     user_container = providers.Container(UserContainer)
 
@@ -25,7 +26,7 @@ class ProjectContainer(containers.DeclarativeContainer):
 
     create_add_employees_command = providers.Factory(
         AddEmployeesCommand,
-        add_employees_project_repository=add_employees_repository,
+        project_staff_repository=project_staff_repository,
     )
 
     project_retrieve_by_id_query = providers.Factory(
@@ -64,7 +65,17 @@ class ProjectContainer(containers.DeclarativeContainer):
         project_repository=project_repository,
     )
 
+    project_staff_list_query = providers.Factory(
+        ProjectStaffListQuery,
+        project_staff_repository=project_staff_repository,
+    )
+
     management_list_query = providers.Factory(
         ProjectManagementListQuery,
         query=project_list_query,
+    )
+
+    staff_management_list_query = providers.Factory(
+        ProjectStaffManagementListQuery,
+        query=project_staff_list_query,
     )

@@ -94,7 +94,6 @@ async def create_staff(
                 permissions={BasePermissions.employee},
             ),
         )
-        await container.user.first_registration(email, generate_password)
 
     except DatabaseError as err:
         logger.warning(f"Employee creation error: {err}")

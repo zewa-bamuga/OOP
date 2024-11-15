@@ -3,12 +3,11 @@ from contextvars import ContextVar
 
 from a8t_tools.security import tokens
 
-import app
 from app.domain.common import enums
 from app.domain.common.exceptions import AuthError
 from app.domain.users.auth import schemas
 from app.domain.users.core.queries import UserRetrieveQuery
-from app.domain.users.core.schemas import StaffDetails
+from app.domain.users.core.schemas import UserDetails
 
 
 class CurrentUserTokenQuery:
@@ -62,10 +61,10 @@ class CurrentUserQuery:
         self.token_query = token_query
         self.user_query = user_query
 
-    async def __call__(self) -> StaffDetails:
+    async def __call__(self) -> UserDetails:
         token_payload = await self.token_query()
         if token_payload:
             user = await self.user_query(token_payload.sub)
 
-            return StaffDetails.model_validate(user)
+            return UserDetails.model_validate(user)
         raise AuthError(code=enums.AuthErrorCodes.invalid_token)

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a59f8ac6199a
+Revision ID: ba8589f8d60c
 Revises: 
-Create Date: 2024-09-02 07:20:13.611390
+Create Date: 2024-11-12 11:31:29.574656
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'a59f8ac6199a'
+revision: str = 'ba8589f8d60c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -52,21 +52,21 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_clip_clip_attachment_id'), 'clip', ['clip_attachment_id'], unique=False)
     op.create_table('news',
-    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('likes', sa.Integer(), nullable=False),
     sa.Column('reminder', sa.Integer(), nullable=False),
     sa.Column('avatar_attachment_id', sa.UUID(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['avatar_attachment_id'], ['attachment.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_news_avatar_attachment_id'), 'news', ['avatar_attachment_id'], unique=False)
+    op.create_index(op.f('ix_news_id'), 'news', ['id'], unique=False)
     op.create_table('project',
-    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('start_date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('end_date', sa.DateTime(timezone=True), nullable=False),
@@ -75,12 +75,14 @@ def upgrade() -> None:
     sa.Column('lessons', sa.Integer(), nullable=True),
     sa.Column('likes', sa.Integer(), nullable=False),
     sa.Column('avatar_attachment_id', sa.UUID(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['avatar_attachment_id'], ['attachment.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_project_avatar_attachment_id'), 'project', ['avatar_attachment_id'], unique=False)
+    op.create_index(op.f('ix_project_id'), 'project', ['id'], unique=False)
     op.create_table('staff',
     sa.Column('firstname', sa.String(), nullable=True),
     sa.Column('lastname', sa.String(), nullable=True),
@@ -133,10 +135,10 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('news_like',
-    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('staff_id', sa.UUID(), nullable=True),
-    sa.Column('news_id', sa.Integer(), nullable=False),
+    sa.Column('news_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['news_id'], ['news.id'], ondelete='CASCADE'),
@@ -144,6 +146,21 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_news_like_id'), 'news_like', ['id'], unique=False)
+    op.create_table('news_reminder',
+    sa.Column('user_id', sa.UUID(), nullable=True),
+    sa.Column('staff_id', sa.UUID(), nullable=True),
+    sa.Column('news_id', sa.UUID(), nullable=False),
+    sa.Column('task_id', sa.String(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['news_id'], ['news.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['staff_id'], ['staff.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_news_reminder_id'), 'news_reminder', ['id'], unique=False)
     op.create_table('password_reset_code',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
@@ -158,10 +175,10 @@ def upgrade() -> None:
     op.create_index(op.f('ix_password_reset_code_staff_id'), 'password_reset_code', ['staff_id'], unique=False)
     op.create_index(op.f('ix_password_reset_code_user_id'), 'password_reset_code', ['user_id'], unique=False)
     op.create_table('project_like',
-    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('staff_id', sa.UUID(), nullable=True),
-    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('project_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ondelete='CASCADE'),
@@ -169,16 +186,18 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_project_like_id'), 'project_like', ['id'], unique=False)
     op.create_table('project_staff',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('project_id', sa.UUID(), nullable=False),
     sa.Column('staff_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['staff_id'], ['staff.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_project_staff_id'), 'project_staff', ['id'], unique=False)
     op.create_table('tokens',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
@@ -200,11 +219,16 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_tokens_user_id'), table_name='tokens')
     op.drop_index(op.f('ix_tokens_staff_id'), table_name='tokens')
     op.drop_table('tokens')
+    op.drop_index(op.f('ix_project_staff_id'), table_name='project_staff')
     op.drop_table('project_staff')
+    op.drop_index(op.f('ix_project_like_id'), table_name='project_like')
     op.drop_table('project_like')
     op.drop_index(op.f('ix_password_reset_code_user_id'), table_name='password_reset_code')
     op.drop_index(op.f('ix_password_reset_code_staff_id'), table_name='password_reset_code')
     op.drop_table('password_reset_code')
+    op.drop_index(op.f('ix_news_reminder_id'), table_name='news_reminder')
+    op.drop_table('news_reminder')
+    op.drop_index(op.f('ix_news_like_id'), table_name='news_like')
     op.drop_table('news_like')
     op.drop_table('clip_like')
     op.drop_index(op.f('ix_user_id'), table_name='user')
@@ -213,8 +237,10 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_staff_id'), table_name='staff')
     op.drop_index(op.f('ix_staff_avatar_attachment_id'), table_name='staff')
     op.drop_table('staff')
+    op.drop_index(op.f('ix_project_id'), table_name='project')
     op.drop_index(op.f('ix_project_avatar_attachment_id'), table_name='project')
     op.drop_table('project')
+    op.drop_index(op.f('ix_news_id'), table_name='news')
     op.drop_index(op.f('ix_news_avatar_attachment_id'), table_name='news')
     op.drop_table('news')
     op.drop_index(op.f('ix_clip_clip_attachment_id'), table_name='clip')

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from uuid import UUID
 
 from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring
@@ -7,11 +8,13 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
-from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery
+from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery, \
+    ProjectStaffManagementListQuery
 from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
     AddEmployeesCommand
 from app.domain.projects import schemas
+from app.domain.users.core import schemas as schemas_staff
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand
 
@@ -63,7 +66,7 @@ async def add_employees(
 @wiring.inject
 async def create_project_attachment(
         attachment: UploadFile,
-        project_id: int = Form(...),
+        project_id: UUID = Form(...),
         token: str = Header(...),
         command: ProjectAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.project_create_command]),
 ) -> AttachmentSchema.Attachment:
@@ -104,11 +107,33 @@ async def get_projects_list(
 )
 @wiring.inject
 async def get_project_by_id(
-        project_id: int,
+        project_id: UUID,
         query: ProjectRetrieveQuery = Depends(wiring.Provide[Container.project.project_retrieve_by_id_query]),
 ):
     project = await query(project_id)
     return project
+
+
+@router.get(
+    "/get/staff",
+    response_model=pagination.CountPaginationResults[schemas.ProjectStaffDetailsShort],
+)
+@wiring.inject
+async def get_project_staff_list(
+        project_id: UUID,
+        query: ProjectStaffManagementListQuery = Depends(wiring.Provide[Container.project.staff_management_list_query]),
+        pagination: pagination.PaginationCallable[schemas.ProjectStaffDetailsShort] = Depends(
+            deps.get_skip_limit_pagination_dep(schemas.ProjectStaffDetailsShort)),
+        sorting: sorting.SortingData[schemas.ProjectStaffSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ProjectStaffSorts,
+                schemas.ProjectStaffSorts.project_id,
+                sorting.SortOrders.desc,
+            )
+        ),
+) -> pagination.Paginated[schemas.ProjectStaffDetailsShort]:
+    return await query(
+        schemas.ProjectStaffListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
 
 
 @router.post(

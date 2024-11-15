@@ -6,7 +6,7 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
-from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand
+from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand, UnlikeTheClipCommand
 from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery
 from app.domain.clips.schemas import ClipCreate
 from app.domain.projects.schemas import Like
@@ -96,7 +96,6 @@ async def get_clip_by_id(
     return clip
 
 
-# Если один пользователь сначала отправляет лайк на фото, а потом отправляет опять, то лайк убирается
 @router.post(
     "/like",
     response_model=None
@@ -110,3 +109,18 @@ async def like_the_clip(
     async with user_token(token):
         clip = await command(payload)
         return clip
+
+
+@router.delete(
+    "/unlike",
+    response_model=None
+)
+@wiring.inject
+async def unlike_the_clip(
+        payload: Like,
+        token: str = Header(...),
+        command: UnlikeTheClipCommand = Depends(wiring.Provide[Container.clip.unlike_the_clip_command]),
+):
+    async with user_token(token):
+        await command(payload)
+        return {"status": "success"}

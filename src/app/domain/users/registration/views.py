@@ -6,7 +6,6 @@ from app.containers import Container
 from app.domain.users.core.schemas import UserDetails, UserCredentialsRegist, EmailForCode, VerificationCode
 from app.domain.users.registration.commands import UserRegisterCommand, UserEmailVerificationRequestCommand, \
     UserEmailVerificationConfirmCommand
-from app.domain.users.registration.hi import send_hello
 
 router = APIRouter()
 
@@ -21,8 +20,7 @@ async def email_verification_code_request(
         command: UserEmailVerificationRequestCommand = Depends(
             wiring.Provide[Container.user.email_verification_request_command]),
 ):
-    user_details = await command(payload)
-    return user_details
+    return await command(payload)
 
 
 @router.post(
@@ -52,6 +50,4 @@ async def register(
         payload: UserCredentialsRegist,
         command: UserRegisterCommand = Depends(wiring.Provide[Container.user.register_command]),
 ) -> UserDetails:
-    user_details = await command(payload)
-    await send_hello(user_details)
-    return user_details
+    return await command(payload)

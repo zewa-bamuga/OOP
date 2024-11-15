@@ -9,6 +9,7 @@ import app.domain.users.staff.views
 import app.domain.projects.views
 import app.domain.news.views
 import app.domain.clips.views
+import app.domain.directions.views
 
 from app.api import schemas
 
@@ -43,6 +44,13 @@ projects.include_router(
     app.domain.projects.views.router,
     prefix="/v1",
     tags=["Projects"],
+)
+
+directions = APIRouter(prefix="/directions")
+directions.include_router(
+    app.domain.directions.views.router,
+    prefix="/v1",
+    tags=["Directions"],
 )
 
 news = APIRouter(prefix="/news")
@@ -87,5 +95,6 @@ router.include_router(news)
 router.include_router(clips)
 router.include_router(staff)
 router.include_router(profile)
+router.include_router(directions)
 router.include_router(management)
 router.include_router(storage_router)
