@@ -1,5 +1,4 @@
 from email.message import EmailMessage
-from email.mime.text import MIMEText
 from uuid import UUID
 import smtplib
 
@@ -11,11 +10,11 @@ from app.domain.common import enums
 from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import PasswordResetCode
 from app.domain.common.schemas import IdContainer
+from app.domain.notifications.commands import EmailSender
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
 from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
 from app.domain.users.core.schemas import EmailForCode
-from app.domain.users.registration.hi import send_password_reset_email
 
 
 class UpdatePasswordRequestCommand:
@@ -23,9 +22,11 @@ class UpdatePasswordRequestCommand:
             self,
             user_retrieve_by_email_query: UserRetrieveByEmailQuery,
             repository: UpdatePasswordRepository,
+            email_notification: EmailSender,
     ):
         self.user_retrieve_by_email_query = user_retrieve_by_email_query
         self.repository = repository
+        self.email_notification = email_notification
 
     async def __call__(self, payload: schemas.EmailForCode) -> EmailForCode:
         email = payload.email
@@ -41,7 +42,7 @@ class UpdatePasswordRequestCommand:
 
         await self.repository.delete_code(user_id)
         await self.repository.create_update_password(password_reset_code)
-        await send_password_reset_email(email, code)
+        await self.email_notification.send_password_reset_email(email, code)
 
         return EmailForCode(email=email)
 
@@ -164,6 +165,7 @@ class UserActivateCommand:
         await self.repository.set_user_status(user_id, enums.UserStatuses.active)
 
 
+# Временно, я сейчас сделал класс для отправок писем. Эта часть на время, пока работаю с напоминаниями и тасками
 class EmailSenderCommand:
     async def __call__(self, task_id: UUID) -> None:
         email_address = "tikhonov.igor2028@yandex.ru"

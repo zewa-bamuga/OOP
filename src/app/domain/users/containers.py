@@ -2,6 +2,7 @@ from a8t_tools.bus.producer import TaskProducer
 from dependency_injector import containers, providers
 from passlib.context import CryptContext
 
+from app.domain.notifications.commands import EmailSender
 from app.domain.users.auth.commands import (
     TokenCreateCommand,
     TokenRefreshCommand,
@@ -13,6 +14,7 @@ from app.domain.users.auth.queries import (
     CurrentUserTokenQuery,
     TokenPayloadQuery,
 )
+from app.domain.users.core.temporarily import generate_password
 from app.domain.users.management.commands import UserManagementCreateCommand, UserManagementPartialUpdateCommand
 from app.domain.users.management.queries import (
     UserManagementListQuery,
@@ -30,7 +32,6 @@ from app.domain.users.core.queries import (
     UserRetrieveByUsernameQuery,
     UserRetrieveQuery, UserRetrieveByEmailQuery, UserRetrieveByCodeQuery,
 )
-from app.domain.users.registration.hi import Generate_Password, First_Registration
 from app.domain.users.core.repositories import UserRepository, \
     UpdatePasswordRepository, StaffRepository, EmailRpository
 from app.domain.users.permissions.queries import UserPermissionListQuery
@@ -60,6 +61,8 @@ class UserContainer(containers.DeclarativeContainer):
     access_expiration_time = providers.Dependency(instance_of=int)
 
     refresh_expiration_time = providers.Dependency(instance_of=int)
+
+    email_notification = providers.Factory(EmailSender)
 
     user_repository = providers.Factory(
         UserRepository,
@@ -131,11 +134,7 @@ class UserContainer(containers.DeclarativeContainer):
     )
 
     generate_password = providers.Factory(
-        Generate_Password,
-    )
-
-    first_registration = providers.Factory(
-        First_Registration,
+        generate_password,
     )
 
     password_hash_service = providers.Factory(
@@ -179,11 +178,13 @@ class UserContainer(containers.DeclarativeContainer):
         UserRegisterCommand,
         create_command=create_command,
         password_hash_service=password_hash_service,
+        email_notification=email_notification,
     )
 
     email_verification_request_command = providers.Factory(
         UserEmailVerificationRequestCommand,
         repository=repository_email_verification,
+        email_notification=email_notification,
     )
 
     email_verification_confirm_command = providers.Factory(
@@ -195,6 +196,7 @@ class UserContainer(containers.DeclarativeContainer):
         UpdatePasswordRequestCommand,
         user_retrieve_by_email_query=retrieve_by_email_query,
         repository=repository_update_password,
+        email_notification=email_notification,
     )
 
     get_userID_by_code = providers.Factory(

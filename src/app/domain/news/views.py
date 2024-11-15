@@ -121,7 +121,8 @@ async def reminder_the_news(
 async def delete_reminder_the_news(
         payload: ReminderTheNews,
         token: str = Header(...),
-        command: DeleteReminderTheNewsCommand = Depends(wiring.Provide[Container.news.delete_reminder_the_news_command]),
+        command: DeleteReminderTheNewsCommand = Depends(
+            wiring.Provide[Container.news.delete_reminder_the_news_command]),
 ):
     async with user_token(token):
         news = await command(payload)

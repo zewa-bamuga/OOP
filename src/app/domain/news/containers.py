@@ -17,6 +17,8 @@ class NewsContainer(containers.DeclarativeContainer):
     news_like_repository = providers.Factory(LikeNewsRepository, transaction=transaction)
     reminder_news_repository = providers.Factory(ReminderNewsRepository, transaction=transaction)
 
+    active_tasks = {}
+
     user_container = providers.Container(UserContainer)
 
     create_command = providers.Factory(
@@ -71,6 +73,7 @@ class NewsContainer(containers.DeclarativeContainer):
         news_repository=news_repository,
         reminder_news_repository=reminder_news_repository,
         task_producer=user_container.task_producer,
+        active_tasks=active_tasks,
     )
 
     like_the_news_command = providers.Factory(
