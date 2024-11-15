@@ -14,7 +14,6 @@ from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
     AddEmployeesCommand
 from app.domain.projects import schemas
-from app.domain.users.core import schemas as schemas_staff
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand
 

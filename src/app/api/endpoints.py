@@ -10,6 +10,7 @@ import app.domain.projects.views
 import app.domain.news.views
 import app.domain.clips.views
 import app.domain.directions.views
+import app.domain.vk.views
 
 from app.api import schemas
 
@@ -67,6 +68,13 @@ clips.include_router(
     tags=["Clips"],
 )
 
+vk = APIRouter(prefix="/vk")
+vk.include_router(
+    app.domain.vk.views.router,
+    prefix="/v1",
+    tags=["VK"]
+)
+
 management = APIRouter(prefix="/management")
 management.include_router(
     app.domain.users.management.views.router,
@@ -98,3 +106,4 @@ router.include_router(profile)
 router.include_router(directions)
 router.include_router(management)
 router.include_router(storage_router)
+router.include_router(vk)

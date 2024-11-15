@@ -40,9 +40,8 @@ class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
             email_exists = result.first()
 
             if email_exists:
-                # Извлекаем email из найденной записи
-                email = email_exists[0].email  # Предполагаем, что email хранится в первой колонке
-                return email  # Возвращаем email, ассоциированный с кодом
+                email = email_exists[0].email
+                return email
 
             raise ValueError(f"Code {code} not found.")
 
