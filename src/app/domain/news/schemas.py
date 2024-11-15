@@ -57,12 +57,26 @@ class ReminderCreate(APIModel):
     task_id: str | None = None
 
 
+class ReminderDetailsFull(APIModel):
+    id: UUID
+    news_id: UUID | None = None
+    user_id: UUID | None = None
+    task_id: str | None = None
+    created_at: datetime
+
+
 class TaskIdCreate(APIModel):
     task_id: str | None = None
 
 
 class ReminderTheNews(APIModel):
     news_id: UUID
+
+
+@dataclass
+class TaskIdNewsWhere:
+    news_id: UUID | None = None
+    user_id: UUID | None = None
 
 
 @dataclass

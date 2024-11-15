@@ -1,20 +1,22 @@
 from app.domain.common.models import EmailCode
+from app.domain.notifications.commands import EmailSender
 from app.domain.users.core.commands import UserCreateCommand
-from app.domain.users.core.repositories import EmailRpository
+from app.domain.users.core.repositories import EmailRpository, UserRepository
 from app.domain.users.core.schemas import UserCreate, UserDetails, UserCredentialsRegist, EmailForCode, VerificationCode
 from a8t_tools.security.hashing import PasswordHashService
 from app.domain.users.core import schemas
 
 from app.domain.users.permissions.schemas import BasePermissions
-from app.domain.users.registration.hi import send_user_email_verification
 
 
 class UserEmailVerificationRequestCommand:
     def __init__(
             self,
             repository: EmailRpository,
+            email_notification: EmailSender,
     ) -> None:
         self.repository = repository
+        self.email_notification = email_notification
 
     async def __call__(self, payload: EmailForCode) -> None:
         email = payload.email
@@ -27,20 +29,27 @@ class UserEmailVerificationRequestCommand:
 
         await self.repository.email_deletion(email)
         await self.repository.create_code(create_verification_code)
-        await send_user_email_verification(email, code)
+        await self.email_notification.send_verification_email(email, code)
 
 
 class UserEmailVerificationConfirmCommand:
     def __init__(
             self,
-            repository: EmailRpository,
+            email_repository: EmailRpository,
+
     ) -> None:
-        self.repository = repository
+        self.email_repository = email_repository
 
     async def __call__(self, payload: VerificationCode) -> None:
         code = payload.code
+        email = payload.email
 
-        await self.repository.code_deletion(code)
+        email_confirm = await self.email_repository.code_deletion(code)
+
+        if email == email_confirm:
+            return True
+        else:
+            return False
 
 
 class UserRegisterCommand:
@@ -48,12 +57,14 @@ class UserRegisterCommand:
             self,
             create_command: UserCreateCommand,
             password_hash_service: PasswordHashService,
+            email_notification: EmailSender,
     ) -> None:
         self.create_command = create_command
         self.password_hash_service = password_hash_service
+        self.email_notification = email_notification
 
     async def __call__(self, payload: UserCredentialsRegist) -> UserDetails:
-        return await self.create_command(
+        user_create = await self.create_command(
             UserCreate(
                 firstname=payload.firstname,
                 lastname=payload.lastname,
@@ -63,3 +74,6 @@ class UserRegisterCommand:
                 permissions={BasePermissions.user},
             )
         )
+
+        await self.email_notification.send_first_registration(user_create.email)
+        return user_create

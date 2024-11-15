@@ -32,21 +32,18 @@ class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
                 stmt = sa.delete(models.EmailCode).where(models.EmailCode.email == email)
                 await session.execute(stmt)
                 await session.commit()
-            # Не выполняем ничего, если запись не найдена
 
-    async def code_deletion(self, code: int) -> bool:
+    async def code_deletion(self, code: int) -> str:
         async with self.transaction.use() as session:
             check_query = select(models.EmailCode).where(models.EmailCode.code == code)
             result = await session.execute(check_query)
             email_exists = result.first()
 
             if email_exists:
-                stmt = sa.delete(models.EmailCode).where(models.EmailCode.code == code)
-                await session.execute(stmt)
-                await session.commit()
-                return True
+                # Извлекаем email из найденной записи
+                email = email_exists[0].email  # Предполагаем, что email хранится в первой колонке
+                return email  # Возвращаем email, ассоциированный с кодом
 
-            # Если код не найден, бросаем стандартное исключение
             raise ValueError(f"Code {code} not found.")
 
 

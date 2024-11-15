@@ -51,8 +51,6 @@ class EmailRetrieveQuery:
         self.repository = repository
 
     async def __call__(self, user_email: str) -> schemas.UserInternal:
-        print("вошло в поиск по email:", user_email)
-
         result = await self.repository.get_user_by_filter_by_email_or_none((schemas.UserWhere(email=user_email)))
         if not result:
             raise NotFoundError()
@@ -99,7 +97,5 @@ class UserRetrieveByCodeQuery:
         if password_reset_code_internal is None:
             password_reset_code_internal = await self.staff_repository.get_password_reset_code_by_code_or_none(
                 schemas.PasswordResetCodeWhere(code=code))
-
-        print("выполняется после password_reset_code_internal")
 
         return password_reset_code_internal

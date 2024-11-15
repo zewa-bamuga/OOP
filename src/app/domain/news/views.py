@@ -10,7 +10,8 @@ from a8t_tools.security.tokens import override_user_token
 
 from app.api import deps
 from app.containers import Container
-from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand, ReminderTheNewsCommand
+from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand, \
+    ReminderTheNewsCommand, DeleteReminderTheNewsCommand
 from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery
 from app.domain.news.schemas import NewsCreate, ReminderTheNews
 from app.domain.projects.schemas import Like
@@ -106,6 +107,22 @@ async def reminder_the_news(
         payload: ReminderTheNews,
         token: str = Header(...),
         command: ReminderTheNewsCommand = Depends(wiring.Provide[Container.news.reminder_the_news_command]),
+):
+    async with user_token(token):
+        news = await command(payload)
+        return news
+
+
+@router.delete(
+    "/reminder/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_reminder_the_news(
+        payload: ReminderTheNews,
+        token: str = Header(...),
+        command: DeleteReminderTheNewsCommand = Depends(
+            wiring.Provide[Container.news.delete_reminder_the_news_command]),
 ):
     async with user_token(token):
         news = await command(payload)
