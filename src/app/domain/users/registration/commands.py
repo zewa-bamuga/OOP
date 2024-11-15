@@ -1,7 +1,7 @@
 from app.domain.common.models import EmailCode
 from app.domain.notifications.commands import EmailSender
 from app.domain.users.core.commands import UserCreateCommand
-from app.domain.users.core.repositories import EmailRpository
+from app.domain.users.core.repositories import EmailRpository, UserRepository
 from app.domain.users.core.schemas import UserCreate, UserDetails, UserCredentialsRegist, EmailForCode, VerificationCode
 from a8t_tools.security.hashing import PasswordHashService
 from app.domain.users.core import schemas
@@ -35,14 +35,21 @@ class UserEmailVerificationRequestCommand:
 class UserEmailVerificationConfirmCommand:
     def __init__(
             self,
-            repository: EmailRpository,
+            email_repository: EmailRpository,
+
     ) -> None:
-        self.repository = repository
+        self.email_repository = email_repository
 
     async def __call__(self, payload: VerificationCode) -> None:
         code = payload.code
+        email = payload.email
 
-        await self.repository.code_deletion(code)
+        email_confirm = await self.email_repository.code_deletion(code)
+
+        if email == email_confirm:
+            return True
+        else:
+            return False
 
 
 class UserRegisterCommand:

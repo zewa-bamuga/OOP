@@ -189,7 +189,7 @@ class UserContainer(containers.DeclarativeContainer):
 
     email_verification_confirm_command = providers.Factory(
         UserEmailVerificationConfirmCommand,
-        repository=repository_email_verification,
+        email_repository=repository_email_verification,
     )
 
     update_password_request_command = providers.Factory(
