@@ -144,6 +144,7 @@ class EmailForCode(APIModel):
 
 
 class VerificationCode(APIModel):
+    email: str
     code: int
 
 

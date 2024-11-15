@@ -66,7 +66,7 @@ async def add_employees(
 @wiring.inject
 async def create_project_attachment(
         attachment: UploadFile,
-        project_id: int = Form(...),
+        project_id: UUID = Form(...),
         token: str = Header(...),
         command: ProjectAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.project_create_command]),
 ) -> AttachmentSchema.Attachment:

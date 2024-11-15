@@ -85,8 +85,40 @@ class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
         return IdContainer(id=await self._create(payload))
 
     async def create_task_id(self, news_id: UUID, payload: schemas.TaskIdCreate) -> None:
-        print("Проискходит запись task_id в таблицу")
         return await self._partial_update(news_id, payload)
+
+    async def get_task_id_news_by_filter_or_none(self,
+                                                 where: schemas.TaskIdNewsWhere) -> schemas.ReminderDetailsFull | None:
+        print("Получилось user_id: ", where.user_id)
+        print("Получилось news_id: ", where.news_id)
+        return await self._get_or_none(
+            schemas.ReminderDetailsFull,
+            condition=await self._format_filters(where),
+        )
+
+    async def _format_filters(self, where: schemas.TaskIdNewsWhere) -> ColumnElement[bool]:
+        filters: list[ColumnElement[bool]] = []
+
+        if where.news_id is not None:
+            filters.append(models.NewsReminder.news_id == where.news_id)
+
+        return and_(*filters)
+
+    async def delete_reminder(self, news_id: UUID, user_id: UUID) -> None:
+        print("Передалось в удаление user_id: ", user_id)
+        print("Передалось в удаление news_id: ", news_id)
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.NewsReminder)
+                .where(
+                    and_(
+                        models.NewsReminder.news_id == news_id,
+                        models.NewsReminder.user_id == user_id
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
 
 
 class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
