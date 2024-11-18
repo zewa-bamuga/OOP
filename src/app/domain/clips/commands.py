@@ -45,6 +45,20 @@ class ClipPartialUpdateCommand:
         return schemas.ClipDetailsFull.model_validate(user)
 
 
+class ClipDeleteCommand:
+    def __init__(
+            self,
+            clip_repository: ClipRepository,
+            clip_like_repository: LikeClipRepository,
+    ) -> None:
+        self.clip_repository = clip_repository
+        self.clip_like_repository = clip_like_repository
+
+    async def __call__(self, clip_id: int) -> None:
+        # await self.clip_like_repository.delete_like_clip(clip_id)
+        return await self.clip_repository.delete_clip(clip_id)
+
+
 class LikeTheClipCommand:
     def __init__(
             self,

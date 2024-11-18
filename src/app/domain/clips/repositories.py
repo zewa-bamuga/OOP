@@ -65,6 +65,19 @@ class ClipRepository(CrudRepositoryMixin[models.Clip]):
             await session.execute(stmt)
             await session.commit()
 
+    async def delete_clip(self, payload=schemas.ClipDelete) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.Clip)
+                .where(
+                    and_(
+                        models.Clip.id == payload.clip_id,
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
+
 
 class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
     def __init__(self, transaction: AsyncDbTransaction):
@@ -107,14 +120,14 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
             except Exception as e:
                 print(f"Error creating like info: {e}")
 
-    async def delete_like_clip(self, clip_id: int, user_id: int) -> None:
+    async def delete_like_clip(self, payload=schemas.ClipDelete) -> None:
         async with self.transaction.use() as session:
             stmt = (
                 delete(models.ClipLike)
                 .where(
                     and_(
-                        models.ClipLike.clip_id == clip_id,
-                        models.ClipLike.user_id == user_id
+                        models.ClipLike.clip_id == payload.clip_id,
+                        models.ClipLike.user_id == payload.user_id
                     )
                 )
             )
