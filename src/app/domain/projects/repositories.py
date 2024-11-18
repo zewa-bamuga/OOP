@@ -13,6 +13,15 @@ from app.domain.common.schemas import IdContainer
 from app.domain.projects import schemas
 
 
+class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment]):
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.ProjectAttachment
+        self.transaction = transaction
+
+    async def create_project_attachment(self, payload: schemas.ProjectAttachment) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
+
+
 class ProjectRepository(CrudRepositoryMixin[models.Project]):
     load_options: list[ExecutableOption] = [
         selectinload(models.Project.avatar_attachment),
@@ -24,6 +33,19 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
 
     async def create_project(self, payload: schemas.ProjectCreate) -> IdContainer:
         return IdContainer(id=await self._create(payload))
+
+    async def delete_project(self, payload: schemas.ProjectDelete) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.Project)
+                .where(
+                    and_(
+                        models.Project.id == payload.id,
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
 
     async def partial_update_project(self, project_id: UUID, payload: schemas.ProjectPartialUpdate) -> None:
         return await self._partial_update(project_id, payload)

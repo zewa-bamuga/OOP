@@ -52,3 +52,11 @@ class ProjectStaffManagementListQuery:
 
     async def __call__(self, payload: ProjectStaffListRequestSchema) -> Paginated[schemas.ProjectStaffDetailsShort]:
         return await self.query(payload)
+
+
+class ProjectAttachmentManagementListQuery:
+    def __init__(self, query: ProjectStaffListQuery) -> None:
+        self.query = query
+
+    async def __call__(self, payload: ProjectStaffListRequestSchema) -> Paginated[schemas.ProjectStaffDetailsShort]:
+        return await self.query(payload)
