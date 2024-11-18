@@ -12,6 +12,7 @@ from sqlalchemy.sql.base import ExecutableOption
 from app.domain.common import models, enums
 from app.domain.common.schemas import IdContainer, IdContainerTables
 from app.domain.users.core import schemas
+from app.domain.users.staff.schemas import StaffInternal, StaffWhere
 
 
 class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
@@ -162,7 +163,7 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
         self.model = models.Staff
         self.transaction = transaction
 
-    async def create_employee(self, payload: schemas.UserCreate) -> IdContainer:
+    async def create_employee(self, payload: schemas.StaffCreate) -> IdContainer:
         return IdContainer(id=await self._create(payload))
 
     async def get_employee(
@@ -177,9 +178,9 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
             options=self.load_options,
         )
 
-    async def get_employee_by_filter_or_none(self, where: schemas.UserWhere) -> schemas.UserInternal | None:
+    async def get_employee_by_filter_or_none(self, where: StaffWhere) -> StaffInternal | None:
         return await self._get_or_none(
-            schemas.UserInternal,
+            StaffInternal,
             condition=await self._format_filters_email(where),
             options=self.load_options,
         )

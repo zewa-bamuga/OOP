@@ -44,6 +44,9 @@ from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.security.hashing import PasswordHashService
 from a8t_tools.security.tokens import JwtHmacService, JwtRsaService, token_ctx_var
 
+from app.domain.users.staff.command import StaffCreateCommand
+from app.domain.users.staff.queries import StaffRetrieveQuery
+
 
 class UserContainer(containers.DeclarativeContainer):
     transaction = providers.Dependency(instance_of=AsyncDbTransaction)
@@ -287,6 +290,16 @@ class UserContainer(containers.DeclarativeContainer):
         UserManagementListQuery,
         permission_service=permission_service,
         query=user_list_query,
+    )
+
+    staff_retrieve_by_id_query = providers.Factory(
+        StaffRetrieveQuery,
+        staff_repository=staff_repository,
+    )
+
+    staff_create = providers.Factory(
+        StaffCreateCommand,
+        staff_repository=staff_repository,
     )
 
     management_retrieve_query = providers.Factory(
