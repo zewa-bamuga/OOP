@@ -44,7 +44,7 @@ from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.security.hashing import PasswordHashService
 from a8t_tools.security.tokens import JwtHmacService, JwtRsaService, token_ctx_var
 
-from app.domain.users.staff.command import StaffCreateCommand
+from app.domain.users.staff.command import StaffCreateCommand, StaffDeleteCommand
 from app.domain.users.staff.queries import StaffRetrieveQuery
 
 
@@ -299,6 +299,11 @@ class UserContainer(containers.DeclarativeContainer):
 
     staff_create = providers.Factory(
         StaffCreateCommand,
+        staff_repository=staff_repository,
+    )
+
+    staff_delete = providers.Factory(
+        StaffDeleteCommand,
         staff_repository=staff_repository,
     )
 

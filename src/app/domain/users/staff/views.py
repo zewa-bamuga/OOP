@@ -12,9 +12,9 @@ from app.domain.users.core import schemas
 
 from a8t_tools.db import pagination, sorting
 
-from app.domain.users.staff.command import StaffCreateCommand
+from app.domain.users.staff.command import StaffCreateCommand, StaffDeleteCommand
 from app.domain.users.staff.queries import StaffRetrieveQuery
-from app.domain.users.staff.schemas import StaffCreate
+from app.domain.users.staff.schemas import StaffCreate, StaffDelete
 
 router = APIRouter()
 
@@ -69,5 +69,19 @@ async def create_staff(
         token: str = Header(...),
         command: StaffCreateCommand = Depends(wiring.Provide[Container.user.staff_create]),
 ) -> schemas.StaffDetails:
+    async with user_token(token):
+        return await command(payload)
+
+
+@router.delete(
+    "/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_staff(
+        payload: StaffDelete,
+        token: str = Header(...),
+        command: StaffDeleteCommand = Depends(wiring.Provide[Container.user.staff_delete]),
+) -> None:
     async with user_token(token):
         return await command(payload)

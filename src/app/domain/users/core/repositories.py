@@ -12,7 +12,7 @@ from sqlalchemy.sql.base import ExecutableOption
 from app.domain.common import models, enums
 from app.domain.common.schemas import IdContainer, IdContainerTables
 from app.domain.users.core import schemas
-from app.domain.users.staff.schemas import StaffInternal, StaffWhere
+from app.domain.users.staff.schemas import StaffInternal, StaffWhere, StaffDelete
 
 
 class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
@@ -165,6 +165,9 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
 
     async def create_employee(self, payload: schemas.StaffCreate) -> IdContainer:
         return IdContainer(id=await self._create(payload))
+
+    async def delete_staff(self, staff_id: UUID) -> None:
+        return await self._delete(staff_id)
 
     async def get_employee(
             self,

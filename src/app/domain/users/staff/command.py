@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app.domain.users.core.repositories import StaffRepository
 from app.domain.users.staff import schemas
 from app.domain.users.staff.schemas import StaffCreate
@@ -30,3 +32,11 @@ class StaffCreateCommand:
         assert staff
 
         return schemas.StaffDetails.model_validate(staff)
+
+
+class StaffDeleteCommand:
+    def __init__(self, staff_repository: StaffRepository) -> None:
+        self.staff_repository = staff_repository
+
+    async def __call__(self, payload: schemas.StaffDelete) -> None:
+        return await self.staff_repository.delete_staff(payload.id)

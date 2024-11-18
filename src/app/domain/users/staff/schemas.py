@@ -49,6 +49,10 @@ class StaffCreate(APIModel):
     link_to_vk: str | None = None
 
 
+class StaffDelete(APIModel):
+    id: UUID
+
+
 @dataclass
 class StaffWhere:
     id: UUID | None = None
