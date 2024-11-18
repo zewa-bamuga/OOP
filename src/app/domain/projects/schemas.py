@@ -59,6 +59,11 @@ class ProjectStaffShort(APIModel):
     avatar_attachment_id: UUID | None = None
 
 
+class ProjectAttachment(APIModel):
+    project_id: UUID
+    attachment_id: UUID | None = None
+
+
 class ProjectStaffDetailsShort(APIModel):
     staff: Staff | None = None
 

@@ -13,6 +13,15 @@ from app.domain.common.schemas import IdContainer
 from app.domain.projects import schemas
 
 
+class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment]):
+    def __init__(self, transaction: AsyncDbTransaction):
+        self.model = models.ProjectAttachment
+        self.transaction = transaction
+
+    async def create_project_attachment(self, payload: schemas.ProjectAttachment) -> IdContainer:
+        return IdContainer(id=await self._create(payload))
+
+
 class ProjectRepository(CrudRepositoryMixin[models.Project]):
     load_options: list[ExecutableOption] = [
         selectinload(models.Project.avatar_attachment),

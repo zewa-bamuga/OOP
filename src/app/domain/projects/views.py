@@ -17,7 +17,7 @@ from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCom
     AddEmployeesCommand, ProjectDeleteCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
-from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand
+from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand
 
 from a8t_tools.db import pagination, sorting
 
@@ -75,6 +75,28 @@ async def add_employees(
 
 
 @router.post(
+    "/create/avatar",
+    response_model=AttachmentSchema.Attachment
+)
+@wiring.inject
+async def create_project_avatar(
+        attachment: UploadFile,
+        project_id: UUID = Form(...),
+        token: str = Header(...),
+        command: ProjectAvatarCreateCommand = Depends(wiring.Provide[Container.attachment.project_create_command]),
+) -> AttachmentSchema.Attachment:
+    payload = Like(project_id=project_id)
+
+    async with user_token(token):
+        return await command(payload,
+                             AttachmentSchema.AttachmentCreate(
+                                 file=attachment.file,
+                                 name=attachment.filename,
+                             ),
+                             )
+
+
+@router.post(
     "/create/attachment",
     response_model=AttachmentSchema.Attachment
 )
@@ -83,7 +105,8 @@ async def create_project_attachment(
         attachment: UploadFile,
         project_id: UUID = Form(...),
         token: str = Header(...),
-        command: ProjectAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.project_create_command]),
+        command: ProjectAttachmentCreateCommand = Depends(
+            wiring.Provide[Container.attachment.project_create_attachment_command]),
 ) -> AttachmentSchema.Attachment:
     payload = Like(project_id=project_id)
 
