@@ -33,6 +33,10 @@ class ProjectCreate(APIModel):
     lessons: int
 
 
+class ProjectDelete(APIModel):
+    id: UUID
+
+
 class AddEmployees(APIModel):
     project_id: UUID
     staff_id: UUID

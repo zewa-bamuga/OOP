@@ -8,11 +8,13 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
+from app.domain.clips.commands import ClipDeleteCommand
+from app.domain.clips.schemas import ClipDelete
 from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetrieveQuery, \
     ProjectStaffManagementListQuery
-from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees
+from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    AddEmployeesCommand
+    AddEmployeesCommand, ProjectDeleteCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand
@@ -33,7 +35,7 @@ async def user_token(token: str):
     response_model=None
 )
 @wiring.inject
-async def create_projects(
+async def create_project(
         payload: ProjectCreate,
         token: str = Header(...),
         command: ProjectCreateCommand = Depends(wiring.Provide[Container.project.create_command]),
@@ -41,6 +43,20 @@ async def create_projects(
     async with user_token(token):
         project = await command(payload)
         return project
+
+
+@router.delete(
+    "/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_project(
+        payload: ProjectDelete,
+        token: str = Header(...),
+        command: ProjectDeleteCommand = Depends(wiring.Provide[Container.project.delete_project]),
+):
+    async with user_token(token):
+        return await command(payload)
 
 
 @router.post(
