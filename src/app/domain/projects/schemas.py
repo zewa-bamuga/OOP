@@ -33,6 +33,10 @@ class ProjectCreate(APIModel):
     lessons: int
 
 
+class ProjectDelete(APIModel):
+    id: UUID
+
+
 class AddEmployees(APIModel):
     project_id: UUID
     staff_id: UUID
@@ -53,6 +57,11 @@ class ProjectStaffShort(APIModel):
     last_name: str | None = None
     post: str | None = None
     avatar_attachment_id: UUID | None = None
+
+
+class ProjectAttachment(APIModel):
+    project_id: UUID
+    attachment_id: UUID | None = None
 
 
 class ProjectStaffDetailsShort(APIModel):

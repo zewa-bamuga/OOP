@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.domain.common.exceptions import NotFoundError
 from app.domain.projects.queries import ProjectRetrieveQuery
 from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, ProjectStaffRepository
-from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees
+from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.projects import schemas
 
@@ -26,6 +26,17 @@ class ProjectCreateCommand:
         )
 
         await self.project_repository.create_project(create_project)
+
+
+class ProjectDeleteCommand:
+    def __init__(
+            self,
+            project_repository: ProjectRepository,
+    ) -> None:
+        self.project_repository = project_repository
+
+    async def __call__(self, payload: ProjectDelete) -> None:
+        return await self.project_repository.delete_project(payload)
 
 
 class AddEmployeesCommand:
