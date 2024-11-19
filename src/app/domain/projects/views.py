@@ -140,40 +140,6 @@ async def get_projects_list(
 
 
 @router.get(
-    "/get/attachment",
-    response_model=pagination.CountPaginationResults[schemas.ProjectStaffDetailsShort],
-)
-@wiring.inject
-async def get_project_attachment_list(
-        project_id: UUID,
-        query: ProjectStaffManagementListQuery = Depends(wiring.Provide[Container.project.staff_management_list_query]),
-        pagination: pagination.PaginationCallable[schemas.ProjectStaffDetailsShort] = Depends(
-            deps.get_skip_limit_pagination_dep(schemas.ProjectStaffDetailsShort)),
-        sorting: sorting.SortingData[schemas.ProjectStaffSorts] = Depends(
-            deps.get_sort_order_sorting_dep(
-                schemas.ProjectStaffSorts,
-                schemas.ProjectStaffSorts.project_id,
-                sorting.SortOrders.desc,
-            )
-        ),
-) -> pagination.Paginated[schemas.ProjectStaffDetailsShort]:
-    return await query(
-        schemas.ProjectStaffListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
-
-@router.get(
-    "/project/by/id/{project_id}",
-    response_model=None
-)
-@wiring.inject
-async def get_project_by_id(
-        project_id: UUID,
-        query: ProjectRetrieveQuery = Depends(wiring.Provide[Container.project.project_retrieve_by_id_query]),
-):
-    project = await query(project_id)
-    return project
-
-
-@router.get(
     "/get/staff",
     response_model=pagination.CountPaginationResults[schemas.ProjectStaffDetailsShort],
 )
@@ -193,6 +159,42 @@ async def get_project_staff_list(
 ) -> pagination.Paginated[schemas.ProjectStaffDetailsShort]:
     return await query(
         schemas.ProjectStaffListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
+
+
+@router.get(
+    "/get/attachment",
+    response_model=pagination.CountPaginationResults[schemas.ProjectAttachmentDetailsShort],
+)
+@wiring.inject
+async def get_project_attachment_list(
+        project_id: UUID,
+        query: ProjectStaffManagementListQuery = Depends(
+            wiring.Provide[Container.project.project_attachment_management_list_query]),
+        pagination: pagination.PaginationCallable[schemas.ProjectAttachmentDetailsShort] = Depends(
+            deps.get_skip_limit_pagination_dep(schemas.ProjectAttachmentDetailsShort)),
+        sorting: sorting.SortingData[schemas.ProjectAttachmentSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ProjectAttachmentSorts,
+                schemas.ProjectAttachmentSorts.project_id,
+                sorting.SortOrders.desc,
+            )
+        ),
+) -> pagination.Paginated[schemas.ProjectAttachmentDetailsShort]:
+    return await query(
+        schemas.ProjectAttachmentListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
+
+
+@router.get(
+    "/project/by/id/{project_id}",
+    response_model=None
+)
+@wiring.inject
+async def get_project_by_id(
+        project_id: UUID,
+        query: ProjectRetrieveQuery = Depends(wiring.Provide[Container.project.project_retrieve_by_id_query]),
+):
+    project = await query(project_id)
+    return project
 
 
 @router.post(
