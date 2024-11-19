@@ -2,8 +2,9 @@ from fastapi import HTTPException
 
 from app.domain.common.exceptions import NotFoundError
 from app.domain.projects.queries import ProjectRetrieveQuery
-from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, ProjectStaffRepository
-from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete
+from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, ProjectStaffRepository, \
+    ProjectAttachmentRepository
+from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete, ProjectAttachment
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.projects import schemas
 
@@ -147,3 +148,14 @@ class ProjectPartialUpdateCommand:
             raise
 
         return schemas.ProjectDetailsFull.model_validate(user)
+
+
+class ProjectAttachmentDeleteCommand:
+    def __init__(
+            self,
+            project_attachment_repository: ProjectAttachmentRepository,
+    ) -> None:
+        self.project_attachment_repository = project_attachment_repository
+
+    async def __call__(self, payload: ProjectAttachment) -> None:
+        return await self.project_attachment_repository.delete_project_attachment(payload)

@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from a8t_tools.db.transactions import AsyncDbTransaction
 
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    ProjectPartialUpdateCommand, AddEmployeesCommand, ProjectDeleteCommand
+    ProjectPartialUpdateCommand, AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand
 from app.domain.projects.queries import ProjectManagementListQuery, ProjectListQuery, ProjectRetrieveQuery, \
     ProjectStaffManagementListQuery, ProjectStaffListQuery, ProjectAttachmentManagementListQuery, \
     ProjectAttachmentListQuery
@@ -66,6 +66,11 @@ class ProjectContainer(containers.DeclarativeContainer):
         project_retrieve_by_id_query=project_retrieve_by_id_query,
         current_user_query=user_container.current_user_query,
         project_repository=project_repository,
+    )
+
+    delete_project_attachment_command = providers.Factory(
+        ProjectAttachmentDeleteCommand,
+        project_attachment_repository=project_attachment_repository,
     )
 
     project_list_query = providers.Factory(

@@ -14,7 +14,7 @@ from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetri
     ProjectStaffManagementListQuery
 from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    AddEmployeesCommand, ProjectDeleteCommand
+    AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand
@@ -182,6 +182,21 @@ async def get_project_attachment_list(
 ) -> pagination.Paginated[schemas.ProjectAttachmentDetailsShort]:
     return await query(
         schemas.ProjectAttachmentListRequestSchema(project_id=project_id, pagination=pagination, sorting=sorting))
+
+
+@router.delete(
+    "/delete/attachment",
+    response_model=None
+)
+@wiring.inject
+async def delete_project_attachment(
+        payload: schemas.ProjectAttachment,
+        token: str = Header(...),
+        command: ProjectAttachmentDeleteCommand = Depends(wiring.Provide[Container.project.delete_project_attachment_command]),
+):
+    async with user_token(token):
+        await command(payload)
+        return {"status": "success"}
 
 
 @router.get(

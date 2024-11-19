@@ -40,6 +40,20 @@ class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment])
             options=self.load_options,
         )
 
+    async def delete_project_attachment(self,  payload: schemas.ProjectAttachment) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.ProjectAttachment)
+                .where(
+                    and_(
+                        models.ProjectAttachment.project_id == payload.project_id,
+                        models.ProjectAttachment.attachment_id == payload.attachment_id
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
+
 
 class ProjectRepository(CrudRepositoryMixin[models.Project]):
     load_options: list[ExecutableOption] = [
