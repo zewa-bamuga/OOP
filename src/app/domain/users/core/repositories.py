@@ -12,7 +12,7 @@ from sqlalchemy.sql.base import ExecutableOption
 from app.domain.common import models, enums
 from app.domain.common.schemas import IdContainer, IdContainerTables
 from app.domain.users.core import schemas
-from app.domain.users.staff.schemas import StaffInternal, StaffWhere, StaffDelete
+from app.domain.users.staff.schemas import StaffInternal, StaffWhere, StaffDelete, StaffPartialUpdate, StaffDetailsFull
 
 
 class EmailRpository(CrudRepositoryMixin[models.EmailCode]):
@@ -171,9 +171,9 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
 
     async def get_employee(
             self,
-            pagination: PaginationCallable[schemas.Staff] | None = None,
+            pagination: PaginationCallable[schemas.StaffDetails] | None = None,
             sorting: SortingData[schemas.StaffSorts] | None = None,
-    ) -> Paginated[schemas.Staff]:
+    ) -> Paginated[schemas.StaffDetails]:
         return await self._get_list(
             schemas.User,
             pagination=pagination,
@@ -188,8 +188,23 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
             options=self.load_options,
         )
 
-    async def partial_update_staff(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> None:
-        return await self._partial_update(user_id, payload)
+    async def partial_update_staff(self, staff_id: UUID, payload: StaffPartialUpdate) -> None:
+        return await self._partial_update(staff_id, payload)
+
+    async def get_staff_by_filter_or_none(self, where: StaffWhere) -> StaffDetailsFull | None:
+        return await self._get_or_none(
+            StaffDetailsFull,
+            condition=await self._format_filters(where),
+            options=self.load_options,
+        )
+
+    async def _format_filters(self, where: StaffWhere) -> ColumnElement[bool]:
+        filters: list[ColumnElement[bool]] = []
+
+        if where.id is not None:
+            filters.append(models.Staff.id == where.id)
+
+        return and_(*filters)
 
     async def get_password_reset_code_by_code_or_none(self,
                                                       where: schemas.PasswordResetCodeWhere) -> schemas.PasswordResetCode | None:

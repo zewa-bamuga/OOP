@@ -15,6 +15,7 @@ from app.domain.storage.attachments.queries import (
 )
 from app.domain.storage.attachments.repositories import AttachmentRepository
 from app.domain.users.containers import UserContainer
+from app.domain.users.staff.command import StaffAvatarCreateCommand
 
 
 class AttachmentContainer(containers.DeclarativeContainer):
@@ -56,6 +57,15 @@ class AttachmentContainer(containers.DeclarativeContainer):
         bucket=bucket,
         current_project_query=project_container.current_project_query,
         project_partial_update_command=project_container.project_partial_update_command,
+    )
+
+    staff_create_command = providers.Factory(
+        StaffAvatarCreateCommand,
+        repository=repository,
+        file_storage=file_storage,
+        bucket=bucket,
+        staff_retrieve_by_id_query=user_container.staff_retrieve_by_id_query,
+        staff_partial_update_command=user_container.staff_partial_update_command,
     )
 
     project_create_attachment_command = providers.Factory(

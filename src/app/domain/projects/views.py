@@ -18,8 +18,7 @@ from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCom
     AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand, ProjectStaffDeleteCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
-from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand, \
-    ProjectAvatarUpdateCommand
+from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand
 
 from a8t_tools.db import pagination, sorting
 
@@ -215,7 +214,7 @@ async def create_project_attachment(
 
 
 @router.get(
-    "/get/attachment",
+    "/get/attachment/list",
     response_model=pagination.CountPaginationResults[schemas.ProjectAttachmentDetailsShort],
 )
 @wiring.inject
@@ -254,7 +253,7 @@ async def delete_project_attachment(
 
 
 @router.post(
-    "/like",
+    "/create/like",
     response_model=None
 )
 @wiring.inject
@@ -269,7 +268,7 @@ async def like_the_project(
 
 
 @router.delete(
-    "/unlike",
+    "/delete/like",
     response_model=None
 )
 @wiring.inject
