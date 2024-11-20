@@ -214,7 +214,7 @@ async def create_project_attachment(
 
 
 @router.get(
-    "/get/attachment",
+    "/get/attachment/list",
     response_model=pagination.CountPaginationResults[schemas.ProjectAttachmentDetailsShort],
 )
 @wiring.inject
@@ -253,7 +253,7 @@ async def delete_project_attachment(
 
 
 @router.post(
-    "/like",
+    "/create/like",
     response_model=None
 )
 @wiring.inject
@@ -268,7 +268,7 @@ async def like_the_project(
 
 
 @router.delete(
-    "/unlike",
+    "/delete/like",
     response_model=None
 )
 @wiring.inject
