@@ -159,3 +159,14 @@ class ProjectAttachmentDeleteCommand:
 
     async def __call__(self, payload: ProjectAttachment) -> None:
         return await self.project_attachment_repository.delete_project_attachment(payload)
+
+
+class ProjectStaffDeleteCommand:
+    def __init__(
+            self,
+            project_staff_repository: ProjectStaffRepository,
+    ) -> None:
+        self.project_staff_repository = project_staff_repository
+
+    async def __call__(self, payload: ProjectAttachment) -> None:
+        return await self.project_staff_repository.delete_staff_project(payload)

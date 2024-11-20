@@ -40,7 +40,7 @@ class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment])
             options=self.load_options,
         )
 
-    async def delete_project_attachment(self,  payload: schemas.ProjectAttachment) -> None:
+    async def delete_project_attachment(self, payload: schemas.ProjectAttachment) -> None:
         async with self.transaction.use() as session:
             stmt = (
                 delete(models.ProjectAttachment)
@@ -147,6 +147,20 @@ class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
             condition=condition,
             options=self.load_options,
         )
+
+    async def delete_staff_project(self, payload: schemas.AddEmployees) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.ProjectStaff)
+                .where(
+                    and_(
+                        models.ProjectStaff.project_id == payload.project_id,
+                        models.ProjectStaff.staff_id == payload.staff_id
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
 
 
 class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
