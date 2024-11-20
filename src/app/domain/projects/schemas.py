@@ -8,7 +8,7 @@ from a8t_tools.db import sorting as sr
 
 from app.domain.common.schemas import APIModel
 from app.domain.storage.attachments.schemas import Attachment
-from app.domain.users.core.schemas import Staff, StaffDetails
+from app.domain.users.core.schemas import Staff, StaffDetails, ProjectAttachmentDetails
 
 
 class Project(APIModel):
@@ -60,8 +60,18 @@ class ProjectStaffShort(APIModel):
 
 
 class ProjectAttachment(APIModel):
-    project_id: UUID
+    project_id: UUID | None = None
     attachment_id: UUID | None = None
+
+
+class UserProfilePartialUpdate(APIModel):
+    username: str | None = None
+    password: str | None = None
+    avatar_attachment_id: UUID | None = None
+
+
+class ProjectAttachmentDetailsShort(APIModel):
+    attachment: Attachment | None = None
 
 
 class ProjectStaffDetailsShort(APIModel):
@@ -100,6 +110,12 @@ class ProjectStaffSorts(enum.StrEnum):
     created_at = enum.auto()
 
 
+class ProjectAttachmentSorts(enum.StrEnum):
+    id = enum.auto()
+    project_id = enum.auto()
+    created_at = enum.auto()
+
+
 @dataclass
 class ProjectListRequestSchema:
     pagination: pg.PaginationCallable[ProjectDetailsFull] | None = None
@@ -111,6 +127,13 @@ class ProjectStaffListRequestSchema:
     project_id: UUID
     pagination: pg.PaginationCallable[StaffDetails] | None = None
     sorting: sr.SortingData[ProjectStaffSorts] | None = None
+
+
+@dataclass
+class ProjectAttachmentListRequestSchema:
+    project_id: UUID
+    pagination: pg.PaginationCallable[ProjectAttachmentDetails] | None = None
+    sorting: sr.SortingData[ProjectAttachmentSorts] | None = None
 
 
 @dataclass
