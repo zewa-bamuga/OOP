@@ -53,6 +53,14 @@ class StaffDelete(APIModel):
     id: UUID
 
 
+class StaffPartialUpdate(APIModel):
+    avatar_attachment_id: UUID | None = None
+
+
+class StaffDetailsFull(Staff):
+    avatar_attachment: Attachment | None = None
+
+
 @dataclass
 class StaffWhere:
     id: UUID | None = None

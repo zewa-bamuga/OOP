@@ -12,7 +12,7 @@ class UserListQuery:
     def __init__(self, staff_repository: StaffRepository):
         self.staff_repository = staff_repository
 
-    async def __call__(self, payload: schemas.StaffListRequestSchema) -> Paginated[schemas.Staff]:
+    async def __call__(self, payload: schemas.StaffListRequestSchema) -> Paginated[schemas.StaffDetails]:
         return await self.staff_repository.get_employee(payload.pagination, payload.sorting)
 
 
