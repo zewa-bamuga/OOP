@@ -9,8 +9,6 @@ from app.containers import Container
 from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand, UnlikeTheClipCommand, ClipDeleteCommand
 from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery
 from app.domain.clips.schemas import ClipCreate, ClipDelete
-from app.domain.news.commands import DeleteReminderTheNewsCommand
-from app.domain.news.schemas import ReminderTheNews
 from app.domain.projects.schemas import Like
 from app.domain.clips import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
@@ -29,7 +27,7 @@ async def user_token(token: str):
 
 
 @router.post(
-    "/create/info",
+    "/create",
     response_model=None
 )
 @wiring.inject
@@ -65,22 +63,8 @@ async def create_clip_attachment(
                              )
 
 
-@router.delete(
-    "/delete",
-    response_model=None
-)
-@wiring.inject
-async def delete_clip(
-        payload: ClipDelete,
-        token: str = Header(...),
-        command: ClipDeleteCommand = Depends(wiring.Provide[Container.clip.delete_clip]),
-):
-    async with user_token(token):
-        return await command(payload)
-
-
 @router.get(
-    "/get",
+    "/get/list",
     response_model=pagination.CountPaginationResults[schemas.ClipDetailsFull],
 )
 @wiring.inject
@@ -100,7 +84,7 @@ async def get_clip_list(
 
 
 @router.get(
-    "/get/by/id/{news_id}",
+    "/get/{clip_id}",
     response_model=None
 )
 @wiring.inject
@@ -112,8 +96,22 @@ async def get_clip_by_id(
     return clip
 
 
+@router.delete(
+    "/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_clip(
+        payload: ClipDelete,
+        token: str = Header(...),
+        command: ClipDeleteCommand = Depends(wiring.Provide[Container.clip.delete_clip]),
+):
+    async with user_token(token):
+        return await command(payload)
+
+
 @router.post(
-    "/like",
+    "/create/like",
     response_model=None
 )
 @wiring.inject
@@ -128,7 +126,7 @@ async def like_the_clip(
 
 
 @router.delete(
-    "/unlike",
+    "/delete/like",
     response_model=None
 )
 @wiring.inject

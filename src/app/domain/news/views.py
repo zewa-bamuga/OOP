@@ -43,30 +43,21 @@ async def create_news(
         return news
 
 
-@router.post(
-    "/create/attachment",
-    response_model=AttachmentSchema.Attachment
+@router.get(
+    "/get/{news_id}",
+    response_model=None
 )
 @wiring.inject
-async def create_news_attachment(
-        attachment: UploadFile,
-        news_id: UUID = Form(...),
-        token: str = Header(...),
-        command: NewsAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.news_create_command]),
-) -> AttachmentSchema.Attachment:
-    payload = Like(news_id=news_id)
-
-    async with user_token(token):
-        return await command(payload,
-                             AttachmentSchema.AttachmentCreate(
-                                 file=attachment.file,
-                                 name=attachment.filename,
-                             ),
-                             )
+async def get_news_by_id(
+        news_id: int,
+        query: NewsRetrieveQuery = Depends(wiring.Provide[Container.news.news_retrieve_by_id_query]),
+):
+    news = await query(news_id)
+    return news
 
 
 @router.get(
-    "/get",
+    "/get/list",
     response_model=pagination.CountPaginationResults[schemas.NewsDetailsFull],
 )
 @wiring.inject
@@ -85,21 +76,30 @@ async def get_news_list(
     return await query(schemas.NewsListRequestSchema(pagination=pagination, sorting=sorting))
 
 
-@router.get(
-    "/get/by/id/{news_id}",
-    response_model=None
+@router.post(
+    "/create/avatar",
+    response_model=AttachmentSchema.Attachment
 )
 @wiring.inject
-async def get_news_by_id(
-        news_id: int,
-        query: NewsRetrieveQuery = Depends(wiring.Provide[Container.news.news_retrieve_by_id_query]),
-):
-    news = await query(news_id)
-    return news
+async def create_news_avatar(
+        attachment: UploadFile,
+        news_id: UUID = Form(...),
+        token: str = Header(...),
+        command: NewsAttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.news_create_command]),
+) -> AttachmentSchema.Attachment:
+    payload = Like(news_id=news_id)
+
+    async with user_token(token):
+        return await command(payload,
+                             AttachmentSchema.AttachmentCreate(
+                                 file=attachment.file,
+                                 name=attachment.filename,
+                             ),
+                             )
 
 
 @router.post(
-    "/reminder",
+    "/create/reminder",
     response_model=None
 )
 @wiring.inject
@@ -114,7 +114,7 @@ async def reminder_the_news(
 
 
 @router.delete(
-    "/reminder/delete",
+    "/delete/reminder",
     response_model=None
 )
 @wiring.inject
@@ -130,7 +130,7 @@ async def delete_reminder_the_news(
 
 
 @router.post(
-    "/like",
+    "/create/like",
     response_model=None
 )
 @wiring.inject
@@ -145,7 +145,7 @@ async def like_the_news(
 
 
 @router.delete(
-    "/unlike",
+    "/delete/like",
     response_model=None
 )
 @wiring.inject

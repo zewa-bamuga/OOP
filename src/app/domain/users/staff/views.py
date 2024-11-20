@@ -27,8 +27,34 @@ async def user_token(token: str):
         yield
 
 
+@router.post(
+    "/create",
+    response_model=schemas.Staff
+)
+@wiring.inject
+async def create_staff(
+        payload: StaffCreate,
+        token: str = Header(...),
+        command: StaffCreateCommand = Depends(wiring.Provide[Container.user.staff_create]),
+) -> schemas.StaffDetails:
+    async with user_token(token):
+        return await command(payload)
+
+
 @router.get(
-    "/get",
+    "/get/{staff_id}",
+    response_model=None
+)
+@wiring.inject
+async def get_staff_by_id(
+        staff_id: UUID,
+        query: StaffRetrieveQuery = Depends(wiring.Provide[Container.user.staff_retrieve_by_id_query]),
+):
+    return await query(staff_id)
+
+
+@router.get(
+    "/get/list",
     response_model=pagination.CountPaginationResults[schemas.StaffDetails],
 )
 @wiring.inject
@@ -47,32 +73,6 @@ async def get_staff_list(
 ) -> pagination.Paginated[schemas.StaffDetails]:
     async with user_token(token):
         return await query(schemas.StaffListRequestSchema(pagination=pagination, sorting=sorting))
-
-
-@router.get(
-    "/get/by/id/{staff_id}",
-    response_model=None
-)
-@wiring.inject
-async def get_staff_by_id(
-        staff_id: UUID,
-        query: StaffRetrieveQuery = Depends(wiring.Provide[Container.user.staff_retrieve_by_id_query]),
-):
-    return await query(staff_id)
-
-
-@router.post(
-    "/create",
-    response_model=schemas.Staff
-)
-@wiring.inject
-async def create_staff(
-        payload: StaffCreate,
-        token: str = Header(...),
-        command: StaffCreateCommand = Depends(wiring.Provide[Container.user.staff_create]),
-) -> schemas.StaffDetails:
-    async with user_token(token):
-        return await command(payload)
 
 
 @router.post(
