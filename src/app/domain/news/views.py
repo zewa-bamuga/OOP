@@ -11,9 +11,9 @@ from a8t_tools.security.tokens import override_user_token
 from app.api import deps
 from app.containers import Container
 from app.domain.news.commands import NewsCreateCommand, LikeTheNewsCommand, UnlikeTheNewsCommand, \
-    ReminderTheNewsCommand, DeleteReminderTheNewsCommand
+    ReminderTheNewsCommand, DeleteReminderTheNewsCommand, NewsDeleteCommand
 from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery
-from app.domain.news.schemas import NewsCreate, ReminderTheNews
+from app.domain.news.schemas import NewsCreate, ReminderTheNews, NewsDelete
 from app.domain.projects.schemas import Like
 from app.domain.news import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
@@ -96,6 +96,20 @@ async def create_news_avatar(
                                  name=attachment.filename,
                              ),
                              )
+
+
+@router.delete(
+    "/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_news(
+        payload: NewsDelete,
+        token: str = Header(...),
+        command: NewsDeleteCommand = Depends(wiring.Provide[Container.news.delete_news]),
+):
+    async with user_token(token):
+        return await command(payload)
 
 
 @router.post(
