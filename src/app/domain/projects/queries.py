@@ -1,7 +1,8 @@
 from uuid import UUID
 
-from app.domain.projects.repositories import ProjectRepository, ProjectStaffRepository
-from app.domain.projects.schemas import ProjectListRequestSchema, ProjectStaffListRequestSchema
+from app.domain.projects.repositories import ProjectRepository, ProjectStaffRepository, ProjectAttachmentRepository
+from app.domain.projects.schemas import ProjectListRequestSchema, ProjectStaffListRequestSchema, \
+    ProjectAttachmentListRequestSchema
 from app.domain.projects import schemas
 
 from a8t_tools.db.pagination import Paginated
@@ -22,6 +23,19 @@ class ProjectStaffListQuery:
     async def __call__(self, payload: schemas.ProjectStaffListRequestSchema) -> Paginated[
         schemas.ProjectStaffDetailsShort]:
         return await self.project_staff_repository.get_project_staff(
+            project_id=payload.project_id,
+            pagination=payload.pagination,
+            sorting=payload.sorting
+        )
+
+
+class ProjectAttachmentListQuery:
+    def __init__(self, project_attachment_repository: ProjectAttachmentRepository):
+        self.project_attachment_repository = project_attachment_repository
+
+    async def __call__(self, payload: schemas.ProjectAttachmentListRequestSchema) -> Paginated[
+        schemas.ProjectAttachmentDetailsShort]:
+        return await self.project_attachment_repository.get_project_attachment(
             project_id=payload.project_id,
             pagination=payload.pagination,
             sorting=payload.sorting
@@ -55,8 +69,8 @@ class ProjectStaffManagementListQuery:
 
 
 class ProjectAttachmentManagementListQuery:
-    def __init__(self, query: ProjectStaffListQuery) -> None:
+    def __init__(self, query: ProjectAttachmentListQuery) -> None:
         self.query = query
 
-    async def __call__(self, payload: ProjectStaffListRequestSchema) -> Paginated[schemas.ProjectStaffDetailsShort]:
+    async def __call__(self, payload: ProjectAttachmentListRequestSchema) -> Paginated[schemas.ProjectAttachmentDetailsShort]:
         return await self.query(payload)

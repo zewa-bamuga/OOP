@@ -37,7 +37,12 @@ class ProjectAttachment(Base):
     attachment_id = Column(UUID(as_uuid=True), ForeignKey("attachment.id", ondelete="CASCADE"), nullable=False)
 
     project = relationship("Project", back_populates="attachments")
-    attachment = relationship("Attachment", back_populates="projects")
+    attachment = relationship(
+        "Attachment",
+        backref="project_attachment",
+        foreign_keys=[attachment_id],
+        uselist=False,
+    )
 
 
 class User(Base):

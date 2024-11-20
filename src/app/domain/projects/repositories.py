@@ -14,12 +14,45 @@ from app.domain.projects import schemas
 
 
 class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment]):
+    load_options: list[ExecutableOption] = [
+        selectinload(models.ProjectAttachment.attachment),
+    ]
+
     def __init__(self, transaction: AsyncDbTransaction):
         self.model = models.ProjectAttachment
         self.transaction = transaction
 
     async def create_project_attachment(self, payload: schemas.ProjectAttachment) -> IdContainer:
         return IdContainer(id=await self._create(payload))
+
+    async def get_project_attachment(
+            self,
+            project_id: UUID,
+            pagination: PaginationCallable[schemas.ProjectAttachmentDetailsShort] | None = None,
+            sorting: SortingData[schemas.ProjectAttachmentSorts] | None = None,
+    ) -> Paginated[schemas.ProjectAttachmentDetailsShort]:
+        condition = self.model.project_id == project_id
+        return await self._get_list(
+            schema=schemas.ProjectAttachmentDetailsShort,
+            pagination=pagination,
+            sorting=sorting,
+            condition=condition,
+            options=self.load_options,
+        )
+
+    async def delete_project_attachment(self, payload: schemas.ProjectAttachment) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.ProjectAttachment)
+                .where(
+                    and_(
+                        models.ProjectAttachment.project_id == payload.project_id,
+                        models.ProjectAttachment.attachment_id == payload.attachment_id
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
 
 
 class ProjectRepository(CrudRepositoryMixin[models.Project]):
@@ -114,6 +147,20 @@ class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
             condition=condition,
             options=self.load_options,
         )
+
+    async def delete_staff_project(self, payload: schemas.AddEmployees) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.ProjectStaff)
+                .where(
+                    and_(
+                        models.ProjectStaff.project_id == payload.project_id,
+                        models.ProjectStaff.staff_id == payload.staff_id
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
 
 
 class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
