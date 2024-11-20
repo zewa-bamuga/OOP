@@ -6,13 +6,15 @@ from app.domain.users.permissions.schemas import BasePermissions
 from app.domain.users.permissions.services import UserPermissionService
 from a8t_tools.db.pagination import Paginated
 
+from app.domain.users.staff.schemas import StaffDetails
+
 
 class UserManagementListQuery:
     def __init__(self, permission_service: UserPermissionService, query: UserListQuery) -> None:
         self.query = query
         self.permission_service = permission_service
 
-    async def __call__(self, payload: StaffListRequestSchema) -> Paginated[Staff]:
+    async def __call__(self, payload: StaffListRequestSchema) -> Paginated[StaffDetails]:
         await self.permission_service.assert_permissions(BasePermissions.superuser)
         return await self.query(payload)
 

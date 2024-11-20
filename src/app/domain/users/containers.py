@@ -44,7 +44,7 @@ from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.security.hashing import PasswordHashService
 from a8t_tools.security.tokens import JwtHmacService, JwtRsaService, token_ctx_var
 
-from app.domain.users.staff.command import StaffCreateCommand, StaffDeleteCommand
+from app.domain.users.staff.command import StaffCreateCommand, StaffDeleteCommand, StaffPartialUpdateCommand
 from app.domain.users.staff.queries import StaffRetrieveQuery
 
 
@@ -109,6 +109,11 @@ class UserContainer(containers.DeclarativeContainer):
         staff_repository=staff_repository,
     )
 
+    current_staff_query = providers.Factory(
+        StaffRetrieveQuery,
+
+    )
+
     retrieve_by_email_query = providers.Factory(
         UserRetrieveByEmailQuery,
         user_repository=user_repository,
@@ -134,6 +139,11 @@ class UserContainer(containers.DeclarativeContainer):
 
     email_sender_command = providers.Factory(
         EmailSenderCommand,
+    )
+
+    staff_partial_update_command = providers.Factory(
+        StaffPartialUpdateCommand,
+        staff_repository=staff_repository,
     )
 
     generate_password = providers.Factory(

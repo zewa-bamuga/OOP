@@ -18,8 +18,7 @@ from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCom
     AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand, ProjectStaffDeleteCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
-from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand, \
-    ProjectAvatarUpdateCommand
+from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand
 
 from a8t_tools.db import pagination, sorting
 
