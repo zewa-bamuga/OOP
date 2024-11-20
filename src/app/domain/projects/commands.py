@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 
 from app.domain.common.exceptions import NotFoundError
@@ -135,7 +137,7 @@ class ProjectPartialUpdateCommand:
     def __init__(self, project_repository: ProjectRepository):
         self.project_repository = project_repository
 
-    async def __call__(self, project_id: int, payload: schemas.ProjectPartialUpdate) -> schemas.ProjectDetailsFull:
+    async def __call__(self, project_id: UUID, payload: schemas.ProjectPartialUpdate) -> schemas.ProjectDetailsFull:
         try:
             await self.project_repository.partial_update_project(project_id, payload)
             user = await self.project_repository.get_project_by_filter_or_none(schemas.ProjectWhere(id=project_id))
