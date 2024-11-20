@@ -6,9 +6,11 @@ from fastapi.params import Form
 
 from app.api import deps
 from app.containers import Container
-from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand, UnlikeTheClipCommand
+from app.domain.clips.commands import ClipCreateCommand, LikeTheClipCommand, UnlikeTheClipCommand, ClipDeleteCommand
 from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery
-from app.domain.clips.schemas import ClipCreate
+from app.domain.clips.schemas import ClipCreate, ClipDelete
+from app.domain.news.commands import DeleteReminderTheNewsCommand
+from app.domain.news.schemas import ReminderTheNews
 from app.domain.projects.schemas import Like
 from app.domain.clips import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
@@ -61,6 +63,20 @@ async def create_clip_attachment(
                                  name=attachment.filename,
                              ),
                              )
+
+
+@router.delete(
+    "/delete",
+    response_model=None
+)
+@wiring.inject
+async def delete_clip(
+        payload: ClipDelete,
+        token: str = Header(...),
+        command: ClipDeleteCommand = Depends(wiring.Provide[Container.clip.delete_clip]),
+):
+    async with user_token(token):
+        return await command(payload)
 
 
 @router.get(

@@ -27,6 +27,22 @@ class Attachment(Base):
     name: orm.Mapped[str]
     path: orm.Mapped[str]
     uri: orm.Mapped[str | None]
+    projects = relationship("ProjectAttachment", back_populates="attachment")
+
+
+class ProjectAttachment(Base):
+    __tablename__ = "project_attachment"
+
+    project_id = Column(UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    attachment_id = Column(UUID(as_uuid=True), ForeignKey("attachment.id", ondelete="CASCADE"), nullable=False)
+
+    project = relationship("Project", back_populates="attachments")
+    attachment = relationship(
+        "Attachment",
+        backref="project_attachment",
+        foreign_keys=[attachment_id],
+        uselist=False,
+    )
 
 
 class User(Base):
@@ -155,6 +171,7 @@ class Project(Base):
     )
 
     staff_members = relationship("ProjectStaff", back_populates="project")
+    attachments = relationship("ProjectAttachment", back_populates="project", cascade="all, delete")
 
     @classmethod
     def add_like(cls):

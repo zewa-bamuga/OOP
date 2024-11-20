@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from a8t_tools.db.transactions import AsyncDbTransaction
 
 from app.domain.clips.commands import ClipCreateCommand, ClipPartialUpdateCommand, LikeTheClipCommand, \
-    UnlikeTheClipCommand
+    UnlikeTheClipCommand, ClipDeleteCommand
 from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery, ClipListQuery
 from app.domain.clips.repositories import ClipRepository, LikeClipRepository
 from app.domain.users.containers import UserContainer
@@ -46,6 +46,12 @@ class ClipContainer(containers.DeclarativeContainer):
     management_list_query = providers.Factory(
         ClipManagementListQuery,
         query=clip_list_query,
+    )
+
+    delete_clip = providers.Factory(
+        ClipDeleteCommand,
+        clip_repository=clip_repository,
+        clip_like_repository=clip_like_repository,
     )
 
     like_the_clip_command = providers.Factory(

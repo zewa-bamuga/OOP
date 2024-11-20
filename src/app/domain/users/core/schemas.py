@@ -37,8 +37,19 @@ class Staff(APIModel):
     created_at: datetime
 
 
+class ProjectAttachment(APIModel):
+    id: UUID
+    project_id: UUID | None = None
+    attachment_id: UUID | None = None
+    created_at: datetime
+
+
 class StaffDetails(Staff):
     avatar_attachment: Attachment | None = None
+
+
+class ProjectAttachmentDetails(Attachment):
+    attachment: Attachment | None = None
 
 
 class UserDetails(User):

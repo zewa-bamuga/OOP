@@ -34,6 +34,11 @@ class ClipPartialUpdate(APIModel):
     clip_attachment_id: UUID | None = None
 
 
+class ClipDelete(APIModel):
+    clip_id: int
+    user_id: UUID | None = None
+
+
 class LikeTheClip(APIModel):
     clip_id: int
     user_id: UUID | None = None

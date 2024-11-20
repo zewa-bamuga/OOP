@@ -33,6 +33,8 @@ a8t-tools = {extras = ["all"], version = "~0.1.1", source = "gitlab"}
 generate-password = "^1.0.0"
 sa = "^0.0.4"
 bcrypt = "4.0.1"
+requests = "^2.32.3"
+httpx = "^0.27.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.0.4"
