@@ -80,8 +80,8 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
             await session.execute(stmt)
             await session.commit()
 
-    async def partial_update_project(self, project_id: UUID, payload: schemas.ProjectPartialUpdate) -> None:
-        return await self._partial_update(project_id, payload)
+    async def partial_update_project(self, payload: schemas.ProjectPartialUpdate) -> None:
+        return await self._partial_update(payload.id, payload)
 
     async def get_project(
             self,

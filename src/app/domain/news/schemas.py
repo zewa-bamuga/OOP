@@ -44,6 +44,10 @@ class NewsSorts(enum.StrEnum):
     created_at = enum.auto()
 
 
+class NewsDelete(APIModel):
+    id: UUID
+
+
 class LikeTheNews(APIModel):
     news_id: UUID
     user_id: UUID | None = None

@@ -43,6 +43,7 @@ class AddEmployees(APIModel):
 
 
 class ProjectPartialUpdate(APIModel):
+    id: UUID
     avatar_attachment_id: UUID | None = None
 
 

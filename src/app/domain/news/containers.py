@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from a8t_tools.db.transactions import AsyncDbTransaction
 
 from app.domain.news.commands import NewsCreateCommand, NewsPartialUpdateCommand, LikeTheNewsCommand, \
-    UnlikeTheNewsCommand, ReminderTheNewsCommand, DeleteReminderTheNewsCommand
+    UnlikeTheNewsCommand, ReminderTheNewsCommand, DeleteReminderTheNewsCommand, NewsDeleteCommand
 from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery, NewsListQuery, TaskNewsRetrieveQuery
 from app.domain.news.repositories import NewsRepository, LikeNewsRepository, ReminderNewsRepository
 from app.domain.users.containers import UserContainer
@@ -54,6 +54,11 @@ class NewsContainer(containers.DeclarativeContainer):
     task_news_query = providers.Factory(
         TaskNewsRetrieveQuery,
         reminder_news_repository=reminder_news_repository,
+    )
+
+    delete_news = providers.Factory(
+        NewsDeleteCommand,
+        news_repository=news_repository,
     )
 
     reminder_the_news_command = providers.Factory(

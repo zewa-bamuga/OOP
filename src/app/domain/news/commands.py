@@ -18,7 +18,7 @@ from app.domain.common.exceptions import NotFoundError
 from app.domain.common.schemas import IdContainer
 from app.domain.news.queries import NewsRetrieveQuery, TaskNewsRetrieveQuery
 from app.domain.news.repositories import NewsRepository, LikeNewsRepository, ReminderNewsRepository
-from app.domain.news.schemas import NewsCreate, ReminderTheNews
+from app.domain.news.schemas import NewsCreate, ReminderTheNews, NewsDelete
 from app.domain.projects.schemas import Like
 from app.domain.users.auth.queries import CurrentUserQuery
 from app.domain.news import schemas
@@ -65,6 +65,17 @@ class NewsCreateCommand:
         )
 
         await self.news_repository.create_news(create_news)
+
+
+class NewsDeleteCommand:
+    def __init__(
+            self,
+            news_repository: NewsRepository,
+    ) -> None:
+        self.news_repository = news_repository
+
+    async def __call__(self, payload: NewsDelete) -> None:
+        return await self.news_repository.delete_news(payload)
 
 
 class NewsPartialUpdateCommand:
