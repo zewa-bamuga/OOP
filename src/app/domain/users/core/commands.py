@@ -11,6 +11,7 @@ from app.domain.common.exceptions import NotFoundError
 from app.domain.common.models import PasswordResetCode
 from app.domain.common.schemas import IdContainer
 from app.domain.notifications.commands import EmailSender
+from app.domain.projects.repositories import ProjectRepository
 from app.domain.users.core import schemas
 from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
 from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
@@ -55,6 +56,25 @@ class UserPartialUpdateCommand:
         try:
             await self.user_repository.partial_update_user(user_id, payload)
             user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
+
+            if not user:
+                raise NotFoundError()
+
+        except Exception as e:
+            print("Произошла ошибка при обновлении пользователя или сотрудника:", e)
+            raise
+
+        return schemas.UserDetailsFull.model_validate(user)
+
+
+class ProjectAvatarUpdateCommand:
+    def __init__(self, project_repository: ProjectRepository):
+        self.project_repository = project_repository
+
+    async def __call__(self, project_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
+        try:
+            await self.project_repository.partial_update_project(project_id, payload)
+            user = await self.project_repository.get_user_by_filter_or_none(schemas.UserWhere(id=project_id))
 
             if not user:
                 raise NotFoundError()

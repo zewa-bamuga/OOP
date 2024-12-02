@@ -75,6 +75,19 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
 
         return and_(*filters)
 
+    async def delete_news(self, payload: schemas.NewsDelete) -> None:
+        async with self.transaction.use() as session:
+            stmt = (
+                delete(models.News)
+                .where(
+                    and_(
+                        models.News.id == payload.id,
+                    )
+                )
+            )
+            await session.execute(stmt)
+            await session.commit()
+
 
 class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
     def __init__(self, transaction: AsyncDbTransaction):
