@@ -62,11 +62,6 @@ class AttachmentCreateCommand:
         )
 
         attachment = await self.repository.get_attachment_or_none(id_container.id)
-        attachment_id = attachment.id
-
-        update_payload = lol.UserPartialUpdate(avatar_attachment_id=attachment_id)
-
-        await self.user_partial_update_command(current_user.id, update_payload)
 
         assert attachment
         return attachment

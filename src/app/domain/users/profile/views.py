@@ -61,4 +61,3 @@ async def update_avatar_profile(
 ) -> None:
     async with user_token(token):
         return await command(payload)
-
