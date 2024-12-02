@@ -39,7 +39,7 @@ from app.domain.users.permissions.services import UserPermissionService
 from app.domain.users.registration.commands import UserRegisterCommand, UserEmailVerificationRequestCommand, \
     UserEmailVerificationConfirmCommand
 from app.domain.users.profile.queries import UserProfileMeQuery
-from app.domain.users.profile.commands import UserProfilePartialUpdateCommand
+from app.domain.users.profile.commands import UserProfilePartialUpdateCommand, UserAvatarUpdateCommand
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.security.hashing import PasswordHashService
 from a8t_tools.security.tokens import JwtHmacService, JwtRsaService, token_ctx_var
@@ -292,6 +292,12 @@ class UserContainer(containers.DeclarativeContainer):
 
     profile_partial_update_command = providers.Factory(
         UserProfilePartialUpdateCommand,
+        current_user_query=current_user_query,
+        user_partial_update_command=partial_update_command,
+    )
+
+    profile_update_avatar_command = providers.Factory(
+        UserAvatarUpdateCommand,
         current_user_query=current_user_query,
         user_partial_update_command=partial_update_command,
     )

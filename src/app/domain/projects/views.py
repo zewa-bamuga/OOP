@@ -87,7 +87,7 @@ async def get_project_by_id(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 @wiring.inject
-async def update_avatar(
+async def update_avatar_project(
         payload: schemas.ProjectPartialUpdate,
         command: ProjectPartialUpdateCommand = Depends(
             wiring.Provide[Container.project.project_partial_update_command]),
