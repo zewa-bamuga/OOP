@@ -15,7 +15,8 @@ from app.domain.projects.queries import ProjectManagementListQuery, ProjectRetri
     ProjectStaffManagementListQuery
 from app.domain.projects.schemas import ProjectCreate, Like, AddEmployees, ProjectDelete
 from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand, ProjectStaffDeleteCommand
+    AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand, ProjectStaffDeleteCommand, \
+    ProjectPartialUpdateCommand
 from app.domain.projects import schemas
 from app.domain.storage.attachments import schemas as AttachmentSchema
 from app.domain.storage.attachments.commands import ProjectAttachmentCreateCommand, ProjectAvatarCreateCommand
@@ -79,6 +80,19 @@ async def get_project_by_id(
 ):
     project = await query(project_id)
     return project
+
+
+@router.patch(
+    "/avatar/update",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+@wiring.inject
+async def update_avatar(
+        payload: schemas.ProjectPartialUpdate,
+        command: ProjectPartialUpdateCommand = Depends(
+            wiring.Provide[Container.project.project_partial_update_command]),
+) -> None:
+    await command(payload)
 
 
 @router.delete(
