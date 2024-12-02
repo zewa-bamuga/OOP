@@ -3,12 +3,14 @@ from contextlib import asynccontextmanager
 from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring
 from dependency_injector.wiring import Provide
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, Header, status, UploadFile
 
 from app.containers import Container
 from app.domain.users.profile import schemas
+from app.domain.storage.attachments import schemas as attachments
 from app.domain.users.core.schemas import StaffDetails, UserDetails
-from app.domain.users.profile.commands import UserProfilePartialUpdateCommand, UserAvatarUpdateCommand
+from app.domain.users.profile.commands import UserProfilePartialUpdateCommand, UserAvatarUpdateCommand, \
+    UserAvatarCreateCommand
 from app.domain.users.profile.queries import UserProfileMeQuery
 
 router = APIRouter()
@@ -31,6 +33,22 @@ async def get_me(
 ) -> StaffDetails:
     async with user_token(token):
         return await query()
+
+
+@router.post("", response_model=attachments.Attachment)
+@wiring.inject
+async def create_attachment(
+        attachment: UploadFile,
+        token: str = Header(...),
+        command: UserAvatarCreateCommand = Depends(wiring.Provide[Container.attachment.profile_avatar_create_command]),
+) -> attachments.Attachment:
+    async with user_token(token):
+        return await command(
+            attachments.AttachmentCreate(
+                file=attachment.file,
+                name=attachment.filename,
+            ),
+        )
 
 
 @router.patch(

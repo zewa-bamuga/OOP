@@ -15,6 +15,7 @@ from app.domain.storage.attachments.queries import (
 )
 from app.domain.storage.attachments.repositories import AttachmentRepository
 from app.domain.users.containers import UserContainer
+from app.domain.users.profile.commands import UserAvatarCreateCommand
 from app.domain.users.staff.command import StaffAvatarCreateCommand
 
 
@@ -43,6 +44,15 @@ class AttachmentContainer(containers.DeclarativeContainer):
 
     create_command = providers.Factory(
         AttachmentCreateCommand,
+        repository=repository,
+        file_storage=file_storage,
+        bucket=bucket,
+        current_user_query=user_container.profile_me_query,
+        user_partial_update_command=user_container.partial_update_command,
+    )
+
+    profile_avatar_create_command = providers.Factory(
+        UserAvatarCreateCommand,
         repository=repository,
         file_storage=file_storage,
         bucket=bucket,
