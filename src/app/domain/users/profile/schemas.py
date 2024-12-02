@@ -4,8 +4,7 @@ from app.domain.common.schemas import APIModel
 
 
 class UserProfilePartialUpdate(APIModel):
+    firstname: str | None = None
+    lastname: str | None = None
     description: str | None = None
-
-
-class UserPartialUpdate(APIModel):
     avatar_attachment_id: UUID | None = None

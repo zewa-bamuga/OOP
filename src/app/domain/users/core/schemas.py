@@ -105,6 +105,7 @@ class UserCreateFull(UserCreate):
 
 class UserPartialUpdate(APIModel):
     firstname: str | None = None
+    lastname: str | None = None
     email: EmailStr | None = None
     description: str | None = None
     avatar_attachment_id: UUID | None = None

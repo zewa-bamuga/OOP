@@ -49,21 +49,16 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(
+            self,
+            user_repository: UserRepository,
+    ):
         self.user_repository = user_repository
 
-    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
-        try:
-            await self.user_repository.partial_update_user(user_id, payload)
-            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-
-            if not user:
-                raise NotFoundError()
-
-        except Exception as e:
-            print("Произошла ошибка при обновлении пользователя или сотрудника:", e)
-            raise
-
+    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdateFull) -> schemas.UserDetailsFull:
+        await self.user_repository.partial_update_user(user_id, payload)
+        user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
+        assert user
         return schemas.UserDetailsFull.model_validate(user)
 
 

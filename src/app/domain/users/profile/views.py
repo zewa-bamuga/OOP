@@ -9,8 +9,7 @@ from app.containers import Container
 from app.domain.users.profile import schemas
 from app.domain.storage.attachments import schemas as attachments
 from app.domain.users.core.schemas import StaffDetails, UserDetails
-from app.domain.users.profile.commands import UserProfilePartialUpdateCommand, UserAvatarUpdateCommand, \
-    UserAvatarCreateCommand
+from app.domain.users.profile.commands import UserProfilePartialUpdateCommand, UserAvatarCreateCommand
 from app.domain.users.profile.queries import UserProfileMeQuery
 
 router = APIRouter()
@@ -35,9 +34,9 @@ async def get_me(
         return await query()
 
 
-@router.post("", response_model=attachments.Attachment)
+@router.post("/avatar/create", response_model=attachments.Attachment)
 @wiring.inject
-async def create_attachment(
+async def create_avatar_profile(
         attachment: UploadFile,
         token: str = Header(...),
         command: UserAvatarCreateCommand = Depends(wiring.Provide[Container.attachment.profile_avatar_create_command]),
@@ -52,30 +51,15 @@ async def create_attachment(
 
 
 @router.patch(
-    "/description/update",
+    "/partial/update",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 @wiring.inject
-async def update_description_profile(
+async def update_profile(
         payload: schemas.UserProfilePartialUpdate,
         token: str = Header(...),
         command: UserProfilePartialUpdateCommand = Depends(
             wiring.Provide[Container.user.profile_partial_update_command]),
-) -> None:
-    async with user_token(token):
-        return await command(payload)
-
-
-@router.patch(
-    "/avatar/update",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-@wiring.inject
-async def update_avatar_profile(
-        payload: schemas.UserPartialUpdate,
-        token: str = Header(...),
-        command: UserAvatarUpdateCommand = Depends(
-            wiring.Provide[Container.user.profile_update_avatar_command]),
 ) -> None:
     async with user_token(token):
         return await command(payload)
