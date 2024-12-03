@@ -1,6 +1,6 @@
+import smtplib
 from email.message import EmailMessage
 from uuid import UUID
-import smtplib
 
 from a8t_tools.bus.producer import TaskProducer
 from a8t_tools.security.hashing import PasswordHashService
@@ -13,17 +13,24 @@ from app.domain.common.schemas import IdContainer
 from app.domain.notifications.commands import EmailSender
 from app.domain.projects.repositories import ProjectRepository
 from app.domain.users.core import schemas
-from app.domain.users.core.queries import UserRetrieveByEmailQuery, UserRetrieveByCodeQuery
-from app.domain.users.core.repositories import UserRepository, UpdatePasswordRepository, StaffRepository
+from app.domain.users.core.queries import (
+    UserRetrieveByCodeQuery,
+    UserRetrieveByEmailQuery,
+)
+from app.domain.users.core.repositories import (
+    StaffRepository,
+    UpdatePasswordRepository,
+    UserRepository,
+)
 from app.domain.users.core.schemas import EmailForCode
 
 
 class UpdatePasswordRequestCommand:
     def __init__(
-            self,
-            user_retrieve_by_email_query: UserRetrieveByEmailQuery,
-            repository: UpdatePasswordRepository,
-            email_notification: EmailSender,
+        self,
+        user_retrieve_by_email_query: UserRetrieveByEmailQuery,
+        repository: UpdatePasswordRepository,
+        email_notification: EmailSender,
     ):
         self.user_retrieve_by_email_query = user_retrieve_by_email_query
         self.repository = repository
@@ -49,21 +56,20 @@ class UpdatePasswordRequestCommand:
 
 
 class UserPartialUpdateCommand:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+    ):
         self.user_repository = user_repository
 
-    async def __call__(self, user_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
-        try:
-            await self.user_repository.partial_update_user(user_id, payload)
-            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id))
-
-            if not user:
-                raise NotFoundError()
-
-        except Exception as e:
-            print("Произошла ошибка при обновлении пользователя или сотрудника:", e)
-            raise
-
+    async def __call__(
+        self, user_id: UUID, payload: schemas.UserPartialUpdateFull
+    ) -> schemas.UserDetailsFull:
+        await self.user_repository.partial_update_user(user_id, payload)
+        user = await self.user_repository.get_user_by_filter_or_none(
+            schemas.UserWhere(id=user_id)
+        )
+        assert user
         return schemas.UserDetailsFull.model_validate(user)
 
 
@@ -71,10 +77,14 @@ class ProjectAvatarUpdateCommand:
     def __init__(self, project_repository: ProjectRepository):
         self.project_repository = project_repository
 
-    async def __call__(self, project_id: UUID, payload: schemas.UserPartialUpdate) -> schemas.UserDetailsFull:
+    async def __call__(
+        self, project_id: UUID, payload: schemas.UserPartialUpdate
+    ) -> schemas.UserDetailsFull:
         try:
             await self.project_repository.partial_update_project(project_id, payload)
-            user = await self.project_repository.get_user_by_filter_or_none(schemas.UserWhere(id=project_id))
+            user = await self.project_repository.get_user_by_filter_or_none(
+                schemas.UserWhere(id=project_id)
+            )
 
             if not user:
                 raise NotFoundError()
@@ -88,12 +98,12 @@ class ProjectAvatarUpdateCommand:
 
 class UpdatePasswordConfirmCommand:
     def __init__(
-            self,
-            user_retrieve_by_email_query: UserRetrieveByEmailQuery,
-            user_retrieve_by_code_query: UserRetrieveByCodeQuery,
-            repository: UserRepository,
-            user_partial_update_command: UserPartialUpdateCommand,
-            password_hash_service: PasswordHashService,
+        self,
+        user_retrieve_by_email_query: UserRetrieveByEmailQuery,
+        user_retrieve_by_code_query: UserRetrieveByCodeQuery,
+        repository: UserRepository,
+        user_partial_update_command: UserPartialUpdateCommand,
+        password_hash_service: PasswordHashService,
     ):
         self.user_retrieve_by_email_query = user_retrieve_by_email_query
         self.user_retrieve_by_code_query = user_retrieve_by_code_query
@@ -118,9 +128,7 @@ class UpdatePasswordConfirmCommand:
 
         password_hash = await self.password_hash_service.hash(payload.password)
 
-        update_payload = schemas.UserPartialUpdateFull(
-            password_hash=password_hash
-        )
+        update_payload = schemas.UserPartialUpdateFull(password_hash=password_hash)
 
         print("Сейчас будет передаваться в user_partial_update_command")
 
@@ -131,17 +139,17 @@ class UpdatePasswordConfirmCommand:
 
 class UserCreateCommand:
     def __init__(
-            self,
-            user_repository: UserRepository,
-            staff_repository: StaffRepository,
-            task_producer: TaskProducer,
+        self,
+        user_repository: UserRepository,
+        staff_repository: StaffRepository,
+        task_producer: TaskProducer,
     ):
         self.user_repository = user_repository
         self.staff_repository = staff_repository
         self.task_producer = task_producer
 
     async def __call__(self, payload: schemas.StaffCreate) -> schemas.StaffDetails:
-        if payload.permissions == {'employee'}:
+        if payload.permissions == {"employee"}:
             employee_id_container = await self.staff_repository.create_employee(
                 schemas.StaffCreateFull(
                     status=enums.UserStatuses.unconfirmed,
@@ -150,7 +158,8 @@ class UserCreateCommand:
             )
             logger.info(f"Employee created: {employee_id_container.id}")
             user = await self.staff_repository.get_employee_by_filter_or_none(
-                schemas.UserWhere(id=employee_id_container.id))
+                schemas.UserWhere(id=employee_id_container.id)
+            )
             assert user
         else:
             user_id_container = await self.user_repository.create_user(
@@ -161,7 +170,9 @@ class UserCreateCommand:
             )
             logger.info(f"User created: {user_id_container.id}")
             await self._enqueue_user_activation(user_id_container)
-            user = await self.user_repository.get_user_by_filter_or_none(schemas.UserWhere(id=user_id_container.id))
+            user = await self.user_repository.get_user_by_filter_or_none(
+                schemas.UserWhere(id=user_id_container.id)
+            )
             assert user
 
         return schemas.UserDetails.model_validate(user)
@@ -176,8 +187,8 @@ class UserCreateCommand:
 
 class UserActivateCommand:
     def __init__(
-            self,
-            repository: UserRepository,
+        self,
+        repository: UserRepository,
     ):
         self.repository = repository
 
@@ -192,9 +203,9 @@ class EmailSenderCommand:
         email_password = "abqiulywjvibrefg"
 
         msg = EmailMessage()
-        msg['Subject'] = "Напоминание о новости"
-        msg['From'] = email_address
-        msg['To'] = 'tikhonov.igor2028@yandex.ru'
+        msg["Subject"] = "Напоминание о новости"
+        msg["From"] = email_address
+        msg["To"] = "tikhonov.igor2028@yandex.ru"
 
         html_content = f"""\
         <html>
@@ -216,8 +227,8 @@ class EmailSenderCommand:
         msg.set_content(
             f"Здравствуйте,\n\nВы запросили сброс пароля на платформе Отдела Образовательных Программ.\n\nКод для сброса пароля:\n\nЕсли вы не запрашивали сброс пароля, проигнорируйте это письмо.\n\nС уважением,\nВаш Отдел Образовательных Программ"
         )
-        msg.add_alternative(html_content, subtype='html')
+        msg.add_alternative(html_content, subtype="html")
 
-        with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as smtp:
+        with smtplib.SMTP_SSL("smtp.yandex.ru", 465) as smtp:
             smtp.login(email_address, email_password)
             smtp.send_message(msg)

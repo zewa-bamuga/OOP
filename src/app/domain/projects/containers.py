@@ -1,15 +1,31 @@
+from a8t_tools.db.transactions import AsyncDbTransaction
 from dependency_injector import containers, providers
 
-from a8t_tools.db.transactions import AsyncDbTransaction
-
-from app.domain.projects.commands import ProjectCreateCommand, LikeTheProjectCommand, UnlikeTheProjectCommand, \
-    ProjectPartialUpdateCommand, AddEmployeesCommand, ProjectDeleteCommand, ProjectAttachmentDeleteCommand, \
-    ProjectStaffDeleteCommand
-from app.domain.projects.queries import ProjectManagementListQuery, ProjectListQuery, ProjectRetrieveQuery, \
-    ProjectStaffManagementListQuery, ProjectStaffListQuery, ProjectAttachmentManagementListQuery, \
-    ProjectAttachmentListQuery
-from app.domain.projects.repositories import ProjectRepository, LikeTheProjectRepository, ProjectStaffRepository, \
-    ProjectAttachmentRepository
+from app.domain.projects.commands import (
+    AddEmployeesCommand,
+    LikeTheProjectCommand,
+    ProjectAttachmentDeleteCommand,
+    ProjectCreateCommand,
+    ProjectDeleteCommand,
+    ProjectPartialUpdateCommand,
+    ProjectStaffDeleteCommand,
+    UnlikeTheProjectCommand,
+)
+from app.domain.projects.queries import (
+    ProjectAttachmentListQuery,
+    ProjectAttachmentManagementListQuery,
+    ProjectListQuery,
+    ProjectManagementListQuery,
+    ProjectRetrieveQuery,
+    ProjectStaffListQuery,
+    ProjectStaffManagementListQuery,
+)
+from app.domain.projects.repositories import (
+    LikeTheProjectRepository,
+    ProjectAttachmentRepository,
+    ProjectRepository,
+    ProjectStaffRepository,
+)
 from app.domain.users.containers import UserContainer
 
 
@@ -17,9 +33,15 @@ class ProjectContainer(containers.DeclarativeContainer):
     transaction = providers.Dependency(instance_of=AsyncDbTransaction)
 
     project_repository = providers.Factory(ProjectRepository, transaction=transaction)
-    project_like_repository = providers.Factory(LikeTheProjectRepository, transaction=transaction)
-    project_staff_repository = providers.Factory(ProjectStaffRepository, transaction=transaction)
-    project_attachment_repository = providers.Factory(ProjectAttachmentRepository, transaction=transaction)
+    project_like_repository = providers.Factory(
+        LikeTheProjectRepository, transaction=transaction
+    )
+    project_staff_repository = providers.Factory(
+        ProjectStaffRepository, transaction=transaction
+    )
+    project_attachment_repository = providers.Factory(
+        ProjectAttachmentRepository, transaction=transaction
+    )
 
     user_container = providers.Container(UserContainer)
 
@@ -49,8 +71,7 @@ class ProjectContainer(containers.DeclarativeContainer):
     )
 
     current_project_query = providers.Factory(
-        ProjectRetrieveQuery,
-        project_repository=project_repository
+        ProjectRetrieveQuery, project_repository=project_repository
     )
 
     like_the_project_command = providers.Factory(

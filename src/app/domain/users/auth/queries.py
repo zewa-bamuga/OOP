@@ -34,16 +34,22 @@ class TokenPayloadQuery:
         try:
             yield
         except tokens.ExpiredSignatureError:
-            raise AuthError(code=enums.AuthErrorCodes.expired_signature, message="Signature has expired")
+            raise AuthError(
+                code=enums.AuthErrorCodes.expired_signature,
+                message="Signature has expired",
+            )
         except tokens.InvalidSignatureError:
-            raise AuthError(code=enums.AuthErrorCodes.invalid_signature, message="Signature verification failed")
+            raise AuthError(
+                code=enums.AuthErrorCodes.invalid_signature,
+                message="Signature verification failed",
+            )
 
 
 class CurrentUserTokenPayloadQuery:
     def __init__(
-            self,
-            token_query: CurrentUserTokenQuery,
-            token_payload_query: TokenPayloadQuery,
+        self,
+        token_query: CurrentUserTokenQuery,
+        token_payload_query: TokenPayloadQuery,
     ) -> None:
         self.token_query = token_query
         self.token_payload_query = token_payload_query
@@ -57,7 +63,9 @@ class CurrentUserTokenPayloadQuery:
 
 
 class CurrentUserQuery:
-    def __init__(self, token_query: CurrentUserTokenPayloadQuery, user_query: UserRetrieveQuery) -> None:
+    def __init__(
+        self, token_query: CurrentUserTokenPayloadQuery, user_query: UserRetrieveQuery
+    ) -> None:
         self.token_query = token_query
         self.user_query = user_query
 
