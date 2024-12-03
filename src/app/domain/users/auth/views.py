@@ -6,8 +6,11 @@ from app.containers import Container
 from app.domain.users.auth.commands import TokenRefreshCommand, UserAuthenticateCommand
 from app.domain.users.auth.schemas import TokenResponse
 from app.domain.users.core import schemas
-from app.domain.users.core.commands import UpdatePasswordRequestCommand, UpdatePasswordConfirmCommand
-from app.domain.users.core.schemas import UserCredentials, EmailForCode
+from app.domain.users.core.commands import (
+    UpdatePasswordConfirmCommand,
+    UpdatePasswordRequestCommand,
+)
+from app.domain.users.core.schemas import EmailForCode, UserCredentials
 
 router = APIRouter()
 
@@ -18,8 +21,10 @@ router = APIRouter()
 )
 @wiring.inject
 async def authenticate(
-        payload: UserCredentials,
-        command: UserAuthenticateCommand = Depends(wiring.Provide[Container.user.authenticate_command]),
+    payload: UserCredentials,
+    command: UserAuthenticateCommand = Depends(
+        wiring.Provide[Container.user.authenticate_command]
+    ),
 ) -> TokenResponse:
     return await command(payload)
 
@@ -30,8 +35,10 @@ async def authenticate(
 )
 @wiring.inject
 async def update_refresh_token(
-        refresh_token: str = Body(embed=True),
-        command: TokenRefreshCommand = Depends(wiring.Provide[Container.user.refresh_token_command]),
+    refresh_token: str = Body(embed=True),
+    command: TokenRefreshCommand = Depends(
+        wiring.Provide[Container.user.refresh_token_command]
+    ),
 ) -> TokenResponse:
     return await command(refresh_token)
 
@@ -42,8 +49,10 @@ async def update_refresh_token(
 )
 @wiring.inject
 async def password_reset_request(
-        payload: EmailForCode,
-        command: UpdatePasswordRequestCommand = Depends(wiring.Provide[Container.user.update_password_request_command]),
+    payload: EmailForCode,
+    command: UpdatePasswordRequestCommand = Depends(
+        wiring.Provide[Container.user.update_password_request_command]
+    ),
 ):
     return await command(payload)
 
@@ -54,10 +63,13 @@ async def password_reset_request(
 )
 @wiring.inject
 async def password_reset_confirm(
-        payload: schemas.UpdatePasswordConfirm,
-        command: UpdatePasswordConfirmCommand = Depends(wiring.Provide[Container.user.update_password_confirm_command]),
+    payload: schemas.UpdatePasswordConfirm,
+    command: UpdatePasswordConfirmCommand = Depends(
+        wiring.Provide[Container.user.update_password_confirm_command]
+    ),
 ) -> None:
     await command(payload)
+
 
 # @router.get(
 #     "/get_by_username",

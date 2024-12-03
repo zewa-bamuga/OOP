@@ -8,7 +8,7 @@ from a8t_tools.db import sorting as sr
 
 from app.domain.common.schemas import APIModel
 from app.domain.storage.attachments.schemas import Attachment
-from app.domain.users.core.schemas import Staff, StaffDetails, ProjectAttachmentDetails
+from app.domain.users.core.schemas import ProjectAttachmentDetails, Staff, StaffDetails
 
 
 class Project(APIModel):

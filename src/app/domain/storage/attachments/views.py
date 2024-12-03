@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from uuid import UUID
 
+from a8t_tools.db import pagination, sorting
 from a8t_tools.security.tokens import override_user_token
 from dependency_injector import wiring
-from fastapi import APIRouter, Depends, UploadFile, Header
+from fastapi import APIRouter, Depends, Header, UploadFile
 
 from app.api import deps
 from app.containers import Container
@@ -13,7 +14,6 @@ from app.domain.storage.attachments.queries import (
     AttachmentListQuery,
     AttachmentRetrieveQuery,
 )
-from a8t_tools.db import pagination, sorting
 
 router = APIRouter()
 
@@ -24,12 +24,14 @@ async def user_token(token: str):
         yield
 
 
-@router.post("", response_model=schemas.Attachment)
+@router.post("/create", response_model=schemas.Attachment)
 @wiring.inject
 async def create_attachment(
-        attachment: UploadFile,
-        token: str = Header(...),
-        command: AttachmentCreateCommand = Depends(wiring.Provide[Container.attachment.create_command]),
+    attachment: UploadFile,
+    token: str = Header(...),
+    command: AttachmentCreateCommand = Depends(
+        wiring.Provide[Container.attachment.create_command]
+    ),
 ) -> schemas.Attachment:
     async with user_token(token):
         return await command(
@@ -41,20 +43,24 @@ async def create_attachment(
 
 
 @router.get(
-    "",
+    "/get",
     response_model=pagination.CountPaginationResults[schemas.Attachment],
 )
 @wiring.inject
 async def get_attachments_list(
-        query: AttachmentListQuery = Depends(wiring.Provide[Container.attachment.list_query]),
-        pagination: pagination.PaginationCallable[schemas.Attachment] = Depends(
-            deps.get_skip_limit_pagination_dep(schemas.Attachment)
-        ),
-        sorting: sorting.SortingData[schemas.AttachmentSorts] = Depends(
-            deps.get_sort_order_sorting_dep(schemas.AttachmentSorts)
-        ),
+    query: AttachmentListQuery = Depends(
+        wiring.Provide[Container.attachment.list_query]
+    ),
+    pagination: pagination.PaginationCallable[schemas.Attachment] = Depends(
+        deps.get_skip_limit_pagination_dep(schemas.Attachment)
+    ),
+    sorting: sorting.SortingData[schemas.AttachmentSorts] = Depends(
+        deps.get_sort_order_sorting_dep(schemas.AttachmentSorts)
+    ),
 ) -> pagination.Paginated[schemas.Attachment]:
-    return await query(schemas.AttachmentListRequestSchema(pagination=pagination, sorting=sorting))
+    return await query(
+        schemas.AttachmentListRequestSchema(pagination=pagination, sorting=sorting)
+    )
 
 
 @router.get(
@@ -63,7 +69,9 @@ async def get_attachments_list(
 )
 @wiring.inject
 async def get_attachment_details(
-        attachment_id: UUID,
-        query: AttachmentRetrieveQuery = Depends(wiring.Provide[Container.attachment.retrieve_query]),
+    attachment_id: UUID,
+    query: AttachmentRetrieveQuery = Depends(
+        wiring.Provide[Container.attachment.retrieve_query]
+    ),
 ) -> schemas.Attachment:
     return await query(attachment_id)

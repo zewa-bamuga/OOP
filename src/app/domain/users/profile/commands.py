@@ -4,21 +4,21 @@ from datetime import datetime
 
 from a8t_tools.storage.facade import FileStorage
 
+from app.domain.storage.attachments import schemas
 from app.domain.storage.attachments.repositories import AttachmentRepository
 from app.domain.users.auth.queries import CurrentUserQuery
+from app.domain.users.core import schemas as lol
 from app.domain.users.core.commands import UserPartialUpdateCommand
 from app.domain.users.core.schemas import UserPartialUpdateFull
 from app.domain.users.profile.queries import UserProfileMeQuery
 from app.domain.users.profile.schemas import UserProfilePartialUpdate
-from app.domain.storage.attachments import schemas
-from app.domain.users.core import schemas as lol
 
 
 class UserProfilePartialUpdateCommand:
     def __init__(
-            self,
-            current_user_query: CurrentUserQuery,
-            user_partial_update_command: UserPartialUpdateCommand,
+        self,
+        current_user_query: CurrentUserQuery,
+        user_partial_update_command: UserPartialUpdateCommand,
     ) -> None:
         self.current_user_query = current_user_query
         self.user_partial_update_command = user_partial_update_command
@@ -26,19 +26,20 @@ class UserProfilePartialUpdateCommand:
     async def __call__(self, payload: UserProfilePartialUpdate) -> None:
         current_user = await self.current_user_query()
         await self.user_partial_update_command(
-            current_user.id, UserPartialUpdateFull(**payload.model_dump(exclude_unset=True))
+            current_user.id,
+            UserPartialUpdateFull(**payload.model_dump(exclude_unset=True)),
         )
 
 
 class UserAvatarCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_user_query: UserProfileMeQuery,
-            user_partial_update_command: UserPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_user_query: UserProfileMeQuery,
+        user_partial_update_command: UserPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -57,8 +58,8 @@ class UserAvatarCreateCommand:
         uri = await self.file_storage.upload_file(self.bucket, path, payload.file)
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(

@@ -1,9 +1,12 @@
 import secrets
 from typing import Any
 
+from dotenv import load_dotenv
 from passlib.context import CryptContext
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv()
 
 
 class ApiSettings(BaseSettings):
@@ -57,8 +60,8 @@ class MessageQueueSettings(BaseSettings):
 
 class StorageSettings(BaseSettings):
     class LocalConnectionSettings(BaseSettings):
-        base_path: str = Field(default=...)
-        base_uri: str = Field(default=...)
+        base_path: str = Field(..., env="LOCAL_STORAGE_BASE_PATH")
+        base_uri: str = Field(..., env="LOCAL_STORAGE_BASE_URI")
         model_config = SettingsConfigDict(env_prefix="LOCAL_STORAGE_")
 
     class S3ConnectionSettings(BaseSettings):
@@ -78,7 +81,7 @@ class StorageSettings(BaseSettings):
 class TasksSettings(BaseSettings):
     params: dict[str, Any] = {
         "activate_user": {"time_limit": 7200},
-        "reminder_news": {"time_limit": 7200}
+        "reminder_news": {"time_limit": 7200},
     }
     schedules: list[dict[str, Any]] = []
 
@@ -93,3 +96,6 @@ class Settings(BaseSettings):
     mq: MessageQueueSettings = MessageQueueSettings()
     storage: StorageSettings = StorageSettings()
     tasks: TasksSettings = TasksSettings()
+
+    class Config:
+        extra = "allow"

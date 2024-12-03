@@ -1,15 +1,16 @@
-from datetime import datetime
 import re
 import uuid
+from datetime import datetime
 from uuid import UUID
 
 from a8t_tools.storage.facade import FileStorage
 
 from app.domain.common.exceptions import NotFoundError
-from app.domain.projects.commands import ProjectPartialUpdateCommand
-from app.domain.projects.queries import ProjectRetrieveQuery
 from app.domain.storage.attachments.repositories import AttachmentRepository
-from app.domain.storage.attachments.schemas import AttachmentCreate, AttachmentCreateFull
+from app.domain.storage.attachments.schemas import (
+    AttachmentCreate,
+    AttachmentCreateFull,
+)
 from app.domain.users.core.repositories import StaffRepository
 from app.domain.users.staff import schemas
 from app.domain.users.staff.queries import StaffRetrieveQuery
@@ -18,8 +19,8 @@ from app.domain.users.staff.schemas import StaffCreate, StaffPartialUpdate
 
 class StaffCreateCommand:
     def __init__(
-            self,
-            staff_repository: StaffRepository,
+        self,
+        staff_repository: StaffRepository,
     ) -> None:
         self.staff_repository = staff_repository
 
@@ -34,7 +35,9 @@ class StaffCreateCommand:
             link_to_vk=payload.link_to_vk,
         )
 
-        staff_id_container = await self.staff_repository.create_employee(staff_create_data)
+        staff_id_container = await self.staff_repository.create_employee(
+            staff_create_data
+        )
 
         staff = await self.staff_repository.get_employee_by_filter_or_none(
             schemas.StaffWhere(id=staff_id_container.id)
@@ -57,10 +60,14 @@ class StaffPartialUpdateCommand:
     def __init__(self, staff_repository: StaffRepository):
         self.staff_repository = staff_repository
 
-    async def __call__(self, staff_id: UUID, payload: schemas.StaffPartialUpdate) -> schemas.StaffDetailsFull:
+    async def __call__(
+        self, staff_id: UUID, payload: schemas.StaffPartialUpdate
+    ) -> schemas.StaffDetailsFull:
         try:
             await self.staff_repository.partial_update_staff(staff_id, payload)
-            staff = await self.staff_repository.get_staff_by_filter_or_none(schemas.StaffWhere(id=staff_id))
+            staff = await self.staff_repository.get_staff_by_filter_or_none(
+                schemas.StaffWhere(id=staff_id)
+            )
 
             if not staff:
                 raise NotFoundError()
@@ -74,13 +81,13 @@ class StaffPartialUpdateCommand:
 
 class StaffAvatarCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            staff_retrieve_by_id_query: StaffRetrieveQuery,
-            staff_partial_update_command: StaffPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        staff_retrieve_by_id_query: StaffRetrieveQuery,
+        staff_partial_update_command: StaffPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -89,16 +96,20 @@ class StaffAvatarCreateCommand:
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, staff_id: UUID, attachment_payload: AttachmentCreate) -> schemas.Attachment:
+    async def __call__(
+        self, staff_id: UUID, attachment_payload: AttachmentCreate
+    ) -> schemas.Attachment:
         current_staff = await self.staff_retrieve_by_id_query(staff_id)
 
         name = attachment_payload.name or self._get_random_name()
         path = self._generate_path(name)
 
-        uri = await self.file_storage.upload_file(self.bucket, path, attachment_payload.file)
+        uri = await self.file_storage.upload_file(
+            self.bucket, path, attachment_payload.file
+        )
 
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             AttachmentCreateFull(

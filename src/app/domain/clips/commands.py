@@ -1,18 +1,18 @@
 from fastapi import HTTPException
 
+from app.domain.clips import schemas
 from app.domain.clips.queries import ClipRetrieveQuery
 from app.domain.clips.repositories import ClipRepository, LikeClipRepository
 from app.domain.clips.schemas import ClipCreate
 from app.domain.common.exceptions import NotFoundError
 from app.domain.projects.schemas import Like
 from app.domain.users.auth.queries import CurrentUserQuery
-from app.domain.clips import schemas
 
 
 class ClipCreateCommand:
     def __init__(
-            self,
-            clip_repository: ClipRepository,
+        self,
+        clip_repository: ClipRepository,
     ) -> None:
         self.clip_repository = clip_repository
 
@@ -30,10 +30,14 @@ class ClipPartialUpdateCommand:
     def __init__(self, clip_repository: ClipRepository):
         self.clip_repository = clip_repository
 
-    async def __call__(self, clip_id: int, payload: schemas.ClipPartialUpdate) -> schemas.ClipDetailsFull:
+    async def __call__(
+        self, clip_id: int, payload: schemas.ClipPartialUpdate
+    ) -> schemas.ClipDetailsFull:
         try:
             await self.clip_repository.partial_update_clip(clip_id, payload)
-            user = await self.clip_repository.get_clip_by_filter_or_none(schemas.ClipWhere(id=clip_id))
+            user = await self.clip_repository.get_clip_by_filter_or_none(
+                schemas.ClipWhere(id=clip_id)
+            )
 
             if not user:
                 raise NotFoundError()
@@ -47,9 +51,9 @@ class ClipPartialUpdateCommand:
 
 class ClipDeleteCommand:
     def __init__(
-            self,
-            clip_repository: ClipRepository,
-            clip_like_repository: LikeClipRepository,
+        self,
+        clip_repository: ClipRepository,
+        clip_like_repository: LikeClipRepository,
     ) -> None:
         self.clip_repository = clip_repository
         self.clip_like_repository = clip_like_repository
@@ -61,11 +65,11 @@ class ClipDeleteCommand:
 
 class LikeTheClipCommand:
     def __init__(
-            self,
-            clip_like_repository: LikeClipRepository,
-            clip_retrieve_by_id_query: ClipRetrieveQuery,
-            current_user_query: CurrentUserQuery,
-            clip_repository: ClipRepository
+        self,
+        clip_like_repository: LikeClipRepository,
+        clip_retrieve_by_id_query: ClipRetrieveQuery,
+        current_user_query: CurrentUserQuery,
+        clip_repository: ClipRepository,
     ) -> None:
         self.clip_like_repository = clip_like_repository
         self.clip_retrieve_by_id_query = clip_retrieve_by_id_query
@@ -95,11 +99,11 @@ class LikeTheClipCommand:
 
 class UnlikeTheClipCommand:
     def __init__(
-            self,
-            clip_like_repository: LikeClipRepository,
-            clip_retrieve_by_id_query: ClipRetrieveQuery,
-            current_user_query: CurrentUserQuery,
-            clip_repository: ClipRepository
+        self,
+        clip_like_repository: LikeClipRepository,
+        clip_retrieve_by_id_query: ClipRetrieveQuery,
+        current_user_query: CurrentUserQuery,
+        clip_repository: ClipRepository,
     ) -> None:
         self.clip_like_repository = clip_like_repository
         self.clip_retrieve_by_id_query = clip_retrieve_by_id_query
@@ -118,7 +122,9 @@ class UnlikeTheClipCommand:
 
         new_likes_count = clip.likes - 1
 
-        like_exists = await self.clip_like_repository.check_like_exists(clip_id, user_id)
+        like_exists = await self.clip_like_repository.check_like_exists(
+            clip_id, user_id
+        )
         if not like_exists:
             raise HTTPException(status_code=404, detail="Like not found")
 

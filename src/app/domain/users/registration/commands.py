@@ -1,19 +1,25 @@
+from a8t_tools.security.hashing import PasswordHashService
+
 from app.domain.common.models import EmailCode
 from app.domain.notifications.commands import EmailSender
-from app.domain.users.core.commands import UserCreateCommand
-from app.domain.users.core.repositories import EmailRpository, UserRepository
-from app.domain.users.core.schemas import UserCreate, UserDetails, UserCredentialsRegist, EmailForCode, VerificationCode
-from a8t_tools.security.hashing import PasswordHashService
 from app.domain.users.core import schemas
-
+from app.domain.users.core.commands import UserCreateCommand
+from app.domain.users.core.repositories import EmailRpository
+from app.domain.users.core.schemas import (
+    EmailForCode,
+    UserCreate,
+    UserCredentialsRegist,
+    UserDetails,
+    VerificationCode,
+)
 from app.domain.users.permissions.schemas import BasePermissions
 
 
 class UserEmailVerificationRequestCommand:
     def __init__(
-            self,
-            repository: EmailRpository,
-            email_notification: EmailSender,
+        self,
+        repository: EmailRpository,
+        email_notification: EmailSender,
     ) -> None:
         self.repository = repository
         self.email_notification = email_notification
@@ -34,9 +40,8 @@ class UserEmailVerificationRequestCommand:
 
 class UserEmailVerificationConfirmCommand:
     def __init__(
-            self,
-            email_repository: EmailRpository,
-
+        self,
+        email_repository: EmailRpository,
     ) -> None:
         self.email_repository = email_repository
 
@@ -54,10 +59,10 @@ class UserEmailVerificationConfirmCommand:
 
 class UserRegisterCommand:
     def __init__(
-            self,
-            create_command: UserCreateCommand,
-            password_hash_service: PasswordHashService,
-            email_notification: EmailSender,
+        self,
+        create_command: UserCreateCommand,
+        password_hash_service: PasswordHashService,
+        email_notification: EmailSender,
     ) -> None:
         self.create_command = create_command
         self.password_hash_service = password_hash_service

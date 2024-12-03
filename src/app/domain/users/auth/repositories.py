@@ -1,10 +1,10 @@
 import uuid
-from sqlalchemy import insert, select, delete
-
-from app.domain.users.auth import schemas
-from app.domain.common import models
 
 from a8t_tools.db.transactions import AsyncDbTransaction
+from sqlalchemy import delete, insert, select
+
+from app.domain.common import models
+from app.domain.users.auth import schemas
 
 
 class TokenRepository:
@@ -14,7 +14,9 @@ class TokenRepository:
     async def create_token_info(self, payload: schemas.TokenInfo) -> None:
         async with self.transaction.use() as session:
             try:
-                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                staff_query = select(models.Staff).where(
+                    models.Staff.id == payload.user_id
+                )
                 staff_exists = await session.execute(staff_query)
 
                 if staff_exists.first():

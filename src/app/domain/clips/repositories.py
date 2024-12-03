@@ -1,16 +1,16 @@
 from uuid import UUID
 
-from a8t_tools.db.pagination import PaginationCallable, Paginated
+from a8t_tools.db.pagination import Paginated, PaginationCallable
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
-from sqlalchemy import ColumnElement, and_, select, insert, update, delete
+from sqlalchemy import ColumnElement, and_, delete, insert, select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
+from app.domain.clips import schemas
 from app.domain.common import models
 from app.domain.common.schemas import IdContainerTables
-from app.domain.clips import schemas
 
 
 class ClipRepository(CrudRepositoryMixin[models.Clip]):
@@ -26,9 +26,9 @@ class ClipRepository(CrudRepositoryMixin[models.Clip]):
         return IdContainerTables(id=await self._create(payload))
 
     async def get_clip(
-            self,
-            pagination: PaginationCallable[schemas.Clip] | None = None,
-            sorting: SortingData[schemas.ClipSorts] | None = None,
+        self,
+        pagination: PaginationCallable[schemas.Clip] | None = None,
+        sorting: SortingData[schemas.ClipSorts] | None = None,
     ) -> Paginated[schemas.Clip]:
         return await self._get_list(
             schemas.Clip,
@@ -37,10 +37,14 @@ class ClipRepository(CrudRepositoryMixin[models.Clip]):
             options=self.load_options,
         )
 
-    async def partial_update_clip(self, clip_id: UUID, payload: schemas.ClipPartialUpdate) -> None:
+    async def partial_update_clip(
+        self, clip_id: UUID, payload: schemas.ClipPartialUpdate
+    ) -> None:
         return await self._partial_update(clip_id, payload)
 
-    async def get_clip_by_filter_or_none(self, where: schemas.ClipWhere) -> schemas.ClipDetailsFull | None:
+    async def get_clip_by_filter_or_none(
+        self, where: schemas.ClipWhere
+    ) -> schemas.ClipDetailsFull | None:
         return await self._get_or_none(
             schemas.ClipDetailsFull,
             condition=await self._format_filters(where),
@@ -67,12 +71,9 @@ class ClipRepository(CrudRepositoryMixin[models.Clip]):
 
     async def delete_clip(self, payload=schemas.ClipDelete) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.Clip)
-                .where(
-                    and_(
-                        models.Clip.id == payload.clip_id,
-                    )
+            stmt = delete(models.Clip).where(
+                and_(
+                    models.Clip.id == payload.clip_id,
                 )
             )
             await session.execute(stmt)
@@ -88,8 +89,8 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
         async with self.transaction.use() as session:
             try:
                 like_query = select(models.ClipLike).where(
-                    (models.ClipLike.user_id == payload.user_id) &
-                    (models.ClipLike.clip_id == payload.clip_id)
+                    (models.ClipLike.user_id == payload.user_id)
+                    & (models.ClipLike.clip_id == payload.clip_id)
                 )
                 like_exists = await session.execute(like_query)
                 existing_like = like_exists.scalar_one_or_none()
@@ -97,7 +98,9 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
                 if existing_like:
                     return
 
-                staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                staff_query = select(models.Staff).where(
+                    models.Staff.id == payload.user_id
+                )
                 staff_exists = await session.execute(staff_query)
 
                 if staff_exists.first():
@@ -122,13 +125,10 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
 
     async def delete_like_clip(self, payload=schemas.ClipDelete) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.ClipLike)
-                .where(
-                    and_(
-                        models.ClipLike.clip_id == payload.clip_id,
-                        models.ClipLike.user_id == payload.user_id
-                    )
+            stmt = delete(models.ClipLike).where(
+                and_(
+                    models.ClipLike.clip_id == payload.clip_id,
+                    models.ClipLike.user_id == payload.user_id,
                 )
             )
             await session.execute(stmt)
@@ -139,7 +139,7 @@ class LikeClipRepository(CrudRepositoryMixin[models.ClipLike]):
             stmt = select(models.ClipLike).where(
                 and_(
                     models.ClipLike.clip_id == clip_id,
-                    models.ClipLike.user_id == user_id
+                    models.ClipLike.user_id == user_id,
                 )
             )
             result = await session.execute(stmt)

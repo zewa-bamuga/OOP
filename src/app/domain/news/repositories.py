@@ -1,15 +1,15 @@
 from uuid import UUID
 
-from a8t_tools.db.pagination import PaginationCallable, Paginated
+from a8t_tools.db.pagination import Paginated, PaginationCallable
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
-from sqlalchemy import ColumnElement, and_, select, insert, update, delete
+from sqlalchemy import ColumnElement, and_, delete, insert, select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.domain.common import models
-from app.domain.common.schemas import IdContainerTables, IdContainer
+from app.domain.common.schemas import IdContainer
 from app.domain.news import schemas
 
 
@@ -26,9 +26,9 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
         return IdContainer(id=await self._create(payload))
 
     async def get_news(
-            self,
-            pagination: PaginationCallable[schemas.News] | None = None,
-            sorting: SortingData[schemas.NewsSorts] | None = None,
+        self,
+        pagination: PaginationCallable[schemas.News] | None = None,
+        sorting: SortingData[schemas.NewsSorts] | None = None,
     ) -> Paginated[schemas.News]:
         return await self._get_list(
             schemas.News,
@@ -47,7 +47,9 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
             await session.execute(stmt)
             await session.commit()
 
-    async def update_news_reminder(self, news_id: UUID, new_reminder_count: int) -> None:
+    async def update_news_reminder(
+        self, news_id: UUID, new_reminder_count: int
+    ) -> None:
         async with self.transaction.use() as session:
             stmt = (
                 update(models.News)
@@ -57,10 +59,14 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
             await session.execute(stmt)
             await session.commit()
 
-    async def partial_update_news(self, news_id: UUID, payload: schemas.NewsPartialUpdate) -> None:
+    async def partial_update_news(
+        self, news_id: UUID, payload: schemas.NewsPartialUpdate
+    ) -> None:
         return await self._partial_update(news_id, payload)
 
-    async def get_news_by_filter_or_none(self, where: schemas.NewsWhere) -> schemas.NewsDetailsFull | None:
+    async def get_news_by_filter_or_none(
+        self, where: schemas.NewsWhere
+    ) -> schemas.NewsDetailsFull | None:
         return await self._get_or_none(
             schemas.NewsDetailsFull,
             condition=await self._format_filters(where),
@@ -77,12 +83,9 @@ class NewsRepository(CrudRepositoryMixin[models.News]):
 
     async def delete_news(self, payload: schemas.NewsDelete) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.News)
-                .where(
-                    and_(
-                        models.News.id == payload.id,
-                    )
+            stmt = delete(models.News).where(
+                and_(
+                    models.News.id == payload.id,
                 )
             )
             await session.execute(stmt)
@@ -97,11 +100,14 @@ class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
     async def create_reminder(self, payload: schemas.ReminderCreate) -> IdContainer:
         return IdContainer(id=await self._create(payload))
 
-    async def create_task_id(self, news_id: UUID, payload: schemas.TaskIdCreate) -> None:
+    async def create_task_id(
+        self, news_id: UUID, payload: schemas.TaskIdCreate
+    ) -> None:
         return await self._partial_update(news_id, payload)
 
-    async def get_task_id_news_by_filter_or_none(self,
-                                                 where: schemas.TaskIdNewsWhere) -> schemas.ReminderDetailsFull | None:
+    async def get_task_id_news_by_filter_or_none(
+        self, where: schemas.TaskIdNewsWhere
+    ) -> schemas.ReminderDetailsFull | None:
         print("Получилось user_id: ", where.user_id)
         print("Получилось news_id: ", where.news_id)
         return await self._get_or_none(
@@ -109,7 +115,9 @@ class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
             condition=await self._format_filters(where),
         )
 
-    async def _format_filters(self, where: schemas.TaskIdNewsWhere) -> ColumnElement[bool]:
+    async def _format_filters(
+        self, where: schemas.TaskIdNewsWhere
+    ) -> ColumnElement[bool]:
         filters: list[ColumnElement[bool]] = []
 
         if where.news_id is not None:
@@ -121,13 +129,10 @@ class ReminderNewsRepository(CrudRepositoryMixin[models.NewsReminder]):
         print("Передалось в удаление user_id: ", user_id)
         print("Передалось в удаление news_id: ", news_id)
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.NewsReminder)
-                .where(
-                    and_(
-                        models.NewsReminder.news_id == news_id,
-                        models.NewsReminder.user_id == user_id
-                    )
+            stmt = delete(models.NewsReminder).where(
+                and_(
+                    models.NewsReminder.news_id == news_id,
+                    models.NewsReminder.user_id == user_id,
                 )
             )
             await session.execute(stmt)
@@ -143,20 +148,22 @@ class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
         async with self.transaction.use() as session:
             try:
                 like_query = select(models.NewsLike).where(
-                    (models.NewsLike.user_id == payload.user_id) &
-                    (models.NewsLike.news_id == payload.news_id)
+                    (models.NewsLike.user_id == payload.user_id)
+                    & (models.NewsLike.news_id == payload.news_id)
                 )
                 like_exists = await session.execute(like_query)
                 existing_like = like_exists.scalar_one_or_none()
 
                 if existing_like:
                     delete_stmt = delete(models.NewsLike).where(
-                        (models.NewsLike.user_id == payload.user_id) &
-                        (models.NewsLike.news_id == payload.news_id)
+                        (models.NewsLike.user_id == payload.user_id)
+                        & (models.NewsLike.news_id == payload.news_id)
                     )
                     await session.execute(delete_stmt)
                 else:
-                    staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                    staff_query = select(models.Staff).where(
+                        models.Staff.id == payload.user_id
+                    )
                     staff_exists = await session.execute(staff_query)
 
                     if staff_exists.first():
@@ -181,13 +188,10 @@ class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
 
     async def delete_like_news(self, news_id: int, user_id: int) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.NewsLike)
-                .where(
-                    and_(
-                        models.NewsLike.news_id == news_id,
-                        models.NewsLike.user_id == user_id
-                    )
+            stmt = delete(models.NewsLike).where(
+                and_(
+                    models.NewsLike.news_id == news_id,
+                    models.NewsLike.user_id == user_id,
                 )
             )
             await session.execute(stmt)
@@ -198,7 +202,7 @@ class LikeNewsRepository(CrudRepositoryMixin[models.NewsLike]):
             stmt = select(models.NewsLike).where(
                 and_(
                     models.NewsLike.news_id == news_id,
-                    models.NewsLike.user_id == user_id
+                    models.NewsLike.user_id == user_id,
                 )
             )
             result = await session.execute(stmt)

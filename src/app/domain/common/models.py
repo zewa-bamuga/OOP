@@ -1,21 +1,25 @@
 import datetime
+import random
 import secrets
 import uuid
 
 import sqlalchemy as sa
-from sqlalchemy import orm, Column, Integer, String, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String, orm
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import random
 
 
 @orm.as_declarative()
 class Base:
     __tablename__: str
 
-    id: orm.Mapped[uuid.UUID] = orm.mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    created_at: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), server_default=func.now())
+    id: orm.Mapped[uuid.UUID] = orm.mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
+    )
+    created_at: orm.Mapped[datetime.datetime] = orm.mapped_column(
+        sa.DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: orm.Mapped[datetime.datetime] = orm.mapped_column(
         sa.DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -33,8 +37,14 @@ class Attachment(Base):
 class ProjectAttachment(Base):
     __tablename__ = "project_attachment"
 
-    project_id = Column(UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
-    attachment_id = Column(UUID(as_uuid=True), ForeignKey("attachment.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(
+        UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False
+    )
+    attachment_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("attachment.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     project = relationship("Project", back_populates="attachments")
     attachment = relationship(
@@ -60,7 +70,7 @@ class User(Base):
         index=True,
         nullable=True,
     )
-    permissions: orm.Mapped[set[str] | None] = orm.mapped_column(ARRAY(sa.String))
+    permissions: orm.Mapped[list[str] | None] = orm.mapped_column(ARRAY(sa.String))
 
     avatar_attachment = relationship(
         "Attachment",
@@ -90,7 +100,7 @@ class Staff(Base):
         index=True,
         nullable=True,
     )
-    permissions: orm.Mapped[set[str] | None] = orm.mapped_column(ARRAY(sa.String))
+    permissions: orm.Mapped[list[str] | None] = orm.mapped_column(ARRAY(sa.String))
 
     avatar_attachment = relationship(
         "Attachment",
@@ -108,8 +118,18 @@ class Token(Base):
     __tablename__ = "tokens"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(User.id, ondelete="CASCADE"),
+        index=True,
+        nullable=True,
+    )
+    staff_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(Staff.id, ondelete="CASCADE"),
+        index=True,
+        nullable=True,
+    )
     refresh_token_id = Column(UUID(as_uuid=True))
 
     user = relationship("User", back_populates="tokens")
@@ -120,12 +140,19 @@ class PasswordResetCode(Base):
     __tablename__ = "password_reset_code"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(User.id, ondelete="CASCADE"), index=True, nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey(Staff.id, ondelete="CASCADE"), index=True, nullable=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(User.id, ondelete="CASCADE"),
+        index=True,
+        nullable=True,
+    )
+    staff_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(Staff.id, ondelete="CASCADE"),
+        index=True,
+        nullable=True,
+    )
     code = Column(String, nullable=False)
-
-    user_id_user_fk = ForeignKey('user.id')
-    user_id_staff_fk = ForeignKey('staff.id')
 
     user = relationship("User", back_populates="password_reset_code")
     staff = relationship("Staff", back_populates="password_reset_code")
@@ -136,7 +163,7 @@ class PasswordResetCode(Base):
 
 
 class EmailCode(Base):
-    __tablename__ = 'email_code'
+    __tablename__ = "email_code"
 
     id = Column(Integer, primary_key=True)
     email: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
@@ -151,12 +178,16 @@ class Project(Base):
     __tablename__ = "project"
 
     name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
-    start_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
-    end_date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    start_date: orm.Mapped[datetime.datetime] = orm.mapped_column(
+        sa.DateTime(timezone=True), nullable=False
+    )
+    end_date: orm.Mapped[datetime.datetime] = orm.mapped_column(
+        sa.DateTime(timezone=True), nullable=False
+    )
     description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
     participants: orm.Mapped[int] = orm.mapped_column(Integer, nullable=True)
     lessons: orm.Mapped[int] = orm.mapped_column(Integer, nullable=True)
-    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0, nullable=False)
     avatar_attachment_id = Column(
         UUID(as_uuid=True),
         ForeignKey("attachment.id", ondelete="SET NULL"),
@@ -171,7 +202,9 @@ class Project(Base):
     )
 
     staff_members = relationship("ProjectStaff", back_populates="project")
-    attachments = relationship("ProjectAttachment", back_populates="project", cascade="all, delete")
+    attachments = relationship(
+        "ProjectAttachment", back_populates="project", cascade="all, delete"
+    )
 
     @classmethod
     def add_like(cls):
@@ -181,8 +214,12 @@ class Project(Base):
 class ProjectStaff(Base):
     __tablename__ = "project_staff"
 
-    project_id = Column(UUID, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(
+        UUID, ForeignKey("project.id", ondelete="CASCADE"), nullable=False
+    )
+    staff_id = Column(
+        UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=False
+    )
 
     project = relationship("Project", back_populates="staff_members")
     staff = relationship(
@@ -196,9 +233,15 @@ class ProjectStaff(Base):
 class ProjectLike(Base):
     __tablename__ = "project_like"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True
+    )
+    staff_id = Column(
+        UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True
+    )
+    project_id = Column(
+        UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False
+    )
 
     user = relationship("User", backref="project_likes")
     staff = relationship("Staff", backref="project_likes")
@@ -209,10 +252,12 @@ class News(Base):
     __tablename__ = "news"
 
     name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
-    date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    date: orm.Mapped[datetime.datetime] = orm.mapped_column(
+        sa.DateTime(timezone=True), nullable=False
+    )
     description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
-    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
-    reminder: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
+    likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0, nullable=False)
+    reminder: orm.Mapped[int] = orm.mapped_column(Integer, default=0, nullable=False)
     avatar_attachment_id = Column(
         UUID(as_uuid=True),
         ForeignKey("attachment.id", ondelete="SET NULL"),
@@ -238,10 +283,15 @@ class News(Base):
 class NewsReminder(Base):
     __tablename__ = "news_reminder"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
-    news_id = Column(UUID(as_uuid=True), ForeignKey("news.id", ondelete="CASCADE"), nullable=False)
-    task_id: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True
+    )
+    staff_id = Column(
+        UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True
+    )
+    news_id = Column(
+        UUID(as_uuid=True), ForeignKey("news.id", ondelete="CASCADE"), nullable=False
+    )
 
     user = relationship("User", backref="news_reminders")
     staff = relationship("Staff", backref="news_reminders")
@@ -251,9 +301,15 @@ class NewsReminder(Base):
 class NewsLike(Base):
     __tablename__ = "news_like"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
-    news_id = Column(UUID(as_uuid=True), ForeignKey("news.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True
+    )
+    staff_id = Column(
+        UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True
+    )
+    news_id = Column(
+        UUID(as_uuid=True), ForeignKey("news.id", ondelete="CASCADE"), nullable=False
+    )
 
     user = relationship("User", backref="news_likes")
     staff = relationship("Staff", backref="news_likes")
@@ -265,7 +321,9 @@ class Clip(Base):
 
     id = Column(Integer, primary_key=True)
     name: orm.Mapped[str] = orm.mapped_column(String, nullable=False)
-    date: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime(timezone=True), nullable=False)
+    date: orm.Mapped[datetime.datetime] = orm.mapped_column(
+        sa.DateTime(timezone=True), nullable=False
+    )
     description: orm.Mapped[str] = orm.mapped_column(String, nullable=True)
     likes: orm.Mapped[int] = orm.mapped_column(Integer, default=0)
     clip_attachment_id = Column(
@@ -290,8 +348,12 @@ class ClipLike(Base):
     __tablename__ = "clip_like"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
-    staff_id = Column(UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=True
+    )
+    staff_id = Column(
+        UUID(as_uuid=True), ForeignKey("staff.id", ondelete="CASCADE"), nullable=True
+    )
     clip_id = Column(Integer, ForeignKey("clip.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", backref="clip_likes")
