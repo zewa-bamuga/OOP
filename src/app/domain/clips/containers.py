@@ -1,10 +1,18 @@
+from a8t_tools.db.transactions import AsyncDbTransaction
 from dependency_injector import containers, providers
 
-from a8t_tools.db.transactions import AsyncDbTransaction
-
-from app.domain.clips.commands import ClipCreateCommand, ClipPartialUpdateCommand, LikeTheClipCommand, \
-    UnlikeTheClipCommand, ClipDeleteCommand
-from app.domain.clips.queries import ClipRetrieveQuery, ClipManagementListQuery, ClipListQuery
+from app.domain.clips.commands import (
+    ClipCreateCommand,
+    ClipDeleteCommand,
+    ClipPartialUpdateCommand,
+    LikeTheClipCommand,
+    UnlikeTheClipCommand,
+)
+from app.domain.clips.queries import (
+    ClipListQuery,
+    ClipManagementListQuery,
+    ClipRetrieveQuery,
+)
 from app.domain.clips.repositories import ClipRepository, LikeClipRepository
 from app.domain.users.containers import UserContainer
 
@@ -14,7 +22,9 @@ class ClipContainer(containers.DeclarativeContainer):
 
     clip_repository = providers.Factory(ClipRepository, transaction=transaction)
 
-    clip_like_repository = providers.Factory(LikeClipRepository, transaction=transaction)
+    clip_like_repository = providers.Factory(
+        LikeClipRepository, transaction=transaction
+    )
 
     user_container = providers.Container(UserContainer)
 
@@ -24,8 +34,7 @@ class ClipContainer(containers.DeclarativeContainer):
     )
 
     current_clip_query = providers.Factory(
-        ClipRetrieveQuery,
-        clip_repository=clip_repository
+        ClipRetrieveQuery, clip_repository=clip_repository
     )
 
     clip_partial_update_command = providers.Factory(

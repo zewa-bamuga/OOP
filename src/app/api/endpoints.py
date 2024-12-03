@@ -1,37 +1,28 @@
 from fastapi import APIRouter, status
 
+import app.domain.clips.views
+import app.domain.directions.views
+import app.domain.news.views
+import app.domain.projects.views
 import app.domain.storage.attachments.views
 import app.domain.users.auth.views
 import app.domain.users.management.views
-import app.domain.users.registration.views
 import app.domain.users.profile.views
+import app.domain.users.registration.views
 import app.domain.users.staff.views
-import app.domain.projects.views
-import app.domain.news.views
-import app.domain.clips.views
-import app.domain.directions.views
 import app.domain.vk.views
-
 from app.api import schemas
 
 auth = APIRouter(prefix="/authentication")
 auth.include_router(
-    app.domain.users.registration.views.router,
-    prefix="/v1",
-    tags=["Authentication"]
+    app.domain.users.registration.views.router, prefix="/v1", tags=["Authentication"]
 )
 auth.include_router(
-    app.domain.users.auth.views.router,
-    prefix="/v1",
-    tags=["Authentication"]
+    app.domain.users.auth.views.router, prefix="/v1", tags=["Authentication"]
 )
 
 staff = APIRouter(prefix="/staff")
-staff.include_router(
-    app.domain.users.staff.views.router,
-    prefix="/v1",
-    tags=["Staff"]
-)
+staff.include_router(app.domain.users.staff.views.router, prefix="/v1", tags=["Staff"])
 
 profile = APIRouter(prefix="/profile")
 profile.include_router(
@@ -69,11 +60,7 @@ clips.include_router(
 )
 
 vk = APIRouter(prefix="/vk")
-vk.include_router(
-    app.domain.vk.views.router,
-    prefix="/v1",
-    tags=["VK"]
-)
+vk.include_router(app.domain.vk.views.router, prefix="/v1", tags=["VK"])
 
 management = APIRouter(prefix="/management")
 management.include_router(

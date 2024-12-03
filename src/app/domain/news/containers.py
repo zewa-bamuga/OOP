@@ -1,11 +1,26 @@
+from a8t_tools.db.transactions import AsyncDbTransaction
 from dependency_injector import containers, providers
 
-from a8t_tools.db.transactions import AsyncDbTransaction
-
-from app.domain.news.commands import NewsCreateCommand, NewsPartialUpdateCommand, LikeTheNewsCommand, \
-    UnlikeTheNewsCommand, ReminderTheNewsCommand, DeleteReminderTheNewsCommand, NewsDeleteCommand
-from app.domain.news.queries import NewsRetrieveQuery, NewsManagementListQuery, NewsListQuery, TaskNewsRetrieveQuery
-from app.domain.news.repositories import NewsRepository, LikeNewsRepository, ReminderNewsRepository
+from app.domain.news.commands import (
+    DeleteReminderTheNewsCommand,
+    LikeTheNewsCommand,
+    NewsCreateCommand,
+    NewsDeleteCommand,
+    NewsPartialUpdateCommand,
+    ReminderTheNewsCommand,
+    UnlikeTheNewsCommand,
+)
+from app.domain.news.queries import (
+    NewsListQuery,
+    NewsManagementListQuery,
+    NewsRetrieveQuery,
+    TaskNewsRetrieveQuery,
+)
+from app.domain.news.repositories import (
+    LikeNewsRepository,
+    NewsRepository,
+    ReminderNewsRepository,
+)
 from app.domain.users.containers import UserContainer
 
 
@@ -14,8 +29,12 @@ class NewsContainer(containers.DeclarativeContainer):
 
     news_repository = providers.Factory(NewsRepository, transaction=transaction)
 
-    news_like_repository = providers.Factory(LikeNewsRepository, transaction=transaction)
-    reminder_news_repository = providers.Factory(ReminderNewsRepository, transaction=transaction)
+    news_like_repository = providers.Factory(
+        LikeNewsRepository, transaction=transaction
+    )
+    reminder_news_repository = providers.Factory(
+        ReminderNewsRepository, transaction=transaction
+    )
 
     active_tasks = {}
 
@@ -27,8 +46,7 @@ class NewsContainer(containers.DeclarativeContainer):
     )
 
     current_news_query = providers.Factory(
-        NewsRetrieveQuery,
-        news_repository=news_repository
+        NewsRetrieveQuery, news_repository=news_repository
     )
 
     news_partial_update_command = providers.Factory(

@@ -8,4 +8,3 @@ class BasePermissions(PermissionsBase):
     employee = enum.auto()
     user = enum.auto()
     authenticated = enum.auto()
-

@@ -35,6 +35,7 @@ sa = "^0.0.4"
 bcrypt = "4.0.1"
 requests = "^2.32.3"
 httpx = "^0.27.2"
+moto = "^5.0.22"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.0.4"
@@ -54,8 +55,10 @@ pyupgrade = "^3.3.1"
 pyright = "^1.1.300"
 mypy = "^1.8.0"
 types-passlib = "^1.7.7.10"
+moto = "^5.0.22"
 
-
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 
 [build-system]

@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from a8t_tools.db.pagination import PaginationCallable, Paginated
+from a8t_tools.db.pagination import Paginated, PaginationCallable
 from a8t_tools.db.sorting import SortingData
 from a8t_tools.db.transactions import AsyncDbTransaction
 from a8t_tools.db.utils import CrudRepositoryMixin
-from sqlalchemy import ColumnElement, and_, select, insert, update, delete
+from sqlalchemy import ColumnElement, and_, delete, insert, select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
@@ -22,14 +22,17 @@ class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment])
         self.model = models.ProjectAttachment
         self.transaction = transaction
 
-    async def create_project_attachment(self, payload: schemas.ProjectAttachment) -> IdContainer:
+    async def create_project_attachment(
+        self, payload: schemas.ProjectAttachment
+    ) -> IdContainer:
         return IdContainer(id=await self._create(payload))
 
     async def get_project_attachment(
-            self,
-            project_id: UUID,
-            pagination: PaginationCallable[schemas.ProjectAttachmentDetailsShort] | None = None,
-            sorting: SortingData[schemas.ProjectAttachmentSorts] | None = None,
+        self,
+        project_id: UUID,
+        pagination: PaginationCallable[schemas.ProjectAttachmentDetailsShort]
+        | None = None,
+        sorting: SortingData[schemas.ProjectAttachmentSorts] | None = None,
     ) -> Paginated[schemas.ProjectAttachmentDetailsShort]:
         condition = self.model.project_id == project_id
         return await self._get_list(
@@ -40,15 +43,14 @@ class ProjectAttachmentRepository(CrudRepositoryMixin[models.ProjectAttachment])
             options=self.load_options,
         )
 
-    async def delete_project_attachment(self, payload: schemas.ProjectAttachment) -> None:
+    async def delete_project_attachment(
+        self, payload: schemas.ProjectAttachment
+    ) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.ProjectAttachment)
-                .where(
-                    and_(
-                        models.ProjectAttachment.project_id == payload.project_id,
-                        models.ProjectAttachment.attachment_id == payload.attachment_id
-                    )
+            stmt = delete(models.ProjectAttachment).where(
+                and_(
+                    models.ProjectAttachment.project_id == payload.project_id,
+                    models.ProjectAttachment.attachment_id == payload.attachment_id,
                 )
             )
             await session.execute(stmt)
@@ -69,24 +71,23 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
 
     async def delete_project(self, payload: schemas.ProjectDelete) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.Project)
-                .where(
-                    and_(
-                        models.Project.id == payload.id,
-                    )
+            stmt = delete(models.Project).where(
+                and_(
+                    models.Project.id == payload.id,
                 )
             )
             await session.execute(stmt)
             await session.commit()
 
-    async def partial_update_project(self, payload: schemas.ProjectPartialUpdate) -> None:
+    async def partial_update_project(
+        self, payload: schemas.ProjectPartialUpdate
+    ) -> None:
         return await self._partial_update(payload.id, payload)
 
     async def get_project(
-            self,
-            pagination: PaginationCallable[schemas.Project] | None = None,
-            sorting: SortingData[schemas.ProjectSorts] | None = None,
+        self,
+        pagination: PaginationCallable[schemas.Project] | None = None,
+        sorting: SortingData[schemas.ProjectSorts] | None = None,
     ) -> Paginated[schemas.Project]:
         return await self._get_list(
             schemas.Project,
@@ -95,7 +96,9 @@ class ProjectRepository(CrudRepositoryMixin[models.Project]):
             options=self.load_options,
         )
 
-    async def get_project_by_filter_or_none(self, where: schemas.ProjectWhere) -> schemas.ProjectDetailsFull | None:
+    async def get_project_by_filter_or_none(
+        self, where: schemas.ProjectWhere
+    ) -> schemas.ProjectDetailsFull | None:
         return await self._get_or_none(
             schemas.ProjectDetailsFull,
             condition=await self._format_filters(where),
@@ -130,14 +133,16 @@ class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
         self.model = models.ProjectStaff
         self.transaction = transaction
 
-    async def create_add_staff_project(self, payload: schemas.AddEmployees) -> IdContainer:
+    async def create_add_staff_project(
+        self, payload: schemas.AddEmployees
+    ) -> IdContainer:
         return IdContainer(id=await self._create(payload))
 
     async def get_project_staff(
-            self,
-            project_id: UUID,
-            pagination: PaginationCallable[schemas.ProjectStaffDetailsShort] | None = None,
-            sorting: SortingData[schemas.ProjectStaffSorts] | None = None,
+        self,
+        project_id: UUID,
+        pagination: PaginationCallable[schemas.ProjectStaffDetailsShort] | None = None,
+        sorting: SortingData[schemas.ProjectStaffSorts] | None = None,
     ) -> Paginated[schemas.ProjectStaffDetailsShort]:
         condition = self.model.project_id == project_id
         return await self._get_list(
@@ -150,13 +155,10 @@ class ProjectStaffRepository(CrudRepositoryMixin[models.ProjectStaff]):
 
     async def delete_staff_project(self, payload: schemas.AddEmployees) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.ProjectStaff)
-                .where(
-                    and_(
-                        models.ProjectStaff.project_id == payload.project_id,
-                        models.ProjectStaff.staff_id == payload.staff_id
-                    )
+            stmt = delete(models.ProjectStaff).where(
+                and_(
+                    models.ProjectStaff.project_id == payload.project_id,
+                    models.ProjectStaff.staff_id == payload.staff_id,
                 )
             )
             await session.execute(stmt)
@@ -172,20 +174,22 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
         async with self.transaction.use() as session:
             try:
                 like_query = select(models.ProjectLike).where(
-                    (models.ProjectLike.user_id == payload.user_id) &
-                    (models.ProjectLike.project_id == payload.project_id)
+                    (models.ProjectLike.user_id == payload.user_id)
+                    & (models.ProjectLike.project_id == payload.project_id)
                 )
                 like_exists = await session.execute(like_query)
                 existing_like = like_exists.scalar_one_or_none()
 
                 if existing_like:
                     delete_stmt = delete(models.ProjectLike).where(
-                        (models.ProjectLike.user_id == payload.user_id) &
-                        (models.ProjectLike.project_id == payload.project_id)
+                        (models.ProjectLike.user_id == payload.user_id)
+                        & (models.ProjectLike.project_id == payload.project_id)
                     )
                     await session.execute(delete_stmt)
                 else:
-                    staff_query = select(models.Staff).where(models.Staff.id == payload.user_id)
+                    staff_query = select(models.Staff).where(
+                        models.Staff.id == payload.user_id
+                    )
                     staff_exists = await session.execute(staff_query)
 
                     if staff_exists.first():
@@ -210,13 +214,10 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
 
     async def delete_like_project(self, project_id: int, user_id: int) -> None:
         async with self.transaction.use() as session:
-            stmt = (
-                delete(models.ProjectLike)
-                .where(
-                    and_(
-                        models.ProjectLike.project_id == project_id,
-                        models.ProjectLike.user_id == user_id
-                    )
+            stmt = delete(models.ProjectLike).where(
+                and_(
+                    models.ProjectLike.project_id == project_id,
+                    models.ProjectLike.user_id == user_id,
                 )
             )
             await session.execute(stmt)
@@ -227,7 +228,7 @@ class LikeTheProjectRepository(CrudRepositoryMixin[models.ProjectLike]):
             stmt = select(models.ProjectLike).where(
                 and_(
                     models.ProjectLike.project_id == project_id,
-                    models.ProjectLike.user_id == user_id
+                    models.ProjectLike.user_id == user_id,
                 )
             )
             result = await session.execute(stmt)

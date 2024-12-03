@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
-from dataclasses import dataclass
 
 from a8t_tools.schemas.pydantic import APIModel
 from pydantic import EmailStr

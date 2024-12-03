@@ -1,10 +1,11 @@
-from a8t_tools.storage.facade import FileStorage
-from datetime import datetime
-import uuid
 import re
-from contextlib import asynccontextmanager
+import uuid
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import IO
+
+from a8t_tools.storage.facade import FileStorage
 
 from app.domain.clips.commands import ClipPartialUpdateCommand
 from app.domain.clips.queries import ClipRetrieveQuery
@@ -15,9 +16,8 @@ from app.domain.news.schemas import NewsPartialUpdate
 from app.domain.projects.commands import ProjectPartialUpdateCommand
 from app.domain.projects.queries import ProjectRetrieveQuery
 from app.domain.projects.repositories import ProjectAttachmentRepository
-from app.domain.projects.schemas import Like, ProjectPartialUpdate, ProjectAttachment
+from app.domain.projects.schemas import Like, ProjectAttachment, ProjectPartialUpdate
 from app.domain.storage.attachments import schemas
-from app.domain.users.core import schemas as lol
 from app.domain.storage.attachments.repositories import AttachmentRepository
 from app.domain.users.core.commands import UserPartialUpdateCommand
 from app.domain.users.profile.queries import UserProfileMeQuery
@@ -25,13 +25,13 @@ from app.domain.users.profile.queries import UserProfileMeQuery
 
 class AttachmentCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_user_query: UserProfileMeQuery,
-            user_partial_update_command: UserPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_user_query: UserProfileMeQuery,
+        user_partial_update_command: UserPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -41,8 +41,6 @@ class AttachmentCreateCommand:
         self.max_name_len = max_name_len
 
     async def __call__(self, payload: schemas.AttachmentCreate) -> schemas.Attachment:
-        current_user = await self.current_user_query()
-
         name = payload.name or self._get_random_name()
         path = self._generate_path(name)
 
@@ -50,8 +48,8 @@ class AttachmentCreateCommand:
         uri = await self.file_storage.upload_file(self.bucket, path, payload.file)
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(
@@ -62,11 +60,6 @@ class AttachmentCreateCommand:
         )
 
         attachment = await self.repository.get_attachment_or_none(id_container.id)
-        attachment_id = attachment.id
-
-        update_payload = lol.UserPartialUpdate(avatar_attachment_id=attachment_id)
-
-        await self.user_partial_update_command(current_user.id, update_payload)
 
         assert attachment
         return attachment
@@ -93,13 +86,13 @@ class AttachmentCreateCommand:
 
 class ProjectAvatarCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_project_query: ProjectRetrieveQuery,
-            project_partial_update_command: ProjectPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_project_query: ProjectRetrieveQuery,
+        project_partial_update_command: ProjectPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -108,18 +101,22 @@ class ProjectAvatarCreateCommand:
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, like_payload: Like, attachment_payload: schemas.AttachmentCreate) -> schemas.Attachment:
+    async def __call__(
+        self, like_payload: Like, attachment_payload: schemas.AttachmentCreate
+    ) -> schemas.Attachment:
         current_project = await self.current_project_query(like_payload.project_id)
 
         name = attachment_payload.name or self._get_random_name()
         path = self._generate_path(name)
 
         # Загружаем файл и получаем uri
-        uri = await self.file_storage.upload_file(self.bucket, path, attachment_payload.file)
+        uri = await self.file_storage.upload_file(
+            self.bucket, path, attachment_payload.file
+        )
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(
@@ -161,14 +158,14 @@ class ProjectAvatarCreateCommand:
 
 class ProjectAttachmentCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_project_query: ProjectRetrieveQuery,
-            project_partial_update_command: ProjectPartialUpdateCommand,
-            project_attachment_repository: ProjectAttachmentRepository,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_project_query: ProjectRetrieveQuery,
+        project_partial_update_command: ProjectPartialUpdateCommand,
+        project_attachment_repository: ProjectAttachmentRepository,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -178,18 +175,22 @@ class ProjectAttachmentCreateCommand:
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, like_payload: Like, attachment_payload: schemas.AttachmentCreate) -> schemas.Attachment:
+    async def __call__(
+        self, like_payload: Like, attachment_payload: schemas.AttachmentCreate
+    ) -> schemas.Attachment:
         current_project = await self.current_project_query(like_payload.project_id)
 
         name = attachment_payload.name or self._get_random_name()
         path = self._generate_path(name)
 
         # Загружаем файл и получаем uri
-        uri = await self.file_storage.upload_file(self.bucket, path, attachment_payload.file)
+        uri = await self.file_storage.upload_file(
+            self.bucket, path, attachment_payload.file
+        )
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(
@@ -202,16 +203,15 @@ class ProjectAttachmentCreateCommand:
         attachment = await self.repository.get_attachment_or_none(id_container.id)
         attachment_id = attachment.id
 
-        update_payload = ProjectPartialUpdate(avatar_attachment_id=attachment_id)
-
         # Создаем объект схемы
         project_attachment_payload = ProjectAttachment(
-            project_id=current_project.id,
-            attachment_id=attachment.id
+            project_id=current_project.id, attachment_id=attachment.id
         )
 
         # Передаем объект в метод
-        await self.project_attachment_repository.create_project_attachment(project_attachment_payload)
+        await self.project_attachment_repository.create_project_attachment(
+            project_attachment_payload
+        )
 
         assert attachment
         return attachment
@@ -306,13 +306,13 @@ class ProjectAttachmentCreateCommand:
 
 class NewsAttachmentCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_news_query: NewsRetrieveQuery,
-            news_partial_update_command: NewsPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_news_query: NewsRetrieveQuery,
+        news_partial_update_command: NewsPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -321,18 +321,22 @@ class NewsAttachmentCreateCommand:
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, like_payload: Like, attachment_payload: schemas.AttachmentCreate) -> schemas.Attachment:
+    async def __call__(
+        self, like_payload: Like, attachment_payload: schemas.AttachmentCreate
+    ) -> schemas.Attachment:
         current_news = await self.current_news_query(like_payload.news_id)
 
         name = attachment_payload.name or self._get_random_name()
         path = self._generate_path(name)
 
         # Загружаем файл и получаем uri
-        uri = await self.file_storage.upload_file(self.bucket, path, attachment_payload.file)
+        uri = await self.file_storage.upload_file(
+            self.bucket, path, attachment_payload.file
+        )
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(
@@ -374,13 +378,13 @@ class NewsAttachmentCreateCommand:
 
 class ClipAttachmentCreateCommand:
     def __init__(
-            self,
-            repository: AttachmentRepository,
-            file_storage: FileStorage,
-            current_clip_query: ClipRetrieveQuery,
-            clip_partial_update_command: ClipPartialUpdateCommand,
-            bucket: str,
-            max_name_len: int = 60,
+        self,
+        repository: AttachmentRepository,
+        file_storage: FileStorage,
+        current_clip_query: ClipRetrieveQuery,
+        clip_partial_update_command: ClipPartialUpdateCommand,
+        bucket: str,
+        max_name_len: int = 60,
     ):
         self.repository = repository
         self.file_storage = file_storage
@@ -389,18 +393,22 @@ class ClipAttachmentCreateCommand:
         self.bucket = bucket
         self.max_name_len = max_name_len
 
-    async def __call__(self, like_payload: Like, attachment_payload: schemas.AttachmentCreate) -> schemas.Attachment:
+    async def __call__(
+        self, like_payload: Like, attachment_payload: schemas.AttachmentCreate
+    ) -> schemas.Attachment:
         current_clip = await self.current_clip_query(like_payload.clip_id)
 
         name = attachment_payload.name or self._get_random_name()
         path = self._generate_path(name)
 
         # Загружаем файл и получаем uri
-        uri = await self.file_storage.upload_file(self.bucket, path, attachment_payload.file)
+        uri = await self.file_storage.upload_file(
+            self.bucket, path, attachment_payload.file
+        )
 
         # Если uri содержит лишний сегмент, исправляем его
-        if '/department-of-educational-programs-bucket/' in uri:
-            uri = uri.replace('/department-of-educational-programs-bucket/', '/')
+        if "/department-of-educational-programs-bucket/" in uri:
+            uri = uri.replace("/department-of-educational-programs-bucket/", "/")
 
         id_container = await self.repository.create_attachment(
             schemas.AttachmentCreateFull(
@@ -442,14 +450,16 @@ class ClipAttachmentCreateCommand:
 
 class AttachmentDataRetrieveCommand:
     def __init__(
-            self,
-            file_storage: FileStorage,
-            bucket: str,
+        self,
+        file_storage: FileStorage,
+        bucket: str,
     ):
         self.file_storage = file_storage
         self.bucket = bucket
 
     @asynccontextmanager
-    async def __call__(self, attachment: schemas.Attachment) -> AsyncIterator[IO[bytes]]:
+    async def __call__(
+        self, attachment: schemas.Attachment
+    ) -> AsyncIterator[IO[bytes]]:
         async with self.file_storage.receive_file(self.bucket, attachment.path) as file:
             yield file
