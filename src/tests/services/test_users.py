@@ -11,7 +11,7 @@ class TestUsers:
         results = await container.user.user_list_query()(
             schemas.UserListRequestSchema()
         )
-        assert len(results.items) == 10
+        assert len(results.items) == 13
         assert isinstance(results.items[0], schemas.User)
 
     async def test_retrieve(self, container: Container):

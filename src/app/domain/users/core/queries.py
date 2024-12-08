@@ -16,7 +16,7 @@ class UserListQuery:
         self.user_repository = user_repository
 
     async def __call__(
-        self, payload: schemas.StaffListRequestSchema
+            self, payload: schemas.StaffListRequestSchema
     ) -> Paginated[schemas.StaffDetails]:
         return await self.user_repository.get_users(payload.pagination, payload.sorting)
 
@@ -26,37 +26,22 @@ class StaffListQuery:
         self.repository = repository
 
     async def __call__(
-        self, payload: schemas.StaffListRequestSchema
+            self, payload: schemas.StaffListRequestSchema
     ) -> Paginated[schemas.Staff]:
         return await self.repository.get_employee(payload.pagination, payload.sorting)
 
 
 class UserRetrieveQuery:
     def __init__(
-        self, user_repository: UserRepository, staff_repository: StaffRepository
+            self, user_repository: UserRepository
     ):
         self.user_repository = user_repository
-        self.staff_repository = staff_repository
 
     async def __call__(self, user_id: UUID) -> schemas.UserInternal:
-        try:
-            user_result = await self.user_repository.get_user_by_filter_or_none(
-                schemas.UserWhere(id=user_id)
-            )
-            if user_result:
-                return schemas.UserInternal.model_validate(user_result)
-
-            staff_result = await self.staff_repository.get_employee_by_filter_or_none(
-                schemas.UserWhere(id=user_id)
-            )
-            if staff_result:
-                return schemas.UserInternal.model_validate(staff_result)
-
-            raise NotFoundError()
-
-        except Exception as e:
-            print("Произошла ошибка при поиске пользователя и сотрудника:", e)
-            raise
+        user_result = await self.user_repository.get_user_by_filter_or_none(
+            schemas.UserWhere(id=user_id)
+        )
+        return schemas.UserInternal.model_validate(user_result)
 
 
 class EmailRetrieveQuery:
@@ -84,7 +69,7 @@ class UserRetrieveByUsernameQuery:
 
 class UserRetrieveByEmailQuery:
     def __init__(
-        self, user_repository: UserRepository, staff_repository: StaffRepository
+            self, user_repository: UserRepository, staff_repository: StaffRepository
     ):
         self.user_repository = user_repository
         self.staff_repository = staff_repository
@@ -112,9 +97,9 @@ class UserRetrieveByEmailQuery:
 
 class UserRetrieveByCodeQuery:
     def __init__(
-        self,
-        update_password_repository: UpdatePasswordRepository,
-        staff_repository: StaffRepository,
+            self,
+            update_password_repository: UpdatePasswordRepository,
+            staff_repository: StaffRepository,
     ):
         self.update_password_repository = update_password_repository
         self.staff_repository = staff_repository

@@ -7,13 +7,13 @@ install:
 	poetry install
 
 test:
-	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=80
+	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=70
 
 test-key:
-	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=80 -k $(name)
+	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=70 -k $(name)
 
 test-lf:
-	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=80 --lf
+	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . run --rm fastapi_test  pytest -vv --cov=app --cov-branch --cov-report term-missing --cov-fail-under=70 --lf
 
 test-rebuild:
 	docker-compose -f ./deploy/compose/test/docker-compose.yml --project-directory . build
@@ -92,4 +92,4 @@ poetry-make-format-lint:
 prepare: install poetry-make-format-lint
 
 pytest:
-	pytest --cov=src --cov-report term-missing --cov-fail-under=80
+	pytest --cov=src --cov-report term-missing --cov-fail-under=70

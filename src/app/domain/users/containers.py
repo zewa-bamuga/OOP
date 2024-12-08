@@ -31,7 +31,7 @@ from app.domain.users.core.queries import (
     UserRetrieveByCodeQuery,
     UserRetrieveByEmailQuery,
     UserRetrieveByUsernameQuery,
-    UserRetrieveQuery,
+    UserRetrieveQuery, StaffListQuery,
 )
 from app.domain.users.core.repositories import (
     EmailRpository,
@@ -115,19 +115,19 @@ class UserContainer(containers.DeclarativeContainer):
         user_repository=user_repository,
     )
 
-    # staff_list_query = providers.Factory(
-    #     StaffListQuery,
-    #     repository=staff_repository,
-    # )
+    staff_list_query = providers.Factory(
+        StaffListQuery,
+        repository=staff_repository,
+    )
 
     retrieve_query = providers.Factory(
         UserRetrieveQuery,
         user_repository=user_repository,
-        staff_repository=staff_repository,
     )
 
     current_staff_query = providers.Factory(
         StaffRetrieveQuery,
+        staff_repository=staff_repository
     )
 
     retrieve_by_email_query = providers.Factory(

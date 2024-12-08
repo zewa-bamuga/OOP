@@ -45,11 +45,11 @@ async def user_token(token: str):
 @router.post("/create", response_model=None)
 @wiring.inject
 async def create_project(
-    payload: ProjectCreate,
-    token: str = Header(...),
-    command: ProjectCreateCommand = Depends(
-        wiring.Provide[Container.project.create_command]
-    ),
+        payload: ProjectCreate,
+        token: str = Header(...),
+        command: ProjectCreateCommand = Depends(
+            wiring.Provide[Container.project.create_command]
+        ),
 ):
     async with user_token(token):
         project = await command(payload)
@@ -62,19 +62,19 @@ async def create_project(
 )
 @wiring.inject
 async def get_projects_list(
-    query: ProjectManagementListQuery = Depends(
-        wiring.Provide[Container.project.management_list_query]
-    ),
-    pagination: pagination.PaginationCallable[schemas.ProjectDetailsFull] = Depends(
-        deps.get_skip_limit_pagination_dep(schemas.ProjectDetailsFull)
-    ),
-    sorting: sorting.SortingData[schemas.ProjectSorts] = Depends(
-        deps.get_sort_order_sorting_dep(
-            schemas.ProjectSorts,
-            schemas.ProjectSorts.created_at,
-            sorting.SortOrders.desc,
-        )
-    ),
+        query: ProjectManagementListQuery = Depends(
+            wiring.Provide[Container.project.management_list_query]
+        ),
+        pagination: pagination.PaginationCallable[schemas.ProjectDetailsFull] = Depends(
+            deps.get_skip_limit_pagination_dep(schemas.ProjectDetailsFull)
+        ),
+        sorting: sorting.SortingData[schemas.ProjectSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ProjectSorts,
+                schemas.ProjectSorts.created_at,
+                sorting.SortOrders.desc,
+            )
+        ),
 ) -> pagination.Paginated[schemas.ProjectDetailsFull]:
     return await query(
         schemas.ProjectListRequestSchema(pagination=pagination, sorting=sorting)
@@ -84,10 +84,10 @@ async def get_projects_list(
 @router.get("/get/{project_id}", response_model=None)
 @wiring.inject
 async def get_project_by_id(
-    project_id: UUID,
-    query: ProjectRetrieveQuery = Depends(
-        wiring.Provide[Container.project.project_retrieve_by_id_query]
-    ),
+        project_id: UUID,
+        query: ProjectRetrieveQuery = Depends(
+            wiring.Provide[Container.project.project_retrieve_by_id_query]
+        ),
 ):
     project = await query(project_id)
     return project
@@ -99,10 +99,10 @@ async def get_project_by_id(
 )
 @wiring.inject
 async def update_avatar_project(
-    payload: schemas.ProjectPartialUpdate,
-    command: ProjectPartialUpdateCommand = Depends(
-        wiring.Provide[Container.project.project_partial_update_command]
-    ),
+        payload: schemas.ProjectPartialUpdate,
+        command: ProjectPartialUpdateCommand = Depends(
+            wiring.Provide[Container.project.project_partial_update_command]
+        ),
 ) -> None:
     await command(payload)
 
@@ -110,11 +110,11 @@ async def update_avatar_project(
 @router.delete("/delete", response_model=None)
 @wiring.inject
 async def delete_project(
-    payload: ProjectDelete,
-    token: str = Header(...),
-    command: ProjectDeleteCommand = Depends(
-        wiring.Provide[Container.project.delete_project]
-    ),
+        payload: ProjectDelete,
+        token: str = Header(...),
+        command: ProjectDeleteCommand = Depends(
+            wiring.Provide[Container.project.delete_project]
+        ),
 ):
     async with user_token(token):
         return await command(payload)
@@ -123,11 +123,11 @@ async def delete_project(
 @router.post("/add/staff", response_model=None)
 @wiring.inject
 async def add_staff(
-    payload: AddEmployees,
-    token: str = Header(...),
-    command: AddEmployeesCommand = Depends(
-        wiring.Provide[Container.project.create_add_employees_command]
-    ),
+        payload: AddEmployees,
+        token: str = Header(...),
+        command: AddEmployeesCommand = Depends(
+            wiring.Provide[Container.project.create_add_employees_command]
+        ),
 ):
     async with user_token(token):
         project = await command(payload)
@@ -140,20 +140,20 @@ async def add_staff(
 )
 @wiring.inject
 async def get_project_staff_list(
-    project_id: UUID,
-    query: ProjectStaffManagementListQuery = Depends(
-        wiring.Provide[Container.project.staff_management_list_query]
-    ),
-    pagination: pagination.PaginationCallable[
-        schemas.ProjectStaffDetailsShort
-    ] = Depends(deps.get_skip_limit_pagination_dep(schemas.ProjectStaffDetailsShort)),
-    sorting: sorting.SortingData[schemas.ProjectStaffSorts] = Depends(
-        deps.get_sort_order_sorting_dep(
-            schemas.ProjectStaffSorts,
-            schemas.ProjectStaffSorts.project_id,
-            sorting.SortOrders.desc,
-        )
-    ),
+        project_id: UUID,
+        query: ProjectStaffManagementListQuery = Depends(
+            wiring.Provide[Container.project.staff_management_list_query]
+        ),
+        pagination: pagination.PaginationCallable[
+            schemas.ProjectStaffDetailsShort
+        ] = Depends(deps.get_skip_limit_pagination_dep(schemas.ProjectStaffDetailsShort)),
+        sorting: sorting.SortingData[schemas.ProjectStaffSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ProjectStaffSorts,
+                schemas.ProjectStaffSorts.project_id,
+                sorting.SortOrders.desc,
+            )
+        ),
 ) -> pagination.Paginated[schemas.ProjectStaffDetailsShort]:
     return await query(
         schemas.ProjectStaffListRequestSchema(
@@ -165,11 +165,11 @@ async def get_project_staff_list(
 @router.delete("/delete/staff", response_model=None)
 @wiring.inject
 async def delete_project_staff(
-    payload: AddEmployees,
-    token: str = Header(...),
-    command: ProjectStaffDeleteCommand = Depends(
-        wiring.Provide[Container.project.delete_project_staff_command]
-    ),
+        payload: AddEmployees,
+        token: str = Header(...),
+        command: ProjectStaffDeleteCommand = Depends(
+            wiring.Provide[Container.project.delete_project_staff_command]
+        ),
 ):
     async with user_token(token):
         await command(payload)
@@ -179,12 +179,12 @@ async def delete_project_staff(
 @router.post("/create/avatar", response_model=AttachmentSchema.Attachment)
 @wiring.inject
 async def create_project_avatar(
-    attachment: UploadFile,
-    project_id: UUID = Form(...),
-    token: str = Header(...),
-    command: ProjectAvatarCreateCommand = Depends(
-        wiring.Provide[Container.attachment.project_create_command]
-    ),
+        attachment: UploadFile,
+        project_id: UUID = Form(...),
+        token: str = Header(...),
+        command: ProjectAvatarCreateCommand = Depends(
+            wiring.Provide[Container.attachment.project_create_command]
+        ),
 ) -> AttachmentSchema.Attachment:
     payload = Like(project_id=project_id)
 
@@ -222,12 +222,12 @@ async def create_project_avatar(
 @router.post("/create/attachment", response_model=AttachmentSchema.Attachment)
 @wiring.inject
 async def create_project_attachment(
-    attachment: UploadFile,
-    project_id: UUID = Form(...),
-    token: str = Header(...),
-    command: ProjectAttachmentCreateCommand = Depends(
-        wiring.Provide[Container.attachment.project_create_attachment_command]
-    ),
+        attachment: UploadFile,
+        project_id: UUID = Form(...),
+        token: str = Header(...),
+        command: ProjectAttachmentCreateCommand = Depends(
+            wiring.Provide[Container.attachment.project_create_attachment_command]
+        ),
 ) -> AttachmentSchema.Attachment:
     payload = Like(project_id=project_id)
 
@@ -249,22 +249,22 @@ async def create_project_attachment(
 )
 @wiring.inject
 async def get_project_attachment_list(
-    project_id: UUID,
-    query: ProjectStaffManagementListQuery = Depends(
-        wiring.Provide[Container.project.project_attachment_management_list_query]
-    ),
-    pagination: pagination.PaginationCallable[
-        schemas.ProjectAttachmentDetailsShort
-    ] = Depends(
-        deps.get_skip_limit_pagination_dep(schemas.ProjectAttachmentDetailsShort)
-    ),
-    sorting: sorting.SortingData[schemas.ProjectAttachmentSorts] = Depends(
-        deps.get_sort_order_sorting_dep(
-            schemas.ProjectAttachmentSorts,
-            schemas.ProjectAttachmentSorts.project_id,
-            sorting.SortOrders.desc,
-        )
-    ),
+        project_id: UUID,
+        query: ProjectStaffManagementListQuery = Depends(
+            wiring.Provide[Container.project.project_attachment_management_list_query]
+        ),
+        pagination: pagination.PaginationCallable[
+            schemas.ProjectAttachmentDetailsShort
+        ] = Depends(
+            deps.get_skip_limit_pagination_dep(schemas.ProjectAttachmentDetailsShort)
+        ),
+        sorting: sorting.SortingData[schemas.ProjectAttachmentSorts] = Depends(
+            deps.get_sort_order_sorting_dep(
+                schemas.ProjectAttachmentSorts,
+                schemas.ProjectAttachmentSorts.project_id,
+                sorting.SortOrders.desc,
+            )
+        ),
 ) -> pagination.Paginated[schemas.ProjectAttachmentDetailsShort]:
     return await query(
         schemas.ProjectAttachmentListRequestSchema(
@@ -276,11 +276,11 @@ async def get_project_attachment_list(
 @router.delete("/delete/attachment", response_model=None)
 @wiring.inject
 async def delete_project_attachment(
-    payload: schemas.ProjectAttachment,
-    token: str = Header(...),
-    command: ProjectAttachmentDeleteCommand = Depends(
-        wiring.Provide[Container.project.delete_project_attachment_command]
-    ),
+        payload: schemas.ProjectAttachment,
+        token: str = Header(...),
+        command: ProjectAttachmentDeleteCommand = Depends(
+            wiring.Provide[Container.project.delete_project_attachment_command]
+        ),
 ):
     async with user_token(token):
         await command(payload)
@@ -290,26 +290,24 @@ async def delete_project_attachment(
 @router.post("/create/like", response_model=None)
 @wiring.inject
 async def like_the_project(
-    payload: Like,
-    token: str = Header(...),
-    command: LikeTheProjectCommand = Depends(
-        wiring.Provide[Container.project.like_the_project_command]
-    ),
+        payload: Like,
+        token: str = Header(...),
+        command: LikeTheProjectCommand = Depends(
+            wiring.Provide[Container.project.like_the_project_command]
+        ),
 ):
     async with user_token(token):
-        project = await command(payload)
-        return project
+        return await command(payload)
 
 
 @router.delete("/delete/like", response_model=None)
 @wiring.inject
 async def unlike_the_project(
-    payload: Like,
-    token: str = Header(...),
-    command: UnlikeTheProjectCommand = Depends(
-        wiring.Provide[Container.project.unlike_the_project_command]
-    ),
+        payload: Like,
+        token: str = Header(...),
+        command: UnlikeTheProjectCommand = Depends(
+            wiring.Provide[Container.project.unlike_the_project_command]
+        ),
 ):
     async with user_token(token):
-        await command(payload)
-        return {"status": "success"}
+        return await command(payload)

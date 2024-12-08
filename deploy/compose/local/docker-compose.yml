@@ -20,24 +20,24 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: "unless-stopped"
 
-#  next:
-#    build:
-#      context: .
-#      dockerfile: ./deploy/compose/local/next.dockerfile
-#    volumes:
-#      - ./frontend/src:/app/src
-#      - ./frontend/public:/app/public
-#    env_file:
-#      - .env.example
-#      - .env
-#    restart: "unless-stopped"
-#    ports:
-#      - 3000:3000
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.next.rule=PathPrefix(`/`)"
-#      - "traefik.http.routers.next.service=next"
-#      - "traefik.http.services.next.loadbalancer.server.port=3000"
+  next:
+    build:
+      context: .
+      dockerfile: ./deploy/compose/local/next.dockerfile
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    env_file:
+      - .env.example
+      - .env
+    restart: "unless-stopped"
+    ports:
+      - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.next.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.next.service=next"
+      - "traefik.http.services.next.loadbalancer.server.port=3000"
 
 
   fastapi: &core
