@@ -42,7 +42,7 @@ class StaffInternal(APIModel):
 class StaffCreate(APIModel):
     firstname: str | None = None
     lastname: str | None = None
-    email: EmailStr | None = None
+    email: str | None = None
     qualification: str | None = None
     post: str | None = None
     description: str | None = None

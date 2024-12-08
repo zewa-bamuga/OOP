@@ -37,6 +37,20 @@ class Staff(APIModel):
     created_at: datetime
 
 
+class StaffInternal(APIModel):
+    id: UUID
+    firstname: str | None = None
+    lastname: str | None = None
+    qualification: str | None = None
+    post: str | None = None
+    email: EmailStr | None = None
+    description: str | None = None
+    link_to_vk: str | None = None
+    status: UserStatuses | None = None
+    avatar_attachment_id: UUID | None = None
+    created_at: datetime
+
+
 class ProjectAttachment(APIModel):
     id: UUID
     project_id: UUID | None = None

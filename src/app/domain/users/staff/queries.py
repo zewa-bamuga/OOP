@@ -12,4 +12,4 @@ class StaffRetrieveQuery:
         staff_result = await self.staff_repository.get_employee_by_filter_or_none(
             schemas.StaffWhere(id=staff_id)
         )
-        return schemas.StaffDetails.model_validate(staff_result)
+        return schemas.StaffInternal.model_validate(staff_result)

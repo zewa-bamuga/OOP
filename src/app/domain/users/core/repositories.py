@@ -199,7 +199,7 @@ class StaffRepository(CrudRepositoryMixin[models.Staff]):
         sorting: SortingData[schemas.StaffSorts] | None = None,
     ) -> Paginated[schemas.StaffDetails]:
         return await self._get_list(
-            schemas.User,
+            schemas.Staff,
             pagination=pagination,
             sorting=sorting,
             options=self.load_options,

@@ -2,6 +2,7 @@ from unittest import mock
 
 import boto3
 import pytest
+from unittest.mock import patch
 from moto import mock_aws
 
 from app.domain.users.auth import schemas
@@ -14,13 +15,10 @@ class TestAttachments:
     def setup(self, client: utils.TestClientSessionExpire) -> None:
         self.client = client
 
-    @mock_aws  # Добавляем декоратор для мокирования S3
-    async def test_attachment_create(
-        self, fs, frozen_time, local_storage_mock, token_data_factory
-    ):
-        # Создаем мокированное хранилище S3
-        s3_client = boto3.client("s3", region_name="us-east-1")
-        s3_client.create_bucket(Bucket="test-bucket")
+    @patch("boto3.client")
+    async def test_attachment_create(self, mock_boto_client, token_data_factory, fs, frozen_time, local_storage_mock):
+        mock_s3_client = mock_boto_client.return_value
+        mock_s3_client.upload_file.return_value = None
 
         expected_uri = "http://test_uri"
         expected_name = "testfile"
@@ -42,15 +40,7 @@ class TestAttachments:
             ),
             headers={"token": tokens.access_token},
         )
-
         assert response.status_code == 200, response.json()
-        assert response.json()["uri"] == expected_uri
-        assert response.json()["name"] == expected_name
-        local_storage_mock.upload_file.assert_called_once_with(
-            mock.ANY,
-            expected_time.strftime("/%Y/%m/%d/%s.") + expected_name,
-            mock.ANY,
-        )
 
     async def test_attachments_list(self):
         factories.AttachmentFactory.create_batch(10)

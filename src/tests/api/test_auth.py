@@ -3,6 +3,7 @@ from typing import Any
 import pytest
 
 from app.domain.common import enums
+from app.domain.common.models import EmailCode, PasswordResetCode
 from app.domain.users.auth import schemas
 from tests import factories, utils
 
@@ -25,6 +26,57 @@ class TestAuth:
         )
         assert response.status_code == 200, response.json()
 
+    async def test_email_verification_request(self, celery_app_mock):
+        response = await self.client.post(
+            "/api/authentication/v1/email/verification/request",
+            json=dict(
+                email="test@mail.ru",
+            ),
+        )
+        assert response.status_code == 200, response.json()
+
+    async def test_email_verification_confirm(self, celery_app_mock):
+        code = EmailCode.generate_code()
+        factories.EmailVerificationCodeFactory.create(code=code)
+
+        response = await self.client.post(
+            "/api/authentication/v1/email/verification/confirm",
+            json=dict(
+                email="test@mail.ru",
+                code=code,
+            ),
+        )
+        assert response.status_code == 200, response.json()
+
+    async def test_password_reset_request(self, container, celery_app_mock):
+        phs = container.user.password_hash_service()
+        user = factories.UserFactory.create(password_hash=phs.hash("test1"))
+
+        response = await self.client.post(
+            "/api/authentication/v1/password/reset/request",
+            json=dict(
+                email=user.email,
+            ),
+        )
+        assert response.status_code == 200, response.json()
+
+    async def test_password_reset_confirm(self, container, celery_app_mock):
+        phs = container.user.password_hash_service()
+        user = factories.UserFactory.create(password_hash=phs.hash("test1"))
+
+        code = PasswordResetCode.generate_code()
+        factories.PasswordResetCodeFactory.create(user_id=user.id, code=code)
+
+        response = await self.client.post(
+            "/api/authentication/v1/password/reset/confirm",
+            json=dict(
+                email=user.email,
+                code=code,
+                password="test2",
+            ),
+        )
+        assert response.status_code == 204, response.json()
+
     @pytest.mark.parametrize(
         ("real_password", "entered_password", "status_code"),
         [
@@ -34,7 +86,7 @@ class TestAuth:
         ],
     )
     async def test_user_authenticate(
-        self, container, real_password, entered_password, status_code
+            self, container, real_password, entered_password, status_code
     ):
         phs = container.user.password_hash_service()
         user = factories.UserFactory.create(password_hash=phs.hash(real_password))
@@ -51,8 +103,8 @@ class TestAuth:
 
         if status_code == 401:
             assert (
-                enums.AuthErrorCodes.invalid_credentials
-                == response.json()["payload"]["code"]
+                    enums.AuthErrorCodes.invalid_credentials
+                    == response.json()["payload"]["code"]
             )
 
     async def test_user_flow(self, celery_app_mock):
