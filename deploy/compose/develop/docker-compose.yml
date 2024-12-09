@@ -19,18 +19,22 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: "unless-stopped"
+    networks:
+      - dev
 
-#  nextjs:
-#    build:
-#      context: .
-#      dockerfile: ./deploy/compose/develop/nextjs.dockerfile
-#    env_file:
-#      - .env.example
-#      - .env
-#    restart: "unless-stopped"
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.nextjs.rule=PathPrefix(`/`)"
+  nextjs:
+    build:
+      context: .
+      dockerfile: ./deploy/compose/develop/nextjs.dockerfile
+    env_file:
+      - .env.example
+      - .env
+    restart: "unless-stopped"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextjs.rule=PathPrefix(`/`)"
+    networks:
+      - dev
 
   fastapi: &core
     build:
@@ -52,16 +56,22 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+    networks:
+      - dev
 
   celery-main: &background
     <<: *core
     command: /start-celery-worker.sh main_queue 1
     labels:
       - "traefik.enable=false"
+    networks:
+      - dev
 
   celery-beat:
     <<: *background
     command: /start-celery-beat.sh
+    networks:
+      - dev
 
   db-init:
     <<: *background
@@ -69,6 +79,24 @@ services:
       - postgres
     restart: "no"
     command: /start-db-init.sh
+    networks:
+      - dev
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./deploy/compose/common/nginx.dockerfile
+    depends_on:
+      - fastapi
+    volumes:
+      - fastapi_media:/usr/share/nginx/media:ro
+      - ./static:/usr/share/nginx/static:ro
+    restart: "unless-stopped"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.storage.rule=PathPrefix(`/media`)"
+    networks:
+      - dev
 
   postgres:
     image: postgres:14
@@ -80,6 +108,8 @@ services:
       - .env.example
       - .env
     restart: "unless-stopped"
+    networks:
+      - dev
 
   rabbitmq:
     image: rabbitmq:3.11-management
@@ -89,3 +119,5 @@ services:
       - .env.example
       - .env
     restart: "unless-stopped"
+    networks:
+      - dev
