@@ -28,7 +28,7 @@ export function RegByEmail() {
     const [passwordVisible, setPasswordVisible] = useState(false)
 
     const {push} = useRouter()
-
+https://gitlab.com/oop8194150/oop
     const onSubmit: SubmitHandler<IRegForm> = async data => {
         if (step === 1) {
             setEmail(data.email)
