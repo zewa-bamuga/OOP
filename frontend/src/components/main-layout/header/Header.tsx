@@ -1,6 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import Loader from '@/components/ui/Loader'
 
@@ -28,95 +30,111 @@ export function Header() {
 	// Получаем URI аватара, если он есть
 	const avatarUri = profileData?.avatarAttachment?.uri
 
+	// Показ уведомления
+	const showDevelopmentToast = () => {
+		toast.info('Данный раздел находится в разработке и скоро появится', {
+			position: 'top-right',
+			autoClose: 3000,
+			hideProgressBar: true,
+			closeOnClick: true,
+			pauseOnHover: true,
+			draggable: true,
+			theme: 'light'
+		})
+	}
+
 	return (
-		<header className='relative w-full h-[60px]'>
-			<div className='bg-white text-oopblack p-2.5 box-border flex justify-between items-center h-full'>
-				<div
-					className='flex list-none m-0 ml-[120px]'
-					style={{
-						fontFamily: 'Lato, sans-serif',
-						fontWeight: 100,
-						letterSpacing: '0.09em'
-					}}
-				>
-					{/* <button
-						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
-						style={{ marginRight: '2rem' }}
-						onClick={() => push('/employees')}
+		<>
+			<ToastContainer />
+			<header className='relative w-full h-[60px]'>
+				<div className='bg-white text-oopblack p-2.5 box-border flex justify-between items-center h-full'>
+					<div
+						className='flex list-none m-0 ml-[120px]'
+						style={{
+							fontFamily: 'Lato, sans-serif',
+							fontWeight: 100,
+							letterSpacing: '0.09em'
+						}}
 					>
-						сотрудники
-					</button> */}
-					{/* <button
-						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
-						style={{ marginRight: '2rem' }}
-						onClick={() => push('/directions')}
-					>
-						направления
-					</button> */}
-					<button
-						className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl'
-						onClick={() => push('/news')}
-					>
-						новости
-					</button>
+						<button
+							className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
+							style={{ marginRight: '2rem' }}
+							onClick={showDevelopmentToast}
+						>
+							сотрудники
+						</button>
+						<button
+							className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl transition-all duration-300 ease-in-out'
+							style={{ marginRight: '2rem' }}
+							onClick={showDevelopmentToast}
+						>
+							направления
+						</button>
+						<button
+							className='text-oopblack border-none cursor-pointer py-2 px-5 text-sm transition-colors duration-300 ease-in-out hover:bg-ooplightblue rounded-3xl'
+							onClick={showDevelopmentToast}
+						>
+							новости
+						</button>
+					</div>
 				</div>
-			</div>
-			<div className='absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120px] h-[120px] bg-white rounded-full z-30 flex items-center justify-center'>
-				<div className='w-[85px] h-[85px] bg-white rounded-full overflow-hidden shadow-inner'>
-					{/* Если пользователь авторизован и есть аватар, показываем его, иначе показываем логотип */}
-					{isAuthenticated && avatarUri ? (
-						<img
-							src={avatarUri}
-							alt='User Avatar'
-							className='w-full h-full object-cover'
-						/>
+				<div className='absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120px] h-[120px] bg-white rounded-full z-30 flex items-center justify-center'>
+					<div className='w-[85px] h-[85px] bg-white rounded-full overflow-hidden shadow-inner'>
+						{/* Если пользователь авторизован и есть аватар, показываем его, иначе показываем логотип */}
+						{isAuthenticated && avatarUri ? (
+							<img
+								src={avatarUri}
+								alt='User Avatar'
+								className='w-full h-full object-cover'
+							/>
+						) : (
+							<img
+								src='/logo.png'
+								alt='logo.png'
+								className='w-full h-full object-cover'
+							/>
+						)}
+					</div>
+				</div>
+				<div className='absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center space-x-2 text-oopblack text-sm'>
+					{!isAuthenticated ? (
+						<>
+							<button
+								className='absolute bg-oopyellowopacity py-2 px-6 rounded-full flex items-center'
+								style={{
+									width: '250px',
+									height: '35px',
+									fontFamily: 'Lato, sans-serif',
+									fontWeight: 100,
+									letterSpacing: '0.09em',
+									marginLeft: '-80px',
+									boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.15)'
+								}}
+								onClick={() => push('../auth')}
+							>
+								<span>войти</span>
+							</button>
+							<button
+								className='bg-oopyellow rounded-full flex items-center justify-center z-30'
+								style={{
+									width: '250px',
+									height: '35px',
+									fontFamily: 'Lato, sans-serif',
+									fontWeight: 100,
+									letterSpacing: '0.09em',
+									marginRight: '100px',
+									boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.15)'
+								}}
+								onClick={() => push('../register')}
+							>
+								<span>зарегистрироваться</span>
+							</button>
+						</>
 					) : (
-						<img
-							src='/logo.png'
-							alt='logo.png'
-							className='w-full h-full object-cover'
-						/>
+						<Profile />
 					)}
 				</div>
-			</div>
-			<div className='absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center space-x-2 text-oopblack text-sm'>
-				{!isAuthenticated ? (
-					<>
-						<button
-							className='absolute bg-oopyellowopacity py-2 px-6 rounded-full flex items-center'
-							style={{
-								width: '250px',
-								height: '35px',
-								fontFamily: 'Lato, sans-serif',
-								fontWeight: 100,
-								letterSpacing: '0.09em',
-								marginLeft: '-80px',
-								boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.15)'
-							}}
-							onClick={() => push('../auth')}
-						>
-							<span>войти</span>
-						</button>
-						<button
-							className='bg-oopyellow rounded-full flex items-center justify-center z-30'
-							style={{
-								width: '250px',
-								height: '35px',
-								fontFamily: 'Lato, sans-serif',
-								fontWeight: 100,
-								letterSpacing: '0.09em',
-								marginRight: '100px',
-								boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.15)'
-							}}
-							onClick={() => push('../register')}
-						>
-							<span>зарегистрироваться</span>
-						</button>
-					</>
-				) : (
-					<Profile />
-				)}
-			</div>
-		</header>
+			</header>
+		</>
 	)
 }
