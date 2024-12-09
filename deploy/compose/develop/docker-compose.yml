@@ -5,6 +5,9 @@ volumes:
   rabbitmq_data: {}
   fastapi_media: {}
 
+networks:
+  dev:
+
 services:
   traefik:
     image: traefik:v3.0
