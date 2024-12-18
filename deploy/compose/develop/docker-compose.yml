@@ -12,9 +12,9 @@ services:
       - "--api.insecure=true"
       - "--providers.docker"
       - "--providers.docker.exposedByDefault=false"
-      - "--entrypoints.http.address=:80"
+      - "--entrypoints.http.address=:8000"
     ports:
-      - "${APP_PORT:-80}:80"
+      - "${APP_PORT:-8000}:8000"
       - "${TRAEFIK_PORT:-8080}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -76,6 +76,7 @@ services:
     build: ./deploy/compose/common
     depends_on:
       - fastapi
+      - nextjs
     volumes:
       - fastapi_media:/usr/share/nginx/media:ro
       - ./static:/usr/share/nginx/static:ro
@@ -85,7 +86,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.storage.rule=PathPrefix(`/media`)"
     ports:
-      - 443:443
+      - "443:443"
+      - "80:80"
 
   postgres:
     image: postgres:14
