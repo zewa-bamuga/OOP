@@ -79,10 +79,13 @@ services:
     volumes:
       - fastapi_media:/usr/share/nginx/media:ro
       - ./static:/usr/share/nginx/static:ro
+      - /etc/letsencrypt:/etc/letsencrypt
     restart: "unless-stopped"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.storage.rule=PathPrefix(`/media`)"
+    ports:
+      - 443:443
 
   postgres:
     image: postgres:14
