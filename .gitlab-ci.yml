@@ -84,7 +84,8 @@ release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   tags:
     - docker
-  needs:    - job: prepare
+  needs:
+    - job: prepare
       artifacts: true
   script:
     - echo "running release for $TAG"
