@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	output: 'standalone',
 	images: {
 		domains: [
 			's3.storage.selcloud.ru',

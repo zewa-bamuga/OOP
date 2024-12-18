@@ -5,9 +5,6 @@ volumes:
   rabbitmq_data: {}
   fastapi_media: {}
 
-networks:
-  dev:
-
 services:
   traefik:
     image: traefik:v3.0
@@ -22,8 +19,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: "unless-stopped"
-    networks:
-      - dev
 
   nextjs:
     build:
@@ -36,8 +31,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nextjs.rule=PathPrefix(`/`)"
-    networks:
-      - dev
+    ports:
+      - 3000:3000
 
   fastapi: &core
     build:
@@ -59,22 +54,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
-    networks:
-      - dev
 
   celery-main: &background
     <<: *core
     command: /start-celery-worker.sh main_queue 1
     labels:
       - "traefik.enable=false"
-    networks:
-      - dev
 
   celery-beat:
     <<: *background
     command: /start-celery-beat.sh
-    networks:
-      - dev
 
   db-init:
     <<: *background
@@ -82,13 +71,9 @@ services:
       - postgres
     restart: "no"
     command: /start-db-init.sh
-    networks:
-      - dev
 
   nginx:
-    build:
-      context: .
-      dockerfile: ./deploy/compose/common/nginx.dockerfile
+    build: ./deploy/compose/common
     depends_on:
       - fastapi
     volumes:
@@ -98,8 +83,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.storage.rule=PathPrefix(`/media`)"
-    networks:
-      - dev
 
   postgres:
     image: postgres:14
@@ -111,8 +94,6 @@ services:
       - .env.example
       - .env
     restart: "unless-stopped"
-    networks:
-      - dev
 
   rabbitmq:
     image: rabbitmq:3.11-management
@@ -122,5 +103,3 @@ services:
       - .env.example
       - .env
     restart: "unless-stopped"
-    networks:
-      - dev
