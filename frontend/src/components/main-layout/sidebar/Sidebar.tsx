@@ -1,9 +1,23 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import {toast, ToastContainer} from "react-toastify";
+
 
 export function Sidebar() {
 	const { push } = useRouter()
+
+		const showDevelopmentToast = () => {
+		toast.info('Данный раздел находится в разработке и скоро появится', {
+			position: 'top-right',
+			autoClose: 3000,
+			hideProgressBar: true,
+			closeOnClick: true,
+			pauseOnHover: true,
+			draggable: true,
+			theme: 'light'
+		})
+	}
 
 	return (
 		<div
@@ -24,7 +38,7 @@ export function Sidebar() {
 			<button
 				className={`promo-box bg-oopgray w-[320px] h-[35px] rounded-r-full flex items-center`}
 				style={{ paddingLeft: '200px', marginLeft: '-20px', zIndex: 1 }}
-				onClick={() => push('./clips')}
+				onClick={showDevelopmentToast}
 			>
 				клипы
 			</button>

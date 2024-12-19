@@ -1,0 +1,21 @@
+exclude: 'docs|node_modules|migrations|.git|.tox|^alembic|^assets'
+default_stages: [commit]
+fail_fast: true
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: prepare
+        name: prepare
+        entry: bash -c "make prepare"
+        language: system
+        types: [python]
+        pass_filenames: false

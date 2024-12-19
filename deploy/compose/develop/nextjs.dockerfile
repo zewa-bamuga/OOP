@@ -1,25 +1,54 @@
-FROM node:18-alpine AS build
-ENV NODE_ENV=development
+FROM node:18-alpine AS base
 
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY ./frontend/package-lock.json ./frontend/package.json ./
-RUN npm install
+# Install dependencies using npm
+COPY ./frontend/package*.json ./frontend/package-lock.json* ./
+RUN \
+ if [ -f package-lock.json ]; then npm ci; \
+ else echo "Lockfile not found." && exit 1; \
+ fi
 
-COPY ./frontend/tsconfig.json ./frontend/tailwind.config.ts ./frontend/next-env.d.ts ./frontend/next.config.mjs ./frontend/.prettierrc ./
-ADD ./frontend/public ./public
-ADD ./frontend/src ./src
+FROM base AS dev
 
-COPY .env .env
-
-RUN npm run dev
-
-FROM node:16-alpine AS production
 WORKDIR /app
-COPY --from=build /app ./
-ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY ./frontend .
 
-RUN npm ci --only=production --legacy-peer-deps
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY ./frontend .
 
-EXPOSE 3000
-CMD ["npm", "start"]
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+# Uncomment the following line in case you want to disable telemetry during runtime.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+CMD ["node", "server.js"]

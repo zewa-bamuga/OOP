@@ -4,7 +4,7 @@ import { errorCatch } from './error'
 import { getAccessToken } from '@/services/auth-token.service'
 
 const options: CreateAxiosDefaults = {
-	baseURL: 'http://localhost:80/api',
+	baseURL: 'https://api.oop-tusur.ru/api',
 	headers: {
 		'Content-Type': 'application/json'
 	},

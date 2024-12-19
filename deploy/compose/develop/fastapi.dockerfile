@@ -1,5 +1,5 @@
 FROM python:3.11.7-slim
-EXPOSE 80
+EXPOSE 8000
 
 RUN apt-get update && \
 	apt-get -y install make && \

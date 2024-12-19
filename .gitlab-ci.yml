@@ -1,0 +1,96 @@
+variables:
+  EXCLUDES: '--exclude=".venv/" --exclude=".mypy_cache/"'
+  VERSION_POSTFIX: "-$CI_COMMIT_BRANCH"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - test
+  - prepare
+  - release
+
+.build_tag_definition: &build_tag_definition
+  tags:
+    - web
+
+.only_default_auto_definition: &only_default_auto_definition
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: always
+    - if: $CI_COMMIT_BRANCH == "prod"
+      variables:
+        VERSION_POSTFIX: ""
+    - when: never
+
+.test-env: &test-env
+  <<: *build_tag_definition
+  environment: testing
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /WIP/
+      when: never
+    - if: $CI_COMMIT_MESSAGE =~ /Draft/
+      when: never
+    - if: $CI_COMMIT_MESSAGE =~ /donttest/
+      when: never
+    - when: always
+
+.dev-env: &dev-env
+  <<: *build_tag_definition
+  <<: *only_default_auto_definition
+  environment: $CI_COMMIT_BRANCH
+
+test:
+  <<: *test-env
+  stage: test
+  before_script:
+    - echo "$ENV" > ".env"
+    - cp ./deploy/compose/test-stage/docker-compose.yml docker-compose.yml
+  script:
+    - docker login -u "$DEPLOY_USER" -p "$DEPLOY_TOKEN" "$CI_REGISTRY"
+    - docker-compose down --remove-orphans --volumes
+    - docker-compose up --build --force-recreate --abort-on-container-exit
+    - export CONTAINER=$(docker-compose ps | grep "fastapi_test" | cut -d ' ' -f1)
+    - docker cp "$CONTAINER:/src/coverage.xml" .
+    - docker cp "$CONTAINER:/src/report.xml" .
+    - sed 's/filename="/filename="src\/app\//g' coverage.xml > coverage-patched.xml
+    - docker-compose down --remove-orphans --volumes
+  coverage:  '/^.{0,}TOTAL.+?(\d+\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage-patched.xml
+      junit: report.xml
+
+
+prepare:
+  <<: *dev-env
+  stage: prepare
+  script:
+    - export VERSION="$(cat ./src/app/__init__.py | grep version | cut -d'"' -f2)$VERSION_POSTFIX"
+    - echo "TAG=v${VERSION}" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env 
+
+
+release:
+  <<: *dev-env
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - docker
+  needs:
+    - job: prepare
+      artifacts: true
+  script:
+    - echo "running release for $TAG"
+  release:
+    name: 'Release $TAG'
+    description: 'Created using the release-cli'
+    tag_name: '$TAG'
+    ref: '$CI_COMMIT_SHA'
