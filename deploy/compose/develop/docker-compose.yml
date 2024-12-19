@@ -1,110 +1,20 @@
 version: '3'
 
-volumes:
-  postgres_data: {}
-  rabbitmq_data: {}
-  fastapi_media: {}
-
 services:
-  traefik:
-    image: traefik:v3.0
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker"
-      - "--providers.docker.exposedByDefault=false"
-      - "--entrypoints.http.address=:8000"
-    ports:
-      - "${APP_PORT:-8000}:8000"
-      - "${TRAEFIK_PORT:-8080}:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: "unless-stopped"
-
   nextjs:
     build:
       context: .
       dockerfile: ./deploy/compose/develop/nextjs.dockerfile
-    env_file:
-      - .env.example
-      - .env
-    restart: "unless-stopped"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=PathPrefix(`/`)"
-    ports:
-      - 3000:3000
-
-  fastapi: &core
-    build:
-      context: .
-      dockerfile: ./deploy/compose/develop/fastapi.dockerfile
-    volumes:
-      - fastapi_media:/media
-    environment:
-      - MODULE_NAME=app.fastapi
-    depends_on:
-      - postgres
-      - rabbitmq
-      - db-init
-    command: /start-fastapi.sh
-    env_file:
-      - .env.example
-      - .env
-    restart: "unless-stopped"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
-
-  celery-main: &background
-    <<: *core
-    command: /start-celery-worker.sh main_queue 1
-    labels:
-      - "traefik.enable=false"
-
-  celery-beat:
-    <<: *background
-    command: /start-celery-beat.sh
-
-  db-init:
-    <<: *background
-    depends_on:
-      - postgres
-    restart: "no"
-    command: /start-db-init.sh
+    networks:
+      - app-network
 
   nginx:
     build: ./deploy/compose/common
-    depends_on:
-      - fastapi
-      - nextjs
-    volumes:
-      - fastapi_media:/usr/share/nginx/media:ro
-      - ./static:/usr/share/nginx/static:ro
-      - '/etc/letsencrypt:/etc/letsencrypt'
-    restart: "unless-stopped"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=PathPrefix(`/media`)"
     ports:
-      - "443:443"
-      - "80:80"
+      - 80:80
+    networks:
+      - app-network
 
-  postgres:
-    image: postgres:14
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/pgdata
-    environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata
-    env_file:
-      - .env.example
-      - .env
-    restart: "unless-stopped"
-
-  rabbitmq:
-    image: rabbitmq:3.11-management
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq/mnesia
-    env_file:
-      - .env.example
-      - .env
-    restart: "unless-stopped"
+networks:
+  app-network:
+    driver: bridge
